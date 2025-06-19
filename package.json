@@ -1,0 +1,19 @@
+{
+  "name": "@makeplane/plane-node-sdk",
+  "version": "0.0.1",
+  "description": "OpenAPI client for @makeplane/plane-node-sdk",
+  "author": "Plane <support@plane.so>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/makeplane/plane-node-sdk.git"
+  },
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^4.0 || ^5.0"
+  }
+}
