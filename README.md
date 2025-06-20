@@ -44,3 +44,52 @@ _unPublished (not recommended):_
 ```
 npm install PATH_TO_GENERATED_PACKAGE --save
 ```
+
+### Example Usage
+```ts
+import {
+  Configuration,
+  ProjectsApi,
+  UsersApi,
+} from "@makeplane/plane-node-sdk";
+
+async function testPlaneSDK() {
+  console.log("🚀 Testing Plane Node SDK...\n");
+
+  try {
+    // Create configuration using API Key Authentication
+    const config = new Configuration({
+      apiKey: "<PLANE_API_KEY>",
+    });
+
+    // Create configuration using OAuth Client Credentials Authentication
+    // const config = new Configuration({
+    //   accessToken: "<PLANE_ACCESS_TOKEN>",
+    // });
+
+    console.log("✅ Configuration created successfully");
+    console.log(`Base URL: ${config.basePath}\n`);
+
+    // Initialize APIs
+    const projectsApi = new ProjectsApi(config);
+    const usersApi = new UsersApi(config);
+
+    console.log("✅ APIs initialized successfully\n");
+
+    const user = await usersApi.getCurrentUser();
+    console.log(user);
+
+    const projectsResponse = await projectsApi.listProjects({
+      slug: "<workspace-slug>",
+    });
+    for (const project of projectsResponse.results) {
+      console.log(`${project.id} - ${project.name}`);
+    }
+  } catch (error) {
+    console.error("❌ Error initializing SDK:", error);
+  }
+}
+
+// Run the test
+testPlaneSDK().catch(console.error);
+```
