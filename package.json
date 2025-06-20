@@ -1,6 +1,6 @@
 {
   "name": "@makeplane/plane-node-sdk",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "OpenAPI client for @makeplane/plane-node-sdk",
   "author": "Plane <support@plane.so>",
   "repository": {
