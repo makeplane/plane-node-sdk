@@ -31,19 +31,19 @@ import {
     PatchedIntakeIssueUpdateRequestToJSON,
 } from '../models/index';
 
-export interface CreateIntakeIssueRequest {
+export interface CreateIntakeWorkItemRequest {
     projectId: string;
     slug: string;
     intakeIssueCreateRequest: IntakeIssueCreateRequest;
 }
 
-export interface DeleteIntakeIssueRequest {
+export interface DeleteIntakeWorkItemRequest {
     issueId: string;
     projectId: string;
     slug: string;
 }
 
-export interface GetIntakeIssuesListRequest {
+export interface GetIntakeWorkItemsListRequest {
     projectId: string;
     slug: string;
     cursor?: string;
@@ -52,13 +52,13 @@ export interface GetIntakeIssuesListRequest {
     perPage?: number;
 }
 
-export interface RetrieveIntakeIssueRequest {
+export interface RetrieveIntakeWorkItemRequest {
     issueId: string;
     projectId: string;
     slug: string;
 }
 
-export interface UpdateIntakeIssueRequest {
+export interface UpdateIntakeWorkItemRequest {
     issueId: string;
     projectId: string;
     slug: string;
@@ -71,28 +71,28 @@ export interface UpdateIntakeIssueRequest {
 export class IntakeApi extends runtime.BaseAPI {
 
     /**
-     * Submit a new issue to the project\'s intake queue for review and triage. Automatically creates the issue with default triage state and tracks activity.
-     * Create intake issue
+     * Submit a new work item to the project\'s intake queue for review and triage. Automatically creates the work item with default triage state and tracks activity.
+     * Create intake work item
      */
-    async createIntakeIssueRaw(requestParameters: CreateIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IntakeIssue>> {
+    async createIntakeWorkItemRaw(requestParameters: CreateIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IntakeIssue>> {
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling createIntakeIssue().'
+                'Required parameter "projectId" was null or undefined when calling createIntakeWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling createIntakeIssue().'
+                'Required parameter "slug" was null or undefined when calling createIntakeWorkItem().'
             );
         }
 
         if (requestParameters['intakeIssueCreateRequest'] == null) {
             throw new runtime.RequiredError(
                 'intakeIssueCreateRequest',
-                'Required parameter "intakeIssueCreateRequest" was null or undefined when calling createIntakeIssue().'
+                'Required parameter "intakeIssueCreateRequest" was null or undefined when calling createIntakeWorkItem().'
             );
         }
 
@@ -128,37 +128,37 @@ export class IntakeApi extends runtime.BaseAPI {
     }
 
     /**
-     * Submit a new issue to the project\'s intake queue for review and triage. Automatically creates the issue with default triage state and tracks activity.
-     * Create intake issue
+     * Submit a new work item to the project\'s intake queue for review and triage. Automatically creates the work item with default triage state and tracks activity.
+     * Create intake work item
      */
-    async createIntakeIssue(requestParameters: CreateIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IntakeIssue> {
-        const response = await this.createIntakeIssueRaw(requestParameters, initOverrides);
+    async createIntakeWorkItem(requestParameters: CreateIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IntakeIssue> {
+        const response = await this.createIntakeWorkItemRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Permanently remove an intake issue from the triage queue. Also deletes the underlying issue if it hasn\'t been accepted yet.
-     * Delete intake issue
+     * Permanently remove an intake work item from the triage queue. Also deletes the underlying work item if it hasn\'t been accepted yet.
+     * Delete intake work item
      */
-    async deleteIntakeIssueRaw(requestParameters: DeleteIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async deleteIntakeWorkItemRaw(requestParameters: DeleteIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling deleteIntakeIssue().'
+                'Required parameter "issueId" was null or undefined when calling deleteIntakeWorkItem().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling deleteIntakeIssue().'
+                'Required parameter "projectId" was null or undefined when calling deleteIntakeWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling deleteIntakeIssue().'
+                'Required parameter "slug" was null or undefined when calling deleteIntakeWorkItem().'
             );
         }
 
@@ -191,29 +191,29 @@ export class IntakeApi extends runtime.BaseAPI {
     }
 
     /**
-     * Permanently remove an intake issue from the triage queue. Also deletes the underlying issue if it hasn\'t been accepted yet.
-     * Delete intake issue
+     * Permanently remove an intake work item from the triage queue. Also deletes the underlying work item if it hasn\'t been accepted yet.
+     * Delete intake work item
      */
-    async deleteIntakeIssue(requestParameters: DeleteIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteIntakeIssueRaw(requestParameters, initOverrides);
+    async deleteIntakeWorkItem(requestParameters: DeleteIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteIntakeWorkItemRaw(requestParameters, initOverrides);
     }
 
     /**
-     * Retrieve all issues in the project\'s intake queue. Returns paginated results when listing all intake issues.
-     * List intake issues
+     * Retrieve all work items in the project\'s intake queue. Returns paginated results when listing all intake work items.
+     * List intake work items
      */
-    async getIntakeIssuesListRaw(requestParameters: GetIntakeIssuesListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIntakeIssueResponse>> {
+    async getIntakeWorkItemsListRaw(requestParameters: GetIntakeWorkItemsListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIntakeIssueResponse>> {
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling getIntakeIssuesList().'
+                'Required parameter "projectId" was null or undefined when calling getIntakeWorkItemsList().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling getIntakeIssuesList().'
+                'Required parameter "slug" was null or undefined when calling getIntakeWorkItemsList().'
             );
         }
 
@@ -262,37 +262,37 @@ export class IntakeApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all issues in the project\'s intake queue. Returns paginated results when listing all intake issues.
-     * List intake issues
+     * Retrieve all work items in the project\'s intake queue. Returns paginated results when listing all intake work items.
+     * List intake work items
      */
-    async getIntakeIssuesList(requestParameters: GetIntakeIssuesListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIntakeIssueResponse> {
-        const response = await this.getIntakeIssuesListRaw(requestParameters, initOverrides);
+    async getIntakeWorkItemsList(requestParameters: GetIntakeWorkItemsListRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIntakeIssueResponse> {
+        const response = await this.getIntakeWorkItemsListRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Retrieve details of a specific intake issue.
-     * Retrieve intake issue
+     * Retrieve details of a specific intake work item.
+     * Retrieve intake work item
      */
-    async retrieveIntakeIssueRaw(requestParameters: RetrieveIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IntakeIssue>> {
+    async retrieveIntakeWorkItemRaw(requestParameters: RetrieveIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IntakeIssue>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling retrieveIntakeIssue().'
+                'Required parameter "issueId" was null or undefined when calling retrieveIntakeWorkItem().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling retrieveIntakeIssue().'
+                'Required parameter "projectId" was null or undefined when calling retrieveIntakeWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling retrieveIntakeIssue().'
+                'Required parameter "slug" was null or undefined when calling retrieveIntakeWorkItem().'
             );
         }
 
@@ -325,37 +325,37 @@ export class IntakeApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve details of a specific intake issue.
-     * Retrieve intake issue
+     * Retrieve details of a specific intake work item.
+     * Retrieve intake work item
      */
-    async retrieveIntakeIssue(requestParameters: RetrieveIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IntakeIssue> {
-        const response = await this.retrieveIntakeIssueRaw(requestParameters, initOverrides);
+    async retrieveIntakeWorkItem(requestParameters: RetrieveIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IntakeIssue> {
+        const response = await this.retrieveIntakeWorkItemRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Modify an existing intake issue\'s properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.
-     * Update intake issue
+     * Modify an existing intake work item\'s properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.
+     * Update intake work item
      */
-    async updateIntakeIssueRaw(requestParameters: UpdateIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IntakeIssue>> {
+    async updateIntakeWorkItemRaw(requestParameters: UpdateIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IntakeIssue>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling updateIntakeIssue().'
+                'Required parameter "issueId" was null or undefined when calling updateIntakeWorkItem().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling updateIntakeIssue().'
+                'Required parameter "projectId" was null or undefined when calling updateIntakeWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling updateIntakeIssue().'
+                'Required parameter "slug" was null or undefined when calling updateIntakeWorkItem().'
             );
         }
 
@@ -391,11 +391,11 @@ export class IntakeApi extends runtime.BaseAPI {
     }
 
     /**
-     * Modify an existing intake issue\'s properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.
-     * Update intake issue
+     * Modify an existing intake work item\'s properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.
+     * Update intake work item
      */
-    async updateIntakeIssue(requestParameters: UpdateIntakeIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IntakeIssue> {
-        const response = await this.updateIntakeIssueRaw(requestParameters, initOverrides);
+    async updateIntakeWorkItem(requestParameters: UpdateIntakeWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IntakeIssue> {
+        const response = await this.updateIntakeWorkItemRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

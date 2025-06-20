@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { IntakeIssueStatusEnum } from './IntakeIssueStatusEnum';
+import type { IntakeWorkItemStatusEnum } from './IntakeWorkItemStatusEnum';
 import {
-    IntakeIssueStatusEnumFromJSON,
-    IntakeIssueStatusEnumFromJSONTyped,
-    IntakeIssueStatusEnumToJSON,
-    IntakeIssueStatusEnumToJSONTyped,
-} from './IntakeIssueStatusEnum';
+    IntakeWorkItemStatusEnumFromJSON,
+    IntakeWorkItemStatusEnumFromJSONTyped,
+    IntakeWorkItemStatusEnumToJSON,
+    IntakeWorkItemStatusEnumToJSONTyped,
+} from './IntakeWorkItemStatusEnum';
 import type { IssueExpand } from './IssueExpand';
 import {
     IssueExpandFromJSON,
@@ -75,10 +75,10 @@ export interface IntakeIssue {
     deletedAt?: Date | null;
     /**
      * 
-     * @type {IntakeIssueStatusEnum}
+     * @type {IntakeWorkItemStatusEnum}
      * @memberof IntakeIssue
      */
-    status?: IntakeIssueStatusEnum;
+    status?: IntakeWorkItemStatusEnum;
     /**
      * 
      * @type {Date}
@@ -185,7 +185,7 @@ export function IntakeIssueFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
         'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
         'deletedAt': json['deleted_at'] == null ? undefined : (new Date(json['deleted_at'])),
-        'status': json['status'] == null ? undefined : IntakeIssueStatusEnumFromJSON(json['status']),
+        'status': json['status'] == null ? undefined : IntakeWorkItemStatusEnumFromJSON(json['status']),
         'snoozedTill': json['snoozed_till'] == null ? undefined : (new Date(json['snoozed_till'])),
         'source': json['source'] == null ? undefined : json['source'],
         'sourceEmail': json['source_email'] == null ? undefined : json['source_email'],
@@ -214,7 +214,7 @@ export function IntakeIssueToJSONTyped(value?: Omit<IntakeIssue, 'id'|'issue_det
     return {
         
         'deleted_at': value['deletedAt'] == null ? undefined : ((value['deletedAt'] as any).toISOString()),
-        'status': IntakeIssueStatusEnumToJSON(value['status']),
+        'status': IntakeWorkItemStatusEnumToJSON(value['status']),
         'snoozed_till': value['snoozedTill'] == null ? undefined : ((value['snoozedTill'] as any).toISOString()),
         'source': value['source'],
         'source_email': value['sourceEmail'],

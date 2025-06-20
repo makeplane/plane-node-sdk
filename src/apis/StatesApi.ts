@@ -137,7 +137,7 @@ export class StatesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Permanently remove a workflow state from a project. Default states and states with existing issues cannot be deleted.
+     * Permanently remove a workflow state from a project. Default states and states with existing work items cannot be deleted.
      * Delete state
      */
     async deleteStateRaw(requestParameters: DeleteStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -191,7 +191,7 @@ export class StatesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Permanently remove a workflow state from a project. Default states and states with existing issues cannot be deleted.
+     * Permanently remove a workflow state from a project. Default states and states with existing work items cannot be deleted.
      * Delete state
      */
     async deleteState(requestParameters: DeleteStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {

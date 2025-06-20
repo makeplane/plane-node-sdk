@@ -25,7 +25,7 @@ import {
     PaginatedIssueActivityResponseToJSON,
 } from '../models/index';
 
-export interface ListIssueActivitiesRequest {
+export interface ListWorkItemActivitiesRequest {
     issueId: string;
     projectId: string;
     slug: string;
@@ -36,7 +36,7 @@ export interface ListIssueActivitiesRequest {
     perPage?: number;
 }
 
-export interface RetrieveIssueActivityRequest {
+export interface RetrieveWorkItemActivityRequest {
     issueId: string;
     pk: string;
     projectId: string;
@@ -54,28 +54,28 @@ export interface RetrieveIssueActivityRequest {
 export class WorkItemActivityApi extends runtime.BaseAPI {
 
     /**
-     * Retrieve all activities for an issue. Supports filtering by activity type and date range.
+     * Retrieve all activities for a work item. Supports filtering by activity type and date range.
      * Endpoints for issue activity/search and fetch issue activity details
      */
-    async listIssueActivitiesRaw(requestParameters: ListIssueActivitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueActivityResponse>> {
+    async listWorkItemActivitiesRaw(requestParameters: ListWorkItemActivitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueActivityResponse>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling listIssueActivities().'
+                'Required parameter "issueId" was null or undefined when calling listWorkItemActivities().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling listIssueActivities().'
+                'Required parameter "projectId" was null or undefined when calling listWorkItemActivities().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling listIssueActivities().'
+                'Required parameter "slug" was null or undefined when calling listWorkItemActivities().'
             );
         }
 
@@ -128,11 +128,11 @@ export class WorkItemActivityApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all activities for an issue. Supports filtering by activity type and date range.
+     * Retrieve all activities for a work item. Supports filtering by activity type and date range.
      * Endpoints for issue activity/search and fetch issue activity details
      */
-    async listIssueActivities(requestParameters: ListIssueActivitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueActivityResponse> {
-        const response = await this.listIssueActivitiesRaw(requestParameters, initOverrides);
+    async listWorkItemActivities(requestParameters: ListWorkItemActivitiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueActivityResponse> {
+        const response = await this.listWorkItemActivitiesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -140,32 +140,32 @@ export class WorkItemActivityApi extends runtime.BaseAPI {
      * Retrieve details of a specific activity.
      * Endpoints for issue activity/search and fetch issue activity details
      */
-    async retrieveIssueActivityRaw(requestParameters: RetrieveIssueActivityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueActivityDetailResponse>> {
+    async retrieveWorkItemActivityRaw(requestParameters: RetrieveWorkItemActivityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueActivityDetailResponse>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling retrieveIssueActivity().'
+                'Required parameter "issueId" was null or undefined when calling retrieveWorkItemActivity().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling retrieveIssueActivity().'
+                'Required parameter "pk" was null or undefined when calling retrieveWorkItemActivity().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling retrieveIssueActivity().'
+                'Required parameter "projectId" was null or undefined when calling retrieveWorkItemActivity().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling retrieveIssueActivity().'
+                'Required parameter "slug" was null or undefined when calling retrieveWorkItemActivity().'
             );
         }
 
@@ -221,8 +221,8 @@ export class WorkItemActivityApi extends runtime.BaseAPI {
      * Retrieve details of a specific activity.
      * Endpoints for issue activity/search and fetch issue activity details
      */
-    async retrieveIssueActivity(requestParameters: RetrieveIssueActivityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueActivityDetailResponse> {
-        const response = await this.retrieveIssueActivityRaw(requestParameters, initOverrides);
+    async retrieveWorkItemActivity(requestParameters: RetrieveWorkItemActivityRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueActivityDetailResponse> {
+        const response = await this.retrieveWorkItemActivityRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

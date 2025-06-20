@@ -31,21 +31,21 @@ import {
     PatchedIssueCommentCreateRequestToJSON,
 } from '../models/index';
 
-export interface CreateIssueCommentRequest {
+export interface CreateWorkItemCommentRequest {
     issueId: string;
     projectId: string;
     slug: string;
     issueCommentCreateRequest?: IssueCommentCreateRequest;
 }
 
-export interface DeleteIssueCommentRequest {
+export interface DeleteWorkItemCommentRequest {
     issueId: string;
     pk: string;
     projectId: string;
     slug: string;
 }
 
-export interface ListIssueCommentsRequest {
+export interface ListWorkItemCommentsRequest {
     issueId: string;
     projectId: string;
     slug: string;
@@ -56,14 +56,14 @@ export interface ListIssueCommentsRequest {
     perPage?: number;
 }
 
-export interface RetrieveIssueCommentRequest {
+export interface RetrieveWorkItemCommentRequest {
     issueId: string;
     pk: string;
     projectId: string;
     slug: string;
 }
 
-export interface UpdateIssueCommentRequest {
+export interface UpdateWorkItemCommentRequest {
     issueId: string;
     pk: string;
     projectId: string;
@@ -77,28 +77,28 @@ export interface UpdateIssueCommentRequest {
 export class WorkItemCommentsApi extends runtime.BaseAPI {
 
     /**
-     * Add a new comment to an issue with HTML content.
-     * Create a new issue comment
+     * Add a new comment to a work item with HTML content.
+     * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async createIssueCommentRaw(requestParameters: CreateIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueComment>> {
+    async createWorkItemCommentRaw(requestParameters: CreateWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueComment>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling createIssueComment().'
+                'Required parameter "issueId" was null or undefined when calling createWorkItemComment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling createIssueComment().'
+                'Required parameter "projectId" was null or undefined when calling createWorkItemComment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling createIssueComment().'
+                'Required parameter "slug" was null or undefined when calling createWorkItemComment().'
             );
         }
 
@@ -134,44 +134,44 @@ export class WorkItemCommentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Add a new comment to an issue with HTML content.
-     * Create a new issue comment
+     * Add a new comment to a work item with HTML content.
+     * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async createIssueComment(requestParameters: CreateIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueComment> {
-        const response = await this.createIssueCommentRaw(requestParameters, initOverrides);
+    async createWorkItemComment(requestParameters: CreateWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueComment> {
+        const response = await this.createWorkItemCommentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Permanently remove a comment from an issue. Records deletion activity for audit purposes.
-     * Delete an issue comment
+     * Permanently remove a comment from a work item. Records deletion activity for audit purposes.
+     * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async deleteIssueCommentRaw(requestParameters: DeleteIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async deleteWorkItemCommentRaw(requestParameters: DeleteWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling deleteIssueComment().'
+                'Required parameter "issueId" was null or undefined when calling deleteWorkItemComment().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling deleteIssueComment().'
+                'Required parameter "pk" was null or undefined when calling deleteWorkItemComment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling deleteIssueComment().'
+                'Required parameter "projectId" was null or undefined when calling deleteWorkItemComment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling deleteIssueComment().'
+                'Required parameter "slug" was null or undefined when calling deleteWorkItemComment().'
             );
         }
 
@@ -204,36 +204,36 @@ export class WorkItemCommentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Permanently remove a comment from an issue. Records deletion activity for audit purposes.
-     * Delete an issue comment
+     * Permanently remove a comment from a work item. Records deletion activity for audit purposes.
+     * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async deleteIssueComment(requestParameters: DeleteIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteIssueCommentRaw(requestParameters, initOverrides);
+    async deleteWorkItemComment(requestParameters: DeleteWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteWorkItemCommentRaw(requestParameters, initOverrides);
     }
 
     /**
-     * Retrieve all comments for an issue.
+     * Retrieve all comments for a work item.
      * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async listIssueCommentsRaw(requestParameters: ListIssueCommentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueCommentResponse>> {
+    async listWorkItemCommentsRaw(requestParameters: ListWorkItemCommentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueCommentResponse>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling listIssueComments().'
+                'Required parameter "issueId" was null or undefined when calling listWorkItemComments().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling listIssueComments().'
+                'Required parameter "projectId" was null or undefined when calling listWorkItemComments().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling listIssueComments().'
+                'Required parameter "slug" was null or undefined when calling listWorkItemComments().'
             );
         }
 
@@ -286,11 +286,11 @@ export class WorkItemCommentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all comments for an issue.
+     * Retrieve all comments for a work item.
      * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async listIssueComments(requestParameters: ListIssueCommentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueCommentResponse> {
-        const response = await this.listIssueCommentsRaw(requestParameters, initOverrides);
+    async listWorkItemComments(requestParameters: ListWorkItemCommentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueCommentResponse> {
+        const response = await this.listWorkItemCommentsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -298,32 +298,32 @@ export class WorkItemCommentsApi extends runtime.BaseAPI {
      * Retrieve details of a specific comment.
      * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async retrieveIssueCommentRaw(requestParameters: RetrieveIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueComment>> {
+    async retrieveWorkItemCommentRaw(requestParameters: RetrieveWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueComment>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling retrieveIssueComment().'
+                'Required parameter "issueId" was null or undefined when calling retrieveWorkItemComment().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling retrieveIssueComment().'
+                'Required parameter "pk" was null or undefined when calling retrieveWorkItemComment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling retrieveIssueComment().'
+                'Required parameter "projectId" was null or undefined when calling retrieveWorkItemComment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling retrieveIssueComment().'
+                'Required parameter "slug" was null or undefined when calling retrieveWorkItemComment().'
             );
         }
 
@@ -359,41 +359,41 @@ export class WorkItemCommentsApi extends runtime.BaseAPI {
      * Retrieve details of a specific comment.
      * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async retrieveIssueComment(requestParameters: RetrieveIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueComment> {
-        const response = await this.retrieveIssueCommentRaw(requestParameters, initOverrides);
+    async retrieveWorkItemComment(requestParameters: RetrieveWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueComment> {
+        const response = await this.retrieveWorkItemCommentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Modify the content of an existing comment on an issue.
-     * Update an issue comment
+     * Modify the content of an existing comment on a work item.
+     * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async updateIssueCommentRaw(requestParameters: UpdateIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueComment>> {
+    async updateWorkItemCommentRaw(requestParameters: UpdateWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueComment>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling updateIssueComment().'
+                'Required parameter "issueId" was null or undefined when calling updateWorkItemComment().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling updateIssueComment().'
+                'Required parameter "pk" was null or undefined when calling updateWorkItemComment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling updateIssueComment().'
+                'Required parameter "projectId" was null or undefined when calling updateWorkItemComment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling updateIssueComment().'
+                'Required parameter "slug" was null or undefined when calling updateWorkItemComment().'
             );
         }
 
@@ -429,11 +429,11 @@ export class WorkItemCommentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Modify the content of an existing comment on an issue.
-     * Update an issue comment
+     * Modify the content of an existing comment on a work item.
+     * Endpoints for issue comment create/update/delete and fetch issue comment details
      */
-    async updateIssueComment(requestParameters: UpdateIssueCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueComment> {
-        const response = await this.updateIssueCommentRaw(requestParameters, initOverrides);
+    async updateWorkItemComment(requestParameters: UpdateWorkItemCommentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueComment> {
+        const response = await this.updateWorkItemCommentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

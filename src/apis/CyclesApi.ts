@@ -24,8 +24,8 @@ import type {
   PaginatedCycleResponse,
   PatchedCycleUpdateRequest,
   TransferCycleIssueRequestRequest,
-  TransferCycleIssues200Response,
-  TransferCycleIssues400Response,
+  TransferCycleWorkItems200Response,
+  TransferCycleWorkItems400Response,
 } from '../models/index';
 import {
     CycleFromJSON,
@@ -46,13 +46,13 @@ import {
     PatchedCycleUpdateRequestToJSON,
     TransferCycleIssueRequestRequestFromJSON,
     TransferCycleIssueRequestRequestToJSON,
-    TransferCycleIssues200ResponseFromJSON,
-    TransferCycleIssues200ResponseToJSON,
-    TransferCycleIssues400ResponseFromJSON,
-    TransferCycleIssues400ResponseToJSON,
+    TransferCycleWorkItems200ResponseFromJSON,
+    TransferCycleWorkItems200ResponseToJSON,
+    TransferCycleWorkItems400ResponseFromJSON,
+    TransferCycleWorkItems400ResponseToJSON,
 } from '../models/index';
 
-export interface AddCycleIssuesRequest {
+export interface AddCycleWorkItemsRequest {
     cycleId: string;
     projectId: string;
     slug: string;
@@ -77,7 +77,7 @@ export interface DeleteCycleRequest {
     slug: string;
 }
 
-export interface DeleteCycleIssueRequest {
+export interface DeleteCycleWorkItemRequest {
     cycleId: string;
     issueId: string;
     projectId: string;
@@ -91,7 +91,7 @@ export interface ListArchivedCyclesRequest {
     perPage?: number;
 }
 
-export interface ListCycleIssuesRequest {
+export interface ListCycleWorkItemsRequest {
     cycleId: string;
     projectId: string;
     slug: string;
@@ -116,14 +116,14 @@ export interface RetrieveCycleRequest {
     slug: string;
 }
 
-export interface RetrieveCycleIssueRequest {
+export interface RetrieveCycleWorkItemRequest {
     cycleId: string;
     issueId: string;
     projectId: string;
     slug: string;
 }
 
-export interface TransferCycleIssuesRequest {
+export interface TransferCycleWorkItemsRequest {
     cycleId: string;
     projectId: string;
     slug: string;
@@ -149,35 +149,35 @@ export interface UpdateCycleRequest {
 export class CyclesApi extends runtime.BaseAPI {
 
     /**
-     * Assign multiple issues to a cycle. Automatically handles bulk creation and updates with activity tracking.
-     * Add Issues to Cycle
+     * Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
+     * Add Work Items to Cycle
      */
-    async addCycleIssuesRaw(requestParameters: AddCycleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CycleIssue>> {
+    async addCycleWorkItemsRaw(requestParameters: AddCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CycleIssue>> {
         if (requestParameters['cycleId'] == null) {
             throw new runtime.RequiredError(
                 'cycleId',
-                'Required parameter "cycleId" was null or undefined when calling addCycleIssues().'
+                'Required parameter "cycleId" was null or undefined when calling addCycleWorkItems().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling addCycleIssues().'
+                'Required parameter "projectId" was null or undefined when calling addCycleWorkItems().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling addCycleIssues().'
+                'Required parameter "slug" was null or undefined when calling addCycleWorkItems().'
             );
         }
 
         if (requestParameters['cycleIssueRequestRequest'] == null) {
             throw new runtime.RequiredError(
                 'cycleIssueRequestRequest',
-                'Required parameter "cycleIssueRequestRequest" was null or undefined when calling addCycleIssues().'
+                'Required parameter "cycleIssueRequestRequest" was null or undefined when calling addCycleWorkItems().'
             );
         }
 
@@ -213,11 +213,11 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Assign multiple issues to a cycle. Automatically handles bulk creation and updates with activity tracking.
-     * Add Issues to Cycle
+     * Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
+     * Add Work Items to Cycle
      */
-    async addCycleIssues(requestParameters: AddCycleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CycleIssue> {
-        const response = await this.addCycleIssuesRaw(requestParameters, initOverrides);
+    async addCycleWorkItems(requestParameters: AddCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CycleIssue> {
+        const response = await this.addCycleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -412,35 +412,35 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Remove an issue from a cycle while keeping the issue in the project.
-     * Delete cycle issue
+     * Remove a work item from a cycle while keeping the work item in the project.
+     * Delete cycle work item
      */
-    async deleteCycleIssueRaw(requestParameters: DeleteCycleIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async deleteCycleWorkItemRaw(requestParameters: DeleteCycleWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['cycleId'] == null) {
             throw new runtime.RequiredError(
                 'cycleId',
-                'Required parameter "cycleId" was null or undefined when calling deleteCycleIssue().'
+                'Required parameter "cycleId" was null or undefined when calling deleteCycleWorkItem().'
             );
         }
 
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling deleteCycleIssue().'
+                'Required parameter "issueId" was null or undefined when calling deleteCycleWorkItem().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling deleteCycleIssue().'
+                'Required parameter "projectId" was null or undefined when calling deleteCycleWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling deleteCycleIssue().'
+                'Required parameter "slug" was null or undefined when calling deleteCycleWorkItem().'
             );
         }
 
@@ -473,11 +473,11 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Remove an issue from a cycle while keeping the issue in the project.
-     * Delete cycle issue
+     * Remove a work item from a cycle while keeping the work item in the project.
+     * Delete cycle work item
      */
-    async deleteCycleIssue(requestParameters: DeleteCycleIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteCycleIssueRaw(requestParameters, initOverrides);
+    async deleteCycleWorkItem(requestParameters: DeleteCycleWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteCycleWorkItemRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -545,28 +545,28 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all issues assigned to a cycle.
-     * List cycle issues
+     * Retrieve all work items assigned to a cycle.
+     * List cycle work items
      */
-    async listCycleIssuesRaw(requestParameters: ListCycleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedCycleIssueResponse>> {
+    async listCycleWorkItemsRaw(requestParameters: ListCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedCycleIssueResponse>> {
         if (requestParameters['cycleId'] == null) {
             throw new runtime.RequiredError(
                 'cycleId',
-                'Required parameter "cycleId" was null or undefined when calling listCycleIssues().'
+                'Required parameter "cycleId" was null or undefined when calling listCycleWorkItems().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling listCycleIssues().'
+                'Required parameter "projectId" was null or undefined when calling listCycleWorkItems().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling listCycleIssues().'
+                'Required parameter "slug" was null or undefined when calling listCycleWorkItems().'
             );
         }
 
@@ -607,11 +607,11 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all issues assigned to a cycle.
-     * List cycle issues
+     * Retrieve all work items assigned to a cycle.
+     * List cycle work items
      */
-    async listCycleIssues(requestParameters: ListCycleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedCycleIssueResponse> {
-        const response = await this.listCycleIssuesRaw(requestParameters, initOverrides);
+    async listCycleWorkItems(requestParameters: ListCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedCycleIssueResponse> {
+        const response = await this.listCycleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -759,35 +759,35 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve details of a specific cycle issue.
-     * Retrieve cycle issue
+     * Retrieve details of a specific cycle work item.
+     * Retrieve cycle work item
      */
-    async retrieveCycleIssueRaw(requestParameters: RetrieveCycleIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CycleIssue>> {
+    async retrieveCycleWorkItemRaw(requestParameters: RetrieveCycleWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CycleIssue>> {
         if (requestParameters['cycleId'] == null) {
             throw new runtime.RequiredError(
                 'cycleId',
-                'Required parameter "cycleId" was null or undefined when calling retrieveCycleIssue().'
+                'Required parameter "cycleId" was null or undefined when calling retrieveCycleWorkItem().'
             );
         }
 
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling retrieveCycleIssue().'
+                'Required parameter "issueId" was null or undefined when calling retrieveCycleWorkItem().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling retrieveCycleIssue().'
+                'Required parameter "projectId" was null or undefined when calling retrieveCycleWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling retrieveCycleIssue().'
+                'Required parameter "slug" was null or undefined when calling retrieveCycleWorkItem().'
             );
         }
 
@@ -820,44 +820,44 @@ export class CyclesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve details of a specific cycle issue.
-     * Retrieve cycle issue
+     * Retrieve details of a specific cycle work item.
+     * Retrieve cycle work item
      */
-    async retrieveCycleIssue(requestParameters: RetrieveCycleIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CycleIssue> {
-        const response = await this.retrieveCycleIssueRaw(requestParameters, initOverrides);
+    async retrieveCycleWorkItem(requestParameters: RetrieveCycleWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CycleIssue> {
+        const response = await this.retrieveCycleWorkItemRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Move incomplete issues from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.
-     * Transfer cycle issues
+     * Move incomplete work items from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.
+     * Transfer cycle work items
      */
-    async transferCycleIssuesRaw(requestParameters: TransferCycleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TransferCycleIssues200Response>> {
+    async transferCycleWorkItemsRaw(requestParameters: TransferCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TransferCycleWorkItems200Response>> {
         if (requestParameters['cycleId'] == null) {
             throw new runtime.RequiredError(
                 'cycleId',
-                'Required parameter "cycleId" was null or undefined when calling transferCycleIssues().'
+                'Required parameter "cycleId" was null or undefined when calling transferCycleWorkItems().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling transferCycleIssues().'
+                'Required parameter "projectId" was null or undefined when calling transferCycleWorkItems().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling transferCycleIssues().'
+                'Required parameter "slug" was null or undefined when calling transferCycleWorkItems().'
             );
         }
 
         if (requestParameters['transferCycleIssueRequestRequest'] == null) {
             throw new runtime.RequiredError(
                 'transferCycleIssueRequestRequest',
-                'Required parameter "transferCycleIssueRequestRequest" was null or undefined when calling transferCycleIssues().'
+                'Required parameter "transferCycleIssueRequestRequest" was null or undefined when calling transferCycleWorkItems().'
             );
         }
 
@@ -889,15 +889,15 @@ export class CyclesApi extends runtime.BaseAPI {
             body: TransferCycleIssueRequestRequestToJSON(requestParameters['transferCycleIssueRequestRequest']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => TransferCycleIssues200ResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => TransferCycleWorkItems200ResponseFromJSON(jsonValue));
     }
 
     /**
-     * Move incomplete issues from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.
-     * Transfer cycle issues
+     * Move incomplete work items from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.
+     * Transfer cycle work items
      */
-    async transferCycleIssues(requestParameters: TransferCycleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TransferCycleIssues200Response> {
-        const response = await this.transferCycleIssuesRaw(requestParameters, initOverrides);
+    async transferCycleWorkItems(requestParameters: TransferCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TransferCycleWorkItems200Response> {
+        const response = await this.transferCycleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

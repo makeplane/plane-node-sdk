@@ -34,21 +34,21 @@ import {
     PatchedIssueLinkUpdateRequestToJSON,
 } from '../models/index';
 
-export interface CreateIssueLinkRequest {
+export interface CreateWorkItemLinkRequest {
     issueId: string;
     projectId: string;
     slug: string;
     issueLinkCreateRequest: IssueLinkCreateRequest;
 }
 
-export interface DeleteIssueLinkRequest {
+export interface DeleteWorkItemLinkRequest {
     issueId: string;
     pk: string;
     projectId: string;
     slug: string;
 }
 
-export interface ListIssueLinksRequest {
+export interface ListWorkItemLinksRequest {
     issueId: string;
     projectId: string;
     slug: string;
@@ -59,7 +59,7 @@ export interface ListIssueLinksRequest {
     perPage?: number;
 }
 
-export interface RetrieveIssueLinkRequest {
+export interface RetrieveWorkItemLinkRequest {
     issueId: string;
     pk: string;
     projectId: string;
@@ -84,35 +84,35 @@ export interface UpdateIssueLinkRequest {
 export class WorkItemLinksApi extends runtime.BaseAPI {
 
     /**
-     * Add a new external link to an issue with URL, title, and metadata.
-     * Create a new issue link
+     * Add a new external link to a work item with URL, title, and metadata.
+     * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async createIssueLinkRaw(requestParameters: CreateIssueLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueLink>> {
+    async createWorkItemLinkRaw(requestParameters: CreateWorkItemLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueLink>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling createIssueLink().'
+                'Required parameter "issueId" was null or undefined when calling createWorkItemLink().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling createIssueLink().'
+                'Required parameter "projectId" was null or undefined when calling createWorkItemLink().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling createIssueLink().'
+                'Required parameter "slug" was null or undefined when calling createWorkItemLink().'
             );
         }
 
         if (requestParameters['issueLinkCreateRequest'] == null) {
             throw new runtime.RequiredError(
                 'issueLinkCreateRequest',
-                'Required parameter "issueLinkCreateRequest" was null or undefined when calling createIssueLink().'
+                'Required parameter "issueLinkCreateRequest" was null or undefined when calling createWorkItemLink().'
             );
         }
 
@@ -148,44 +148,44 @@ export class WorkItemLinksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Add a new external link to an issue with URL, title, and metadata.
-     * Create a new issue link
+     * Add a new external link to a work item with URL, title, and metadata.
+     * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async createIssueLink(requestParameters: CreateIssueLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueLink> {
-        const response = await this.createIssueLinkRaw(requestParameters, initOverrides);
+    async createWorkItemLink(requestParameters: CreateWorkItemLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueLink> {
+        const response = await this.createWorkItemLinkRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Permanently remove an external link from an issue.
-     * Delete an issue link
+     * Permanently remove an external link from a work item.
+     * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async deleteIssueLinkRaw(requestParameters: DeleteIssueLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async deleteWorkItemLinkRaw(requestParameters: DeleteWorkItemLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling deleteIssueLink().'
+                'Required parameter "issueId" was null or undefined when calling deleteWorkItemLink().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling deleteIssueLink().'
+                'Required parameter "pk" was null or undefined when calling deleteWorkItemLink().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling deleteIssueLink().'
+                'Required parameter "projectId" was null or undefined when calling deleteWorkItemLink().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling deleteIssueLink().'
+                'Required parameter "slug" was null or undefined when calling deleteWorkItemLink().'
             );
         }
 
@@ -218,36 +218,36 @@ export class WorkItemLinksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Permanently remove an external link from an issue.
-     * Delete an issue link
+     * Permanently remove an external link from a work item.
+     * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async deleteIssueLink(requestParameters: DeleteIssueLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteIssueLinkRaw(requestParameters, initOverrides);
+    async deleteWorkItemLink(requestParameters: DeleteWorkItemLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteWorkItemLinkRaw(requestParameters, initOverrides);
     }
 
     /**
-     * Retrieve all links associated with an issue. Supports filtering by URL, title, and metadata.
+     * Retrieve all links associated with a work item. Supports filtering by URL, title, and metadata.
      * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async listIssueLinksRaw(requestParameters: ListIssueLinksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueLinkResponse>> {
+    async listWorkItemLinksRaw(requestParameters: ListWorkItemLinksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueLinkResponse>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling listIssueLinks().'
+                'Required parameter "issueId" was null or undefined when calling listWorkItemLinks().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling listIssueLinks().'
+                'Required parameter "projectId" was null or undefined when calling listWorkItemLinks().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling listIssueLinks().'
+                'Required parameter "slug" was null or undefined when calling listWorkItemLinks().'
             );
         }
 
@@ -300,44 +300,44 @@ export class WorkItemLinksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all links associated with an issue. Supports filtering by URL, title, and metadata.
+     * Retrieve all links associated with a work item. Supports filtering by URL, title, and metadata.
      * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async listIssueLinks(requestParameters: ListIssueLinksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueLinkResponse> {
-        const response = await this.listIssueLinksRaw(requestParameters, initOverrides);
+    async listWorkItemLinks(requestParameters: ListWorkItemLinksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueLinkResponse> {
+        const response = await this.listWorkItemLinksRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
-     * Retrieve details of a specific issue link.
+     * Retrieve details of a specific work item link.
      * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async retrieveIssueLinkRaw(requestParameters: RetrieveIssueLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueLinkDetailResponse>> {
+    async retrieveWorkItemLinkRaw(requestParameters: RetrieveWorkItemLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedIssueLinkDetailResponse>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling retrieveIssueLink().'
+                'Required parameter "issueId" was null or undefined when calling retrieveWorkItemLink().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling retrieveIssueLink().'
+                'Required parameter "pk" was null or undefined when calling retrieveWorkItemLink().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling retrieveIssueLink().'
+                'Required parameter "projectId" was null or undefined when calling retrieveWorkItemLink().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling retrieveIssueLink().'
+                'Required parameter "slug" was null or undefined when calling retrieveWorkItemLink().'
             );
         }
 
@@ -386,11 +386,11 @@ export class WorkItemLinksApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve details of a specific issue link.
+     * Retrieve details of a specific work item link.
      * Endpoints for issue link create/update/delete and fetch issue link details
      */
-    async retrieveIssueLink(requestParameters: RetrieveIssueLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueLinkDetailResponse> {
-        const response = await this.retrieveIssueLinkRaw(requestParameters, initOverrides);
+    async retrieveWorkItemLink(requestParameters: RetrieveWorkItemLinkRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedIssueLinkDetailResponse> {
+        const response = await this.retrieveWorkItemLinkRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

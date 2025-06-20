@@ -20,13 +20,13 @@ import {
     IssueForIntakeRequestToJSON,
     IssueForIntakeRequestToJSONTyped,
 } from './IssueForIntakeRequest';
-import type { IntakeIssueStatusEnum } from './IntakeIssueStatusEnum';
+import type { IntakeWorkItemStatusEnum } from './IntakeWorkItemStatusEnum';
 import {
-    IntakeIssueStatusEnumFromJSON,
-    IntakeIssueStatusEnumFromJSONTyped,
-    IntakeIssueStatusEnumToJSON,
-    IntakeIssueStatusEnumToJSONTyped,
-} from './IntakeIssueStatusEnum';
+    IntakeWorkItemStatusEnumFromJSON,
+    IntakeWorkItemStatusEnumFromJSONTyped,
+    IntakeWorkItemStatusEnumToJSON,
+    IntakeWorkItemStatusEnumToJSONTyped,
+} from './IntakeWorkItemStatusEnum';
 
 /**
  * Serializer for creating intake work items with embedded issue data.
@@ -51,10 +51,10 @@ export interface IntakeIssueCreateRequest {
     intake: string;
     /**
      * 
-     * @type {IntakeIssueStatusEnum}
+     * @type {IntakeWorkItemStatusEnum}
      * @memberof IntakeIssueCreateRequest
      */
-    status?: IntakeIssueStatusEnum;
+    status?: IntakeWorkItemStatusEnum;
     /**
      * 
      * @type {Date}
@@ -104,7 +104,7 @@ export function IntakeIssueCreateRequestFromJSONTyped(json: any, ignoreDiscrimin
         
         'issue': IssueForIntakeRequestFromJSON(json['issue']),
         'intake': json['intake'],
-        'status': json['status'] == null ? undefined : IntakeIssueStatusEnumFromJSON(json['status']),
+        'status': json['status'] == null ? undefined : IntakeWorkItemStatusEnumFromJSON(json['status']),
         'snoozedTill': json['snoozed_till'] == null ? undefined : (new Date(json['snoozed_till'])),
         'duplicateTo': json['duplicate_to'] == null ? undefined : json['duplicate_to'],
         'source': json['source'] == null ? undefined : json['source'],
@@ -125,7 +125,7 @@ export function IntakeIssueCreateRequestToJSONTyped(value?: IntakeIssueCreateReq
         
         'issue': IssueForIntakeRequestToJSON(value['issue']),
         'intake': value['intake'],
-        'status': IntakeIssueStatusEnumToJSON(value['status']),
+        'status': IntakeWorkItemStatusEnumToJSON(value['status']),
         'snoozed_till': value['snoozedTill'] == null ? undefined : ((value['snoozedTill'] as any).toISOString()),
         'duplicate_to': value['duplicateTo'],
         'source': value['source'],

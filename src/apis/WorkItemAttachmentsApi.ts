@@ -17,38 +17,38 @@ import * as runtime from '../runtime';
 import type {
   IssueAttachment,
   IssueAttachmentUploadRequest,
-  RetrieveIssueAttachment400Response,
+  RetrieveWorkItemAttachment400Response,
 } from '../models/index';
 import {
     IssueAttachmentFromJSON,
     IssueAttachmentToJSON,
     IssueAttachmentUploadRequestFromJSON,
     IssueAttachmentUploadRequestToJSON,
-    RetrieveIssueAttachment400ResponseFromJSON,
-    RetrieveIssueAttachment400ResponseToJSON,
+    RetrieveWorkItemAttachment400ResponseFromJSON,
+    RetrieveWorkItemAttachment400ResponseToJSON,
 } from '../models/index';
 
-export interface CreateIssueAttachmentRequest {
+export interface CreateWorkItemAttachmentRequest {
     issueId: string;
     projectId: string;
     slug: string;
     issueAttachmentUploadRequest: IssueAttachmentUploadRequest;
 }
 
-export interface DeleteIssueAttachmentRequest {
+export interface DeleteWorkItemAttachmentRequest {
     issueId: string;
     pk: string;
     projectId: string;
     slug: string;
 }
 
-export interface ListIssueAttachmentsRequest {
+export interface ListWorkItemAttachmentsRequest {
     issueId: string;
     projectId: string;
     slug: string;
 }
 
-export interface RetrieveIssueAttachmentRequest {
+export interface RetrieveWorkItemAttachmentRequest {
     issueId: string;
     pk: string;
     projectId: string;
@@ -61,35 +61,35 @@ export interface RetrieveIssueAttachmentRequest {
 export class WorkItemAttachmentsApi extends runtime.BaseAPI {
 
     /**
-     * Generate presigned URL for uploading file attachments to an issue.
-     * Create a new issue attachment
+     * Generate presigned URL for uploading file attachments to a work item.
+     * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async createIssueAttachmentRaw(requestParameters: CreateIssueAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async createWorkItemAttachmentRaw(requestParameters: CreateWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling createIssueAttachment().'
+                'Required parameter "issueId" was null or undefined when calling createWorkItemAttachment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling createIssueAttachment().'
+                'Required parameter "projectId" was null or undefined when calling createWorkItemAttachment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling createIssueAttachment().'
+                'Required parameter "slug" was null or undefined when calling createWorkItemAttachment().'
             );
         }
 
         if (requestParameters['issueAttachmentUploadRequest'] == null) {
             throw new runtime.RequiredError(
                 'issueAttachmentUploadRequest',
-                'Required parameter "issueAttachmentUploadRequest" was null or undefined when calling createIssueAttachment().'
+                'Required parameter "issueAttachmentUploadRequest" was null or undefined when calling createWorkItemAttachment().'
             );
         }
 
@@ -125,43 +125,43 @@ export class WorkItemAttachmentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Generate presigned URL for uploading file attachments to an issue.
-     * Create a new issue attachment
+     * Generate presigned URL for uploading file attachments to a work item.
+     * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async createIssueAttachment(requestParameters: CreateIssueAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.createIssueAttachmentRaw(requestParameters, initOverrides);
+    async createWorkItemAttachment(requestParameters: CreateWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.createWorkItemAttachmentRaw(requestParameters, initOverrides);
     }
 
     /**
-     * Permanently remove an attachment from an issue. Records deletion activity for audit purposes.
-     * Delete an issue attachment
+     * Permanently remove an attachment from a work item. Records deletion activity for audit purposes.
+     * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async deleteIssueAttachmentRaw(requestParameters: DeleteIssueAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async deleteWorkItemAttachmentRaw(requestParameters: DeleteWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling deleteIssueAttachment().'
+                'Required parameter "issueId" was null or undefined when calling deleteWorkItemAttachment().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling deleteIssueAttachment().'
+                'Required parameter "pk" was null or undefined when calling deleteWorkItemAttachment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling deleteIssueAttachment().'
+                'Required parameter "projectId" was null or undefined when calling deleteWorkItemAttachment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling deleteIssueAttachment().'
+                'Required parameter "slug" was null or undefined when calling deleteWorkItemAttachment().'
             );
         }
 
@@ -194,36 +194,36 @@ export class WorkItemAttachmentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Permanently remove an attachment from an issue. Records deletion activity for audit purposes.
-     * Delete an issue attachment
+     * Permanently remove an attachment from a work item. Records deletion activity for audit purposes.
+     * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async deleteIssueAttachment(requestParameters: DeleteIssueAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteIssueAttachmentRaw(requestParameters, initOverrides);
+    async deleteWorkItemAttachment(requestParameters: DeleteWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteWorkItemAttachmentRaw(requestParameters, initOverrides);
     }
 
     /**
-     * Retrieve all attachments for an issue.
+     * Retrieve all attachments for a work item.
      * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async listIssueAttachmentsRaw(requestParameters: ListIssueAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueAttachment>> {
+    async listWorkItemAttachmentsRaw(requestParameters: ListWorkItemAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueAttachment>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling listIssueAttachments().'
+                'Required parameter "issueId" was null or undefined when calling listWorkItemAttachments().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling listIssueAttachments().'
+                'Required parameter "projectId" was null or undefined when calling listWorkItemAttachments().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling listIssueAttachments().'
+                'Required parameter "slug" was null or undefined when calling listWorkItemAttachments().'
             );
         }
 
@@ -256,11 +256,11 @@ export class WorkItemAttachmentsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all attachments for an issue.
+     * Retrieve all attachments for a work item.
      * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async listIssueAttachments(requestParameters: ListIssueAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueAttachment> {
-        const response = await this.listIssueAttachmentsRaw(requestParameters, initOverrides);
+    async listWorkItemAttachments(requestParameters: ListWorkItemAttachmentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueAttachment> {
+        const response = await this.listWorkItemAttachmentsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -268,32 +268,32 @@ export class WorkItemAttachmentsApi extends runtime.BaseAPI {
      * Download attachment file. Returns a redirect to the presigned download URL.
      * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async retrieveIssueAttachmentRaw(requestParameters: RetrieveIssueAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async retrieveWorkItemAttachmentRaw(requestParameters: RetrieveWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling retrieveIssueAttachment().'
+                'Required parameter "issueId" was null or undefined when calling retrieveWorkItemAttachment().'
             );
         }
 
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
-                'Required parameter "pk" was null or undefined when calling retrieveIssueAttachment().'
+                'Required parameter "pk" was null or undefined when calling retrieveWorkItemAttachment().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling retrieveIssueAttachment().'
+                'Required parameter "projectId" was null or undefined when calling retrieveWorkItemAttachment().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling retrieveIssueAttachment().'
+                'Required parameter "slug" was null or undefined when calling retrieveWorkItemAttachment().'
             );
         }
 
@@ -329,8 +329,8 @@ export class WorkItemAttachmentsApi extends runtime.BaseAPI {
      * Download attachment file. Returns a redirect to the presigned download URL.
      * Endpoints for issue attachment create/update/delete and fetch issue attachment details
      */
-    async retrieveIssueAttachment(requestParameters: RetrieveIssueAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.retrieveIssueAttachmentRaw(requestParameters, initOverrides);
+    async retrieveWorkItemAttachment(requestParameters: RetrieveWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.retrieveWorkItemAttachmentRaw(requestParameters, initOverrides);
     }
 
 }

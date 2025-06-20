@@ -75,7 +75,7 @@ export interface RetrieveWorkItemRequest {
     orderBy?: string;
 }
 
-export interface SearchIssuesRequest {
+export interface SearchWorkItemsRequest {
     search: string;
     slug: string;
     limit?: number;
@@ -455,20 +455,19 @@ export class WorkItemsApi extends runtime.BaseAPI {
 
     /**
      * Perform semantic search across issue names, sequence IDs, and project identifiers.
-     * Search issues
      */
-    async searchIssuesRaw(requestParameters: SearchIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueSearch>> {
+    async searchWorkItemsRaw(requestParameters: SearchWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueSearch>> {
         if (requestParameters['search'] == null) {
             throw new runtime.RequiredError(
                 'search',
-                'Required parameter "search" was null or undefined when calling searchIssues().'
+                'Required parameter "search" was null or undefined when calling searchWorkItems().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling searchIssues().'
+                'Required parameter "slug" was null or undefined when calling searchWorkItems().'
             );
         }
 
@@ -518,10 +517,9 @@ export class WorkItemsApi extends runtime.BaseAPI {
 
     /**
      * Perform semantic search across issue names, sequence IDs, and project identifiers.
-     * Search issues
      */
-    async searchIssues(requestParameters: SearchIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueSearch> {
-        const response = await this.searchIssuesRaw(requestParameters, initOverrides);
+    async searchWorkItems(requestParameters: SearchWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueSearch> {
+        const response = await this.searchWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

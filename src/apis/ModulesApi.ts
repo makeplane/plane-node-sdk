@@ -43,7 +43,7 @@ import {
     PatchedModuleUpdateRequestToJSON,
 } from '../models/index';
 
-export interface AddModuleIssuesRequest {
+export interface AddModuleWorkItemsRequest {
     moduleId: string;
     projectId: string;
     slug: string;
@@ -68,7 +68,7 @@ export interface DeleteModuleRequest {
     slug: string;
 }
 
-export interface DeleteModuleIssueRequest {
+export interface DeleteModuleWorkItemRequest {
     issueId: string;
     moduleId: string;
     projectId: string;
@@ -85,7 +85,7 @@ export interface ListArchivedModulesRequest {
     perPage?: number;
 }
 
-export interface ListModuleIssuesRequest {
+export interface ListModuleWorkItemsRequest {
     moduleId: string;
     projectId: string;
     slug: string;
@@ -131,35 +131,35 @@ export interface UpdateModuleRequest {
 export class ModulesApi extends runtime.BaseAPI {
 
     /**
-     * Assign multiple issues to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
-     * Add Issues to Module
+     * Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
+     * Add Work Items to Module
      */
-    async addModuleIssuesRaw(requestParameters: AddModuleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModuleIssue>> {
+    async addModuleWorkItemsRaw(requestParameters: AddModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModuleIssue>> {
         if (requestParameters['moduleId'] == null) {
             throw new runtime.RequiredError(
                 'moduleId',
-                'Required parameter "moduleId" was null or undefined when calling addModuleIssues().'
+                'Required parameter "moduleId" was null or undefined when calling addModuleWorkItems().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling addModuleIssues().'
+                'Required parameter "projectId" was null or undefined when calling addModuleWorkItems().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling addModuleIssues().'
+                'Required parameter "slug" was null or undefined when calling addModuleWorkItems().'
             );
         }
 
         if (requestParameters['moduleIssueRequestRequest'] == null) {
             throw new runtime.RequiredError(
                 'moduleIssueRequestRequest',
-                'Required parameter "moduleIssueRequestRequest" was null or undefined when calling addModuleIssues().'
+                'Required parameter "moduleIssueRequestRequest" was null or undefined when calling addModuleWorkItems().'
             );
         }
 
@@ -195,11 +195,11 @@ export class ModulesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Assign multiple issues to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
-     * Add Issues to Module
+     * Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
+     * Add Work Items to Module
      */
-    async addModuleIssues(requestParameters: AddModuleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModuleIssue> {
-        const response = await this.addModuleIssuesRaw(requestParameters, initOverrides);
+    async addModuleWorkItems(requestParameters: AddModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModuleIssue> {
+        const response = await this.addModuleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -394,35 +394,35 @@ export class ModulesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Remove an issue from a module while keeping the issue in the project.
-     * Delete module issue
+     * Remove a work item from a module while keeping the work item in the project.
+     * Delete module work item
      */
-    async deleteModuleIssueRaw(requestParameters: DeleteModuleIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async deleteModuleWorkItemRaw(requestParameters: DeleteModuleWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
-                'Required parameter "issueId" was null or undefined when calling deleteModuleIssue().'
+                'Required parameter "issueId" was null or undefined when calling deleteModuleWorkItem().'
             );
         }
 
         if (requestParameters['moduleId'] == null) {
             throw new runtime.RequiredError(
                 'moduleId',
-                'Required parameter "moduleId" was null or undefined when calling deleteModuleIssue().'
+                'Required parameter "moduleId" was null or undefined when calling deleteModuleWorkItem().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling deleteModuleIssue().'
+                'Required parameter "projectId" was null or undefined when calling deleteModuleWorkItem().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling deleteModuleIssue().'
+                'Required parameter "slug" was null or undefined when calling deleteModuleWorkItem().'
             );
         }
 
@@ -455,11 +455,11 @@ export class ModulesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Remove an issue from a module while keeping the issue in the project.
-     * Delete module issue
+     * Remove a work item from a module while keeping the work item in the project.
+     * Delete module work item
      */
-    async deleteModuleIssue(requestParameters: DeleteModuleIssueRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteModuleIssueRaw(requestParameters, initOverrides);
+    async deleteModuleWorkItem(requestParameters: DeleteModuleWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteModuleWorkItemRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -539,28 +539,28 @@ export class ModulesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all issues assigned to a module with detailed information.
-     * List module issues
+     * Retrieve all work items assigned to a module with detailed information.
+     * List module work items
      */
-    async listModuleIssuesRaw(requestParameters: ListModuleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedModuleIssueResponse>> {
+    async listModuleWorkItemsRaw(requestParameters: ListModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaginatedModuleIssueResponse>> {
         if (requestParameters['moduleId'] == null) {
             throw new runtime.RequiredError(
                 'moduleId',
-                'Required parameter "moduleId" was null or undefined when calling listModuleIssues().'
+                'Required parameter "moduleId" was null or undefined when calling listModuleWorkItems().'
             );
         }
 
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
-                'Required parameter "projectId" was null or undefined when calling listModuleIssues().'
+                'Required parameter "projectId" was null or undefined when calling listModuleWorkItems().'
             );
         }
 
         if (requestParameters['slug'] == null) {
             throw new runtime.RequiredError(
                 'slug',
-                'Required parameter "slug" was null or undefined when calling listModuleIssues().'
+                'Required parameter "slug" was null or undefined when calling listModuleWorkItems().'
             );
         }
 
@@ -613,11 +613,11 @@ export class ModulesApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all issues assigned to a module with detailed information.
-     * List module issues
+     * Retrieve all work items assigned to a module with detailed information.
+     * List module work items
      */
-    async listModuleIssues(requestParameters: ListModuleIssuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedModuleIssueResponse> {
-        const response = await this.listModuleIssuesRaw(requestParameters, initOverrides);
+    async listModuleWorkItems(requestParameters: ListModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedModuleIssueResponse> {
+        const response = await this.listModuleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

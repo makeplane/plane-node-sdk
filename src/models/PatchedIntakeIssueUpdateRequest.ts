@@ -20,13 +20,13 @@ import {
     IssueForIntakeRequestToJSON,
     IssueForIntakeRequestToJSONTyped,
 } from './IssueForIntakeRequest';
-import type { IntakeIssueStatusEnum } from './IntakeIssueStatusEnum';
+import type { IntakeWorkItemStatusEnum } from './IntakeWorkItemStatusEnum';
 import {
-    IntakeIssueStatusEnumFromJSON,
-    IntakeIssueStatusEnumFromJSONTyped,
-    IntakeIssueStatusEnumToJSON,
-    IntakeIssueStatusEnumToJSONTyped,
-} from './IntakeIssueStatusEnum';
+    IntakeWorkItemStatusEnumFromJSON,
+    IntakeWorkItemStatusEnumFromJSONTyped,
+    IntakeWorkItemStatusEnumToJSON,
+    IntakeWorkItemStatusEnumToJSONTyped,
+} from './IntakeWorkItemStatusEnum';
 
 /**
  * Serializer for updating intake work items and their associated issues.
@@ -39,10 +39,10 @@ import {
 export interface PatchedIntakeIssueUpdateRequest {
     /**
      * 
-     * @type {IntakeIssueStatusEnum}
+     * @type {IntakeWorkItemStatusEnum}
      * @memberof PatchedIntakeIssueUpdateRequest
      */
-    status?: IntakeIssueStatusEnum;
+    status?: IntakeWorkItemStatusEnum;
     /**
      * 
      * @type {Date}
@@ -94,7 +94,7 @@ export function PatchedIntakeIssueUpdateRequestFromJSONTyped(json: any, ignoreDi
     }
     return {
         
-        'status': json['status'] == null ? undefined : IntakeIssueStatusEnumFromJSON(json['status']),
+        'status': json['status'] == null ? undefined : IntakeWorkItemStatusEnumFromJSON(json['status']),
         'snoozedTill': json['snoozed_till'] == null ? undefined : (new Date(json['snoozed_till'])),
         'duplicateTo': json['duplicate_to'] == null ? undefined : json['duplicate_to'],
         'source': json['source'] == null ? undefined : json['source'],
@@ -114,7 +114,7 @@ export function PatchedIntakeIssueUpdateRequestToJSONTyped(value?: PatchedIntake
 
     return {
         
-        'status': IntakeIssueStatusEnumToJSON(value['status']),
+        'status': IntakeWorkItemStatusEnumToJSON(value['status']),
         'snoozed_till': value['snoozedTill'] == null ? undefined : ((value['snoozedTill'] as any).toISOString()),
         'duplicate_to': value['duplicateTo'],
         'source': value['source'],

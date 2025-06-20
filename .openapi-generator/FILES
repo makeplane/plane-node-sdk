@@ -33,7 +33,7 @@ src/models/GetWorkspaceMembers200ResponseInner.ts
 src/models/GroupEnum.ts
 src/models/IntakeIssue.ts
 src/models/IntakeIssueCreateRequest.ts
-src/models/IntakeIssueStatusEnum.ts
+src/models/IntakeWorkItemStatusEnum.ts
 src/models/Issue.ts
 src/models/IssueActivity.ts
 src/models/IssueAttachment.ts
@@ -103,14 +103,14 @@ src/models/ProjectCreateRequest.ts
 src/models/ProjectWorklogSummary.ts
 src/models/PropertyTypeEnum.ts
 src/models/RelationTypeEnum.ts
-src/models/RetrieveIssueAttachment400Response.ts
+src/models/RetrieveWorkItemAttachment400Response.ts
 src/models/State.ts
 src/models/StateLite.ts
 src/models/StateRequest.ts
 src/models/TimezoneEnum.ts
 src/models/TransferCycleIssueRequestRequest.ts
-src/models/TransferCycleIssues200Response.ts
-src/models/TransferCycleIssues400Response.ts
+src/models/TransferCycleWorkItems200Response.ts
+src/models/TransferCycleWorkItems400Response.ts
 src/models/TypeEnum.ts
 src/models/UserAssetUploadRequest.ts
 src/models/UserLite.ts
