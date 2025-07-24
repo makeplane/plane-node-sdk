@@ -67,7 +67,7 @@ export class Configuration {
     }
 
     get accessToken(): ((name?: string, scopes?: string[]) => string | Promise<string>) | undefined {
-        const accessToken = this.configuration.accessToken;
+        const accessToken = `Bearer ${this.configuration.accessToken}`;
         if (accessToken) {
             return typeof accessToken === 'function' ? accessToken : async () => accessToken;
         }

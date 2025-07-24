@@ -42,7 +42,7 @@ export class MembersApi extends runtime.BaseAPI {
      * Retrieve all users who are members of the specified project.
      * List project members
      */
-    async getProjectMembersRaw(requestParameters: GetProjectMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserLite>> {
+    async getProjectMembersRaw(requestParameters: GetProjectMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<UserLite>>> {
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
@@ -82,14 +82,14 @@ export class MembersApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => UserLiteFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(UserLiteFromJSON));
     }
 
     /**
      * Retrieve all users who are members of the specified project.
      * List project members
      */
-    async getProjectMembers(requestParameters: GetProjectMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserLite> {
+    async getProjectMembers(requestParameters: GetProjectMembersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<UserLite>> {
         const response = await this.getProjectMembersRaw(requestParameters, initOverrides);
         return await response.value();
     }

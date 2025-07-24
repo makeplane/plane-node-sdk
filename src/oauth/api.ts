@@ -143,16 +143,21 @@ export class OAuthApi extends runtime.BaseAPI {
    * @param appInstallationId - The app installation ID
    * @returns Promise resolving to app installation
    */
-  async getAppInstallation(
+  async getAppInstallations(
     token: string,
-    appInstallationId: string
-  ): Promise<PlaneOAuthAppInstallation> {
+    appInstallationId?: string
+  ): Promise<PlaneOAuthAppInstallation[]> {
     const headers: runtime.HTTPHeaders = {
       Authorization: `Bearer ${token}`,
     };
 
+    let path = `/auth/o/app-installation/`;
+    if (appInstallationId) {
+      path += `?id=${appInstallationId}`;
+    }
+
     const response = await this.request({
-      path: `/auth/o/app-installation/?id=${appInstallationId}`,
+      path: path,
       method: "GET",
       headers: headers,
     });
@@ -162,7 +167,7 @@ export class OAuthApi extends runtime.BaseAPI {
       throw new runtime.ResponseError(response, "App installation not found");
     }
 
-    return data[0];
+    return data;
   }
 
   /**

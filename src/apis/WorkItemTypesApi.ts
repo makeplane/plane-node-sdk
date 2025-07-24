@@ -194,7 +194,7 @@ export class WorkItemTypesApi extends runtime.BaseAPI {
      * List all issue types for a project
      * List issue types
      */
-    async listIssueTypesRaw(requestParameters: ListIssueTypesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueTypeAPI>> {
+    async listIssueTypesRaw(requestParameters: ListIssueTypesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IssueTypeAPI>>> {
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
@@ -234,14 +234,14 @@ export class WorkItemTypesApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => IssueTypeAPIFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IssueTypeAPIFromJSON));
     }
 
     /**
      * List all issue types for a project
      * List issue types
      */
-    async listIssueTypes(requestParameters: ListIssueTypesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueTypeAPI> {
+    async listIssueTypes(requestParameters: ListIssueTypesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IssueTypeAPI>> {
         const response = await this.listIssueTypesRaw(requestParameters, initOverrides);
         return await response.value();
     }

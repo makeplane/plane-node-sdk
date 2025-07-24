@@ -31,6 +31,7 @@ export * from './IssuePropertyValueAPI';
 export * from './IssuePropertyValueAPIRequest';
 export * from './IssueRequest';
 export * from './IssueSearch';
+export * from './IssueSearchItem';
 export * from './IssueTypeAPI';
 export * from './IssueTypeAPIRequest';
 export * from './IssueWorkLogAPI';

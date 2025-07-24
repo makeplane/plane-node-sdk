@@ -1,11 +1,14 @@
 {
   "name": "@makeplane/plane-node-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Node SDK for Plane",
   "author": "Plane <support@plane.so>",
   "repository": {
     "type": "git",
     "url": "https://github.com/makeplane/plane-node-sdk.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",

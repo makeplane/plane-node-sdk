@@ -1,6 +1,7 @@
 .gitignore
 .npmignore
 README.md
+eslint.config.mjs
 package.json
 src/apis/AssetsApi.ts
 src/apis/CyclesApi.ts
@@ -52,6 +53,7 @@ src/models/IssuePropertyValueAPI.ts
 src/models/IssuePropertyValueAPIRequest.ts
 src/models/IssueRequest.ts
 src/models/IssueSearch.ts
+src/models/IssueSearchItem.ts
 src/models/IssueTypeAPI.ts
 src/models/IssueTypeAPIRequest.ts
 src/models/IssueWorkLogAPI.ts
@@ -115,5 +117,7 @@ src/models/TypeEnum.ts
 src/models/UserAssetUploadRequest.ts
 src/models/UserLite.ts
 src/models/index.ts
+src/oauth/api.ts
+src/oauth/models.ts
 src/runtime.ts
 tsconfig.json

@@ -73,12 +73,6 @@ export interface State {
     color: string;
     /**
      * 
-     * @type {string}
-     * @memberof State
-     */
-    readonly slug?: string;
-    /**
-     * 
      * @type {number}
      * @memberof State
      */
@@ -167,7 +161,6 @@ export function StateFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
         'name': json['name'],
         'description': json['description'] == null ? undefined : json['description'],
         'color': json['color'],
-        'slug': json['slug'] == null ? undefined : json['slug'],
         'sequence': json['sequence'] == null ? undefined : json['sequence'],
         'group': json['group'] == null ? undefined : GroupEnumFromJSON(json['group']),
         'isTriage': json['is_triage'] == null ? undefined : json['is_triage'],
@@ -185,7 +178,7 @@ export function StateToJSON(json: any): State {
     return StateToJSONTyped(json, false);
 }
 
-export function StateToJSONTyped(value?: Omit<State, 'id'|'created_at'|'updated_at'|'deleted_at'|'slug'|'created_by'|'updated_by'|'project'|'workspace'> | null, ignoreDiscriminator: boolean = false): any {
+export function StateToJSONTyped(value?: Omit<State, 'id'|'created_at'|'updated_at'|'deleted_at'|'created_by'|'updated_by'|'project'|'workspace'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
