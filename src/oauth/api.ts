@@ -12,17 +12,19 @@ export class OAuthApi extends runtime.BaseAPI {
 
   constructor(
     configuration: runtime.Configuration,
-    oauthConfig: {
+    oauthConfig?: {
       clientId: string;
       clientSecret: string;
       redirectUri: string;
     }
   ) {
     super(configuration);
-    this.clientId = oauthConfig.clientId;
-    this.clientSecret = oauthConfig.clientSecret;
-    this.redirectUri = oauthConfig.redirectUri;
-    this.baseUrl = configuration.basePath || "https://api.plane.so";
+    if (oauthConfig) {
+      this.clientId = oauthConfig.clientId;
+      this.clientSecret = oauthConfig.clientSecret;
+      this.redirectUri = oauthConfig.redirectUri;
+      this.baseUrl = configuration.basePath || "https://api.plane.so";
+    }
   }
 
   /**
