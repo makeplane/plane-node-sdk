@@ -41,6 +41,7 @@ src/models/IssueAttachment.ts
 src/models/IssueAttachmentUploadRequest.ts
 src/models/IssueComment.ts
 src/models/IssueCommentCreateRequest.ts
+src/models/IssueDetail.ts
 src/models/IssueExpand.ts
 src/models/IssueForIntakeRequest.ts
 src/models/IssueLink.ts
@@ -50,6 +51,7 @@ src/models/IssuePropertyAPIRequest.ts
 src/models/IssuePropertyOptionAPI.ts
 src/models/IssuePropertyOptionAPIRequest.ts
 src/models/IssuePropertyValueAPI.ts
+src/models/IssuePropertyValueAPIDetail.ts
 src/models/IssuePropertyValueAPIRequest.ts
 src/models/IssueRequest.ts
 src/models/IssueSearch.ts
@@ -60,7 +62,6 @@ src/models/IssueWorkLogAPI.ts
 src/models/IssueWorkLogAPIRequest.ts
 src/models/Label.ts
 src/models/LabelCreateUpdateRequest.ts
-src/models/LabelLite.ts
 src/models/Module.ts
 src/models/ModuleCreateRequest.ts
 src/models/ModuleIssue.ts

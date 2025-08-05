@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies and build
         run: npm ci
@@ -22,3 +22,22 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Get version from package.json
+        id: package-version
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from package.json"
+            exit 1
+          fi
+          echo "current-version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.package-version.outputs.current-version }}
+          name: v${{ steps.package-version.outputs.current-version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

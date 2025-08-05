@@ -19,6 +19,7 @@ import type {
   IssuePropertyOptionAPI,
   IssuePropertyOptionAPIRequest,
   IssuePropertyValueAPI,
+  IssuePropertyValueAPIDetail,
   IssuePropertyValueAPIRequest,
   PatchedIssuePropertyAPIRequest,
   PatchedIssuePropertyOptionAPIRequest,
@@ -34,6 +35,8 @@ import {
     IssuePropertyOptionAPIRequestToJSON,
     IssuePropertyValueAPIFromJSON,
     IssuePropertyValueAPIToJSON,
+    IssuePropertyValueAPIDetailFromJSON,
+    IssuePropertyValueAPIDetailToJSON,
     IssuePropertyValueAPIRequestFromJSON,
     IssuePropertyValueAPIRequestToJSON,
     PatchedIssuePropertyAPIRequestFromJSON,
@@ -500,7 +503,7 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
      * List issue properties
      * List issue properties
      */
-    async listIssuePropertiesRaw(requestParameters: ListIssuePropertiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssuePropertyAPI>> {
+    async listIssuePropertiesRaw(requestParameters: ListIssuePropertiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IssuePropertyAPI>>> {
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
@@ -547,14 +550,14 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => IssuePropertyAPIFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IssuePropertyAPIFromJSON));
     }
 
     /**
      * List issue properties
      * List issue properties
      */
-    async listIssueProperties(requestParameters: ListIssuePropertiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssuePropertyAPI> {
+    async listIssueProperties(requestParameters: ListIssuePropertiesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IssuePropertyAPI>> {
         const response = await this.listIssuePropertiesRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -563,7 +566,7 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
      * List issue property options
      * List issue property options
      */
-    async listIssuePropertyOptionsRaw(requestParameters: ListIssuePropertyOptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssuePropertyOptionAPI>> {
+    async listIssuePropertyOptionsRaw(requestParameters: ListIssuePropertyOptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IssuePropertyOptionAPI>>> {
         if (requestParameters['projectId'] == null) {
             throw new runtime.RequiredError(
                 'projectId',
@@ -610,14 +613,14 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => IssuePropertyOptionAPIFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IssuePropertyOptionAPIFromJSON));
     }
 
     /**
      * List issue property options
      * List issue property options
      */
-    async listIssuePropertyOptions(requestParameters: ListIssuePropertyOptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssuePropertyOptionAPI> {
+    async listIssuePropertyOptions(requestParameters: ListIssuePropertyOptionsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IssuePropertyOptionAPI>> {
         const response = await this.listIssuePropertyOptionsRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -626,7 +629,7 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
      * List issue property values
      * List issue property values
      */
-    async listIssuePropertyValuesRaw(requestParameters: ListIssuePropertyValuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssuePropertyValueAPI>> {
+    async listIssuePropertyValuesRaw(requestParameters: ListIssuePropertyValuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IssuePropertyValueAPIDetail>>> {
         if (requestParameters['issueId'] == null) {
             throw new runtime.RequiredError(
                 'issueId',
@@ -680,14 +683,14 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => IssuePropertyValueAPIFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IssuePropertyValueAPIDetailFromJSON));
     }
 
     /**
      * List issue property values
      * List issue property values
      */
-    async listIssuePropertyValues(requestParameters: ListIssuePropertyValuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssuePropertyValueAPI> {
+    async listIssuePropertyValues(requestParameters: ListIssuePropertyValuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IssuePropertyValueAPIDetail>> {
         const response = await this.listIssuePropertyValuesRaw(requestParameters, initOverrides);
         return await response.value();
     }
