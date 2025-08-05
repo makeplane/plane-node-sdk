@@ -19,227 +19,208 @@ import {
     PriorityEnumToJSON,
     PriorityEnumToJSONTyped,
 } from './PriorityEnum';
-import type { StateLite } from './StateLite';
+import type { Label } from './Label';
 import {
-    StateLiteFromJSON,
-    StateLiteFromJSONTyped,
-    StateLiteToJSON,
-    StateLiteToJSONTyped,
-} from './StateLite';
-import type { CycleLite } from './CycleLite';
+    LabelFromJSON,
+    LabelFromJSONTyped,
+    LabelToJSON,
+    LabelToJSONTyped,
+} from './Label';
+import type { UserLite } from './UserLite';
 import {
-    CycleLiteFromJSON,
-    CycleLiteFromJSONTyped,
-    CycleLiteToJSON,
-    CycleLiteToJSONTyped,
-} from './CycleLite';
-import type { ModuleLite } from './ModuleLite';
-import {
-    ModuleLiteFromJSON,
-    ModuleLiteFromJSONTyped,
-    ModuleLiteToJSON,
-    ModuleLiteToJSONTyped,
-} from './ModuleLite';
+    UserLiteFromJSON,
+    UserLiteFromJSONTyped,
+    UserLiteToJSON,
+    UserLiteToJSONTyped,
+} from './UserLite';
 
 /**
- * Extended work item serializer with full relationship expansion.
+ * Comprehensive work item serializer with full relationship management.
  * 
- * Provides work items with expanded related data including cycles, modules,
- * labels, assignees, and states for comprehensive data representation.
+ * Handles complete work item lifecycle including assignees, labels, validation,
+ * and related model updates. Supports dynamic field expansion and HTML content processing.
  * @export
- * @interface IssueExpand
+ * @interface IssueDetail
  */
-export interface IssueExpand {
+export interface IssueDetail {
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly id?: string;
     /**
      * 
-     * @type {CycleLite}
-     * @memberof IssueExpand
+     * @type {Array<UserLite>}
+     * @memberof IssueDetail
      */
-    readonly cycle?: CycleLite;
+    assignees: Array<UserLite>;
     /**
      * 
-     * @type {ModuleLite}
-     * @memberof IssueExpand
+     * @type {Array<Label>}
+     * @memberof IssueDetail
      */
-    readonly module?: ModuleLite;
-    /**
-     * 
-     * @type {string}
-     * @memberof IssueExpand
-     */
-    readonly labels?: string;
+    labels: Array<Label>;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
-    readonly assignees?: string;
-    /**
-     * 
-     * @type {StateLite}
-     * @memberof IssueExpand
-     */
-    readonly state?: StateLite;
+    typeId?: string | null;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly createdAt?: Date;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly updatedAt?: Date;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     deletedAt?: Date | null;
     /**
      * 
      * @type {number}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     point?: number | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     name: string;
     /**
      * 
-     * @type {any}
-     * @memberof IssueExpand
-     */
-    description?: any | null;
-    /**
-     * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     descriptionHtml?: string;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     descriptionStripped?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly descriptionBinary?: string | null;
     /**
      * 
      * @type {PriorityEnum}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     priority?: PriorityEnum;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     startDate?: Date | null;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     targetDate?: Date | null;
     /**
      * 
      * @type {number}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     sequenceId?: number;
     /**
      * 
      * @type {number}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     sortOrder?: number;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     completedAt?: Date | null;
     /**
      * 
      * @type {Date}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     archivedAt?: Date | null;
     /**
      * 
      * @type {boolean}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     isDraft?: boolean;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     externalSource?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     externalId?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
-    readonly createdBy?: string | null;
+    createdBy?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly updatedBy?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly project?: string;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     readonly workspace?: string;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     parent?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
+     */
+    state?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof IssueDetail
      */
     estimatePoint?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof IssueExpand
+     * @memberof IssueDetail
      */
     type?: string | null;
 }
@@ -247,35 +228,34 @@ export interface IssueExpand {
 
 
 /**
- * Check if a given object implements the IssueExpand interface.
+ * Check if a given object implements the IssueDetail interface.
  */
-export function instanceOfIssueExpand(value: object): value is IssueExpand {
+export function instanceOfIssueDetail(value: object): value is IssueDetail {
+    if (!('assignees' in value) || value['assignees'] === undefined) return false;
+    if (!('labels' in value) || value['labels'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     return true;
 }
 
-export function IssueExpandFromJSON(json: any): IssueExpand {
-    return IssueExpandFromJSONTyped(json, false);
+export function IssueDetailFromJSON(json: any): IssueDetail {
+    return IssueDetailFromJSONTyped(json, false);
 }
 
-export function IssueExpandFromJSONTyped(json: any, ignoreDiscriminator: boolean): IssueExpand {
+export function IssueDetailFromJSONTyped(json: any, ignoreDiscriminator: boolean): IssueDetail {
     if (json == null) {
         return json;
     }
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'cycle': json['cycle'] == null ? undefined : CycleLiteFromJSON(json['cycle']),
-        'module': json['module'] == null ? undefined : ModuleLiteFromJSON(json['module']),
-        'labels': json['labels'] == null ? undefined : json['labels'],
-        'assignees': json['assignees'] == null ? undefined : json['assignees'],
-        'state': json['state'] == null ? undefined : StateLiteFromJSON(json['state']),
+        'assignees': ((json['assignees'] as Array<any>).map(UserLiteFromJSON)),
+        'labels': ((json['labels'] as Array<any>).map(LabelFromJSON)),
+        'typeId': json['type_id'] == null ? undefined : json['type_id'],
         'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
         'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
         'deletedAt': json['deleted_at'] == null ? undefined : (new Date(json['deleted_at'])),
         'point': json['point'] == null ? undefined : json['point'],
         'name': json['name'],
-        'description': json['description'] == null ? undefined : json['description'],
         'descriptionHtml': json['description_html'] == null ? undefined : json['description_html'],
         'descriptionStripped': json['description_stripped'] == null ? undefined : json['description_stripped'],
         'descriptionBinary': json['description_binary'] == null ? undefined : json['description_binary'],
@@ -294,26 +274,29 @@ export function IssueExpandFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'project': json['project'] == null ? undefined : json['project'],
         'workspace': json['workspace'] == null ? undefined : json['workspace'],
         'parent': json['parent'] == null ? undefined : json['parent'],
+        'state': json['state'] == null ? undefined : json['state'],
         'estimatePoint': json['estimate_point'] == null ? undefined : json['estimate_point'],
         'type': json['type'] == null ? undefined : json['type'],
     };
 }
 
-export function IssueExpandToJSON(json: any): IssueExpand {
-    return IssueExpandToJSONTyped(json, false);
+export function IssueDetailToJSON(json: any): IssueDetail {
+    return IssueDetailToJSONTyped(json, false);
 }
 
-export function IssueExpandToJSONTyped(value?: Omit<IssueExpand, 'id'|'cycle'|'module'|'labels'|'assignees'|'state'|'created_at'|'updated_at'|'description_binary'|'created_by'|'updated_by'|'project'|'workspace'> | null, ignoreDiscriminator: boolean = false): any {
+export function IssueDetailToJSONTyped(value?: Omit<IssueDetail, 'id'|'created_at'|'updated_at'|'description_binary'|'updated_by'|'project'|'workspace'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
 
     return {
         
+        'assignees': ((value['assignees'] as Array<any>).map(UserLiteToJSON)),
+        'labels': ((value['labels'] as Array<any>).map(LabelToJSON)),
+        'type_id': value['typeId'],
         'deleted_at': value['deletedAt'] == null ? undefined : ((value['deletedAt'] as any).toISOString()),
         'point': value['point'],
         'name': value['name'],
-        'description': value['description'],
         'description_html': value['descriptionHtml'],
         'description_stripped': value['descriptionStripped'],
         'priority': PriorityEnumToJSON(value['priority']),
@@ -326,7 +309,9 @@ export function IssueExpandToJSONTyped(value?: Omit<IssueExpand, 'id'|'cycle'|'m
         'is_draft': value['isDraft'],
         'external_source': value['externalSource'],
         'external_id': value['externalId'],
+        'created_by': value['createdBy'],
         'parent': value['parent'],
+        'state': value['state'],
         'estimate_point': value['estimatePoint'],
         'type': value['type'],
     };

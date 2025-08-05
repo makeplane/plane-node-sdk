@@ -15,6 +15,7 @@
 import * as runtime from '../runtime';
 import type {
   Issue,
+  IssueDetail,
   IssueRequest,
   IssueSearch,
   PaginatedWorkItemResponse,
@@ -23,6 +24,8 @@ import type {
 import {
     IssueFromJSON,
     IssueToJSON,
+    IssueDetailFromJSON,
+    IssueDetailToJSON,
     IssueRequestFromJSON,
     IssueRequestToJSON,
     IssueSearchFromJSON,
@@ -373,7 +376,7 @@ export class WorkItemsApi extends runtime.BaseAPI {
      * Retrieve details of a specific work item.
      * Retrieve work item
      */
-    async retrieveWorkItemRaw(requestParameters: RetrieveWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Issue>> {
+    async retrieveWorkItemRaw(requestParameters: RetrieveWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueDetail>> {
         if (requestParameters['pk'] == null) {
             throw new runtime.RequiredError(
                 'pk',
@@ -440,14 +443,14 @@ export class WorkItemsApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => IssueFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => IssueDetailFromJSON(jsonValue));
     }
 
     /**
      * Retrieve details of a specific work item.
      * Retrieve work item
      */
-    async retrieveWorkItem(requestParameters: RetrieveWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Issue> {
+    async retrieveWorkItem(requestParameters: RetrieveWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueDetail> {
         const response = await this.retrieveWorkItemRaw(requestParameters, initOverrides);
         return await response.value();
     }

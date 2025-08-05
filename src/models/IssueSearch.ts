@@ -21,16 +21,15 @@ import {
 } from './IssueSearchItem';
 
 /**
- * Serializer for work item search result data formatting.
+ * Search results for work items.
  * 
- * Provides standardized search result structure including work item identifiers,
- * project context, and workspace information for search API responses.
+ * Provides list of issues with their identifiers, names, and project context.
  * @export
  * @interface IssueSearch
  */
 export interface IssueSearch {
     /**
-     * Array of search result issues
+     * 
      * @type {Array<IssueSearchItem>}
      * @memberof IssueSearch
      */
