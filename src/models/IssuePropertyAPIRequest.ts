@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -12,13 +12,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { RelationTypeEnum } from './RelationTypeEnum';
+import type { IssuePropertyAPIRelationTypeEnum } from './IssuePropertyAPIRelationTypeEnum';
 import {
-    RelationTypeEnumFromJSON,
-    RelationTypeEnumFromJSONTyped,
-    RelationTypeEnumToJSON,
-    RelationTypeEnumToJSONTyped,
-} from './RelationTypeEnum';
+    IssuePropertyAPIRelationTypeEnumFromJSON,
+    IssuePropertyAPIRelationTypeEnumFromJSONTyped,
+    IssuePropertyAPIRelationTypeEnumToJSON,
+    IssuePropertyAPIRelationTypeEnumToJSONTyped,
+} from './IssuePropertyAPIRelationTypeEnum';
 import type { PropertyTypeEnum } from './PropertyTypeEnum';
 import {
     PropertyTypeEnumFromJSON,
@@ -35,10 +35,10 @@ import {
 export interface IssuePropertyAPIRequest {
     /**
      * 
-     * @type {RelationTypeEnum}
+     * @type {IssuePropertyAPIRelationTypeEnum}
      * @memberof IssuePropertyAPIRequest
      */
-    relationType?: RelationTypeEnum;
+    relationType?: IssuePropertyAPIRelationTypeEnum | null;
     /**
      * 
      * @type {string}
@@ -128,7 +128,7 @@ export function IssuePropertyAPIRequestFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'relationType': json['relation_type'] == null ? undefined : RelationTypeEnumFromJSON(json['relation_type']),
+        'relationType': json['relation_type'] == null ? undefined : IssuePropertyAPIRelationTypeEnumFromJSON(json['relation_type']),
         'displayName': json['display_name'],
         'description': json['description'] == null ? undefined : json['description'],
         'propertyType': PropertyTypeEnumFromJSON(json['property_type']),
@@ -154,7 +154,7 @@ export function IssuePropertyAPIRequestToJSONTyped(value?: IssuePropertyAPIReque
 
     return {
         
-        'relation_type': RelationTypeEnumToJSON(value['relationType']),
+        'relation_type': IssuePropertyAPIRelationTypeEnumToJSON(value['relationType']),
         'display_name': value['displayName'],
         'description': value['description'],
         'property_type': PropertyTypeEnumToJSON(value['propertyType']),

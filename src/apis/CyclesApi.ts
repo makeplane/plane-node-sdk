@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -151,7 +151,7 @@ export class CyclesApi extends runtime.BaseAPI {
      * Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
      * Add Work Items to Cycle
      */
-    async addCycleWorkItemsRaw(requestParameters: AddCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CycleIssue>> {
+    async addCycleWorkItemsRaw(requestParameters: AddCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<CycleIssue>>> {
         if (requestParameters['cycleId'] == null) {
             throw new runtime.RequiredError(
                 'cycleId',
@@ -208,14 +208,14 @@ export class CyclesApi extends runtime.BaseAPI {
             body: CycleIssueRequestRequestToJSON(requestParameters['cycleIssueRequestRequest']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CycleIssueFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CycleIssueFromJSON));
     }
 
     /**
      * Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
      * Add Work Items to Cycle
      */
-    async addCycleWorkItems(requestParameters: AddCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CycleIssue> {
+    async addCycleWorkItems(requestParameters: AddCycleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<CycleIssue>> {
         const response = await this.addCycleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }

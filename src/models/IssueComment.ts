@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -12,13 +12,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AccessEnum } from './AccessEnum';
+import type { AccessBd4Enum } from './AccessBd4Enum';
 import {
-    AccessEnumFromJSON,
-    AccessEnumFromJSONTyped,
-    AccessEnumToJSON,
-    AccessEnumToJSONTyped,
-} from './AccessEnum';
+    AccessBd4EnumFromJSON,
+    AccessBd4EnumFromJSONTyped,
+    AccessBd4EnumToJSON,
+    AccessBd4EnumToJSONTyped,
+} from './AccessBd4Enum';
 
 /**
  * Full serializer for work item comments with membership context.
@@ -79,10 +79,10 @@ export interface IssueComment {
     attachments?: Array<string>;
     /**
      * 
-     * @type {AccessEnum}
+     * @type {AccessBd4Enum}
      * @memberof IssueComment
      */
-    access?: AccessEnum;
+    access?: AccessBd4Enum;
     /**
      * 
      * @type {string}
@@ -166,7 +166,7 @@ export function IssueCommentFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'commentStripped': json['comment_stripped'] == null ? undefined : json['comment_stripped'],
         'commentHtml': json['comment_html'] == null ? undefined : json['comment_html'],
         'attachments': json['attachments'] == null ? undefined : json['attachments'],
-        'access': json['access'] == null ? undefined : AccessEnumFromJSON(json['access']),
+        'access': json['access'] == null ? undefined : AccessBd4EnumFromJSON(json['access']),
         'externalSource': json['external_source'] == null ? undefined : json['external_source'],
         'externalId': json['external_id'] == null ? undefined : json['external_id'],
         'editedAt': json['edited_at'] == null ? undefined : (new Date(json['edited_at'])),
@@ -194,7 +194,7 @@ export function IssueCommentToJSONTyped(value?: Omit<IssueComment, 'id'|'is_memb
         'comment_stripped': value['commentStripped'],
         'comment_html': value['commentHtml'],
         'attachments': value['attachments'],
-        'access': AccessEnumToJSON(value['access']),
+        'access': AccessBd4EnumToJSON(value['access']),
         'external_source': value['externalSource'],
         'external_id': value['externalId'],
         'edited_at': value['editedAt'] == null ? undefined : ((value['editedAt'] as any).toISOString()),

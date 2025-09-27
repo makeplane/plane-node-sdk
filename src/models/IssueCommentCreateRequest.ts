@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -12,13 +12,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AccessEnum } from './AccessEnum';
+import type { AccessBd4Enum } from './AccessBd4Enum';
 import {
-    AccessEnumFromJSON,
-    AccessEnumFromJSONTyped,
-    AccessEnumToJSON,
-    AccessEnumToJSONTyped,
-} from './AccessEnum';
+    AccessBd4EnumFromJSON,
+    AccessBd4EnumFromJSONTyped,
+    AccessBd4EnumToJSON,
+    AccessBd4EnumToJSONTyped,
+} from './AccessBd4Enum';
 
 /**
  * Serializer for creating work item comments.
@@ -43,10 +43,10 @@ export interface IssueCommentCreateRequest {
     commentHtml?: string;
     /**
      * 
-     * @type {AccessEnum}
+     * @type {AccessBd4Enum}
      * @memberof IssueCommentCreateRequest
      */
-    access?: AccessEnum;
+    access?: AccessBd4Enum;
     /**
      * 
      * @type {string}
@@ -82,7 +82,7 @@ export function IssueCommentCreateRequestFromJSONTyped(json: any, ignoreDiscrimi
         
         'commentJson': json['comment_json'] == null ? undefined : json['comment_json'],
         'commentHtml': json['comment_html'] == null ? undefined : json['comment_html'],
-        'access': json['access'] == null ? undefined : AccessEnumFromJSON(json['access']),
+        'access': json['access'] == null ? undefined : AccessBd4EnumFromJSON(json['access']),
         'externalSource': json['external_source'] == null ? undefined : json['external_source'],
         'externalId': json['external_id'] == null ? undefined : json['external_id'],
     };
@@ -101,7 +101,7 @@ export function IssueCommentCreateRequestToJSONTyped(value?: IssueCommentCreateR
         
         'comment_json': value['commentJson'],
         'comment_html': value['commentHtml'],
-        'access': AccessEnumToJSON(value['access']),
+        'access': AccessBd4EnumToJSON(value['access']),
         'external_source': value['externalSource'],
         'external_id': value['externalId'],
     };
