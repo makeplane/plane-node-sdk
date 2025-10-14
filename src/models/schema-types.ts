@@ -1146,6 +1146,7 @@ export interface PatchedAssetUpdateRequest {
 }
 
 export interface PatchedCustomerPropertyRequest {
+  name?: string;
   display_name?: string;
   description?: string;
   logo_props?: any;

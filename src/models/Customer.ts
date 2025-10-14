@@ -39,9 +39,9 @@ export interface CustomerPropertyValue extends BaseModel {
   [key: string]: any;
 }
 
-export type CreateCustomerPropertyValue = Partial<CustomerPropertyValue>;
-
-export type UpdateCustomerPropertyValue = Partial<CustomerPropertyValue>;
+export type UpdateCustomerPropertyValue = {
+  values: any[];
+};
 
 export interface ListCustomerPropertyValuesParams {
   customer?: string;

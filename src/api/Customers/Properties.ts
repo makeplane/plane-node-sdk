@@ -2,7 +2,6 @@ import { BaseResource } from '../BaseResource';
 import { Configuration } from '../../Configuration';
 import {
   CustomerPropertyValue,
-  CreateCustomerPropertyValue,
   UpdateCustomerPropertyValue,
   ListCustomerPropertyValuesParams,
   // CustomerProperty,
@@ -104,20 +103,6 @@ export class Properties extends BaseResource {
     return this.get<CustomerPropertyValue[]>(
       `/workspaces/${workspaceSlug}/customers/${customerId}/property-values/`,
       params
-    );
-  }
-
-  /**
-   * Update customer property values (bulk update)
-   */
-  async updatePropertyValues(
-    workspaceSlug: string,
-    customerId: string,
-    propertyValues: CreateCustomerPropertyValue[]
-  ): Promise<CustomerPropertyValue[]> {
-    return this.post<CustomerPropertyValue[]>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/property-values/`,
-      propertyValues
     );
   }
 
