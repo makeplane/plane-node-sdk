@@ -45,7 +45,7 @@ async function createLabel(
   projectId: string
 ) {
   const label = await client.labels.create(workspaceSlug, projectId, {
-    name: 'Test Label ' + new Date().toISOString(),
+    name: 'Test Label ' + new Date().getTime(),
     description: 'Test Label Description',
   });
   return label;

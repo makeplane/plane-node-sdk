@@ -14,8 +14,6 @@ export interface Project extends BaseModel {
   cover_image_url: null;
   name: string;
   description: string;
-  description_text?: string;
-  description_html?: string;
   network?: number;
   identifier?: string;
   emoji?: null;
@@ -44,9 +42,9 @@ export interface Project extends BaseModel {
 
 export type CreateProject = Pick<
   Project,
-  'name' | 'description_html' | 'identifier'
+  'name'| 'identifier'
 > &
-  Partial<Omit<Project, 'name' | 'description_html' | 'identifier'>>;
+  Partial<Omit<Project, 'name' | 'identifier'>>;
 
 export type UpdateProject = Partial<Project>;
 

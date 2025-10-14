@@ -18,7 +18,7 @@ export async function testActivities() {
     projectId,
     workItemId
   );
-  console.log(activityResponse);
+  console.log("activities list", activityResponse);
 
   const activity = await retrieveActivity(
     client,
@@ -27,7 +27,7 @@ export async function testActivities() {
     workItemId,
     activityResponse.results[0].id
   );
-  console.log(activity);
+  console.log("activity retrieve", activity);
 }
 
 async function listActivities(

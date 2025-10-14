@@ -12,14 +12,14 @@ export async function testProjects() {
   const workspaceSlug = config.workspaceSlug;
 
   const project = await createProject(client, workspaceSlug);
-  console.log(project);
+  console.log("created project", project);
 
   const retrievedProject = await retrieveProject(
     client,
     workspaceSlug,
     project.id
   );
-  console.log(retrievedProject);
+  console.log("retrieved project", retrievedProject);
 
   const updatedProject = await updateProject(
     client,
@@ -27,25 +27,25 @@ export async function testProjects() {
     project.id,
     {
       name: 'Updated Test Project',
-      description_html: 'Updated Test Project Description',
+      description: 'Updated Test Project Description',
     }
   );
-  console.log(updatedProject);
+  console.log("updated project", updatedProject);
 
   const projects = await listProjects(client, workspaceSlug);
-  console.log(projects);
+  console.log("listed projects", projects);
 
   const members = await getMembers(client, workspaceSlug, project.id);
-  console.log(members);
+  console.log("project members", members);
 
   await deleteProject(client, workspaceSlug, project.id);
-  console.log('Project deleted');
+  console.log('project deleted', project.id);
 }
 
 async function createProject(client: PlaneClient, workspaceSlug: string) {
   const project = await client.projects.create(workspaceSlug, {
     name: 'Test Project',
-    description_html: 'Test Project Description',
+    description: 'Test Project Description',
   });
   return project;
 }
