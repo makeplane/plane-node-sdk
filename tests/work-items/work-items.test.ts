@@ -1,6 +1,6 @@
-import { PlaneClient } from '../src/client/plane-client';
-import { WorkItem } from '../src/models/WorkItem';
-import { config } from './constants';
+import { PlaneClient } from '../../src/client/plane-client';
+import { WorkItem } from '../../src/models/WorkItem';
+import { config } from '../constants';
 
 export async function testWorkItems() {
   const client = new PlaneClient({
@@ -48,6 +48,16 @@ export async function testWorkItems() {
   console.log('Retrieved work item by identifier: ', workItemByIdentifier);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  const searchedWorkItems = await searchWorkItems(
+    client,
+    workspaceSlug,
+    projectId,
+    workItemByIdentifier.name
+  );
+  console.log('Searched work items: ', searchedWorkItems);
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   await deleteWorkItem(client, workspaceSlug, projectId, workItem.id);
   console.log('Work item deleted: ', workItem.id);
 }
@@ -88,6 +98,9 @@ async function updateWorkItem(
   const states = await client.states.list(workspaceSlug, projectId);
   const labels = await client.labels.list(workspaceSlug, projectId);
 
+  const label = labels.results[0];
+  const state = states.results[0];
+
   const updatedWorkItem = await client.workItems.update(
     workspaceSlug,
     projectId,
@@ -95,9 +108,9 @@ async function updateWorkItem(
     {
       name: 'Updated Test Work Item',
       description_html: '<p>Updated Test Work Item Description</p>',
-      state: states.results[0].id,
+      state: state ? state.id : undefined,
       assignees: [config.userId],
-      labels: [labels.results[0].id],
+      labels: label ? [label.id] : undefined,
     }
   );
   return updatedWorkItem;

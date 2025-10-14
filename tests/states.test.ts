@@ -45,7 +45,7 @@ async function createState(
   projectId: string
 ) {
   const state = await client.states.create(workspaceSlug, projectId, {
-    name: 'Test State ' + new Date().toISOString(),
+    name: 'Test State ' + new Date().getTime(),
     description: 'Test State Description',
     group: 'started',
     color: '#9AA4BC',

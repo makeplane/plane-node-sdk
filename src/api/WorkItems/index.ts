@@ -129,8 +129,8 @@ export class WorkItems extends BaseResource {
     params?: any
   ): Promise<WorkItemSearch> {
     return this.get<WorkItemSearch>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/search/`,
-      { ...params, q: query }
+      `/workspaces/${workspaceSlug}/work-items/search/`,
+      { ...params, search: query, project: projectId }
     );
   }
 }
