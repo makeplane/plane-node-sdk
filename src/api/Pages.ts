@@ -1,6 +1,6 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { Page, CreatePage, UpdatePage, ListPagesParams } from '../models/Page';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { Page, CreatePage } from "../models/Page";
 
 /**
  * Pages API resource
@@ -78,29 +78,5 @@ export class Pages extends BaseResource {
     pageId: string
   ): Promise<Page> {
     return this.getProjectPage(workspaceSlug, projectId, pageId);
-  }
-
-  /**
-   * List workspace pages
-   */
-  async listWorkspacePages(
-    workspaceSlug: string,
-    params?: ListPagesParams
-  ): Promise<Page[]> {
-    return this.get<Page[]>(`/workspaces/${workspaceSlug}/pages/`, params);
-  }
-
-  /**
-   * List project pages
-   */
-  async listProjectPages(
-    workspaceSlug: string,
-    projectId: string,
-    params?: ListPagesParams
-  ): Promise<Page[]> {
-    return this.get<Page[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/pages/`,
-      params
-    );
   }
 }

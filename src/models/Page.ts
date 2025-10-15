@@ -1,4 +1,4 @@
-import { BaseModel } from './common';
+import { BaseModel } from "./common";
 
 /**
  * Page model interfaces
@@ -7,10 +7,7 @@ import { BaseModel } from './common';
 export interface Page extends BaseModel {
   // Basic page fields - these will be updated with proper types
   name: string;
-  description?: string;
-  content?: string;
-  workspace?: string;
-  project?: string;
+  description_html: string;
   created_by: string;
   updated_by?: string;
   // Additional fields will be added after API verification
@@ -18,12 +15,3 @@ export interface Page extends BaseModel {
 }
 
 export type CreatePage = Partial<Page>;
-
-export type UpdatePage = Partial<Page>;
-
-export interface ListPagesParams {
-  workspace?: string;
-  project?: string;
-  limit?: number;
-  offset?: number;
-}
