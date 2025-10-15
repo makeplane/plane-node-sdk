@@ -1,46 +1,14 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { PaginatedResponse } from '../models/common';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { PaginatedResponse } from "../models/common";
+
 import {
-  WorkItem,
-  CycleIssue,
-  TransferCycleIssueRequestRequest,
-} from '../models/schema-types';
-
-/**
- * Cycle model interfaces
- */
-export interface Cycle {
-  id: string;
-  name: string;
-  description?: string;
-  project: string;
-  start_date?: string;
-  end_date?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateCycle {
-  name: string;
-  description?: string;
-  project: string;
-  start_date?: string;
-  end_date?: string;
-}
-
-export interface UpdateCycle {
-  name?: string;
-  description?: string;
-  start_date?: string;
-  end_date?: string;
-}
-
-export interface ListCyclesParams {
-  project?: string;
-  limit?: number;
-  offset?: number;
-}
+  Cycle,
+  CreateCycleRequest,
+  UpdateCycleRequest,
+  TransferCycleWorkItemRequest,
+  CycleWorkItem,
+} from "../models/Cycle";
 
 /**
  * Cycles API resource
@@ -57,7 +25,7 @@ export class Cycles extends BaseResource {
   async create(
     workspaceSlug: string,
     projectId: string,
-    createCycle: CreateCycle
+    createCycle: CreateCycleRequest
   ): Promise<Cycle> {
     return this.post<Cycle>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`,
@@ -85,7 +53,7 @@ export class Cycles extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     cycleId: string,
-    updateCycle: UpdateCycle
+    updateCycle: UpdateCycleRequest
   ): Promise<Cycle> {
     return this.patch<Cycle>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`,
@@ -111,12 +79,10 @@ export class Cycles extends BaseResource {
    */
   async list(
     workspaceSlug: string,
-    projectId: string,
-    params?: ListCyclesParams
+    projectId: string
   ): Promise<PaginatedResponse<Cycle>> {
     return this.get<PaginatedResponse<Cycle>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`,
-      params
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`
     );
   }
 
@@ -129,7 +95,7 @@ export class Cycles extends BaseResource {
     params?: any
   ): Promise<PaginatedResponse<Cycle>> {
     return this.get<PaginatedResponse<Cycle>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/archived/`,
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/`,
       params
     );
   }
@@ -142,8 +108,8 @@ export class Cycles extends BaseResource {
     projectId: string,
     cycleId: string
   ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/unarchive/`
+    return this.delete<void>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/unarchive/`
     );
   }
 
@@ -156,7 +122,7 @@ export class Cycles extends BaseResource {
     cycleId: string
   ): Promise<void> {
     return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/archive/`
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/archive/`
     );
   }
 
@@ -168,9 +134,9 @@ export class Cycles extends BaseResource {
     projectId: string,
     cycleId: string,
     params?: any
-  ): Promise<PaginatedResponse<WorkItem>> {
-    return this.get<PaginatedResponse<WorkItem>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/work-items/`,
+  ): Promise<PaginatedResponse<CycleWorkItem>> {
+    return this.get<PaginatedResponse<CycleWorkItem>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`,
       params
     );
   }
@@ -185,7 +151,7 @@ export class Cycles extends BaseResource {
     workItemIds: string[]
   ): Promise<void> {
     return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/work-items/`,
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`,
       { issues: workItemIds }
     );
   }
@@ -200,7 +166,7 @@ export class Cycles extends BaseResource {
     workItemId: string
   ): Promise<void> {
     return this.delete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/work-items/${workItemId}/`
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/${workItemId}/`
     );
   }
 
@@ -211,10 +177,10 @@ export class Cycles extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     cycleId: string,
-    transferData: TransferCycleIssueRequestRequest
+    transferData: TransferCycleWorkItemRequest
   ): Promise<void> {
     return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/transfer/`,
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/transfer-issues/`,
       transferData
     );
   }
