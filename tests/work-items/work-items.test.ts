@@ -1,5 +1,4 @@
 import { PlaneClient } from '../../src/client/plane-client';
-import { WorkItem } from '../../src/models/WorkItem';
 import { config } from '../constants';
 
 export async function testWorkItems() {
@@ -30,7 +29,6 @@ export async function testWorkItems() {
     workspaceSlug,
     projectId,
     workItem.id,
-    workItem
   );
   console.log('Updated work item: ', updatedWorkItem);
 
@@ -92,8 +90,7 @@ async function updateWorkItem(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  workItemId: string,
-  workItem: WorkItem
+  workItemId: string, 
 ) {
   const states = await client.states.list(workspaceSlug, projectId);
   const labels = await client.labels.list(workspaceSlug, projectId);
@@ -143,8 +140,8 @@ async function retrieveWorkItemByIdentifier(
   const project = await client.projects.retrieve(workspaceSlug, projectId);
   const workItem = await client.workItems.retrieveByIdentifier(
     workspaceSlug,
-    projectId,
-    `${project.identifier}-${identifier}`
+    `${project.identifier}-${identifier}`,
+    ['project']
   );
   return workItem;
 }

@@ -5,6 +5,8 @@ import {
   CreateWorkItem,
   UpdateWorkItem,
   ListWorkItemsParams,
+  WorkItemExpandableFieldName,
+  WorkItemBase,
 } from '../../models/WorkItem';
 import { PaginatedResponse } from '../../models/common';
 import { Links } from '../Links';
@@ -51,16 +53,32 @@ export class WorkItems extends BaseResource {
     );
   }
 
-  /**
-   * Retrieve a work item by ID
-   */
+  // method overloads
   async retrieve(
     workspaceSlug: string,
     projectId: string,
-    workItemId: string
-  ): Promise<WorkItem> {
-    return this.get<WorkItem>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`
+    workItemId: string,
+  ): Promise<WorkItemBase>;
+
+  async retrieve<E extends WorkItemExpandableFieldName>(
+    workspaceSlug: string,
+    projectId: string,
+    workItemId: string,
+    expand: E[]
+  ): Promise<WorkItem<E>>;
+
+  /**
+   * Retrieve a work item by ID
+   */
+  async retrieve<E extends WorkItemExpandableFieldName>(
+    workspaceSlug: string,
+    projectId: string,
+    workItemId: string,
+    expand?: E[]
+  ): Promise<WorkItem<E>> {
+    return this.get<WorkItem<E>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`,
+      { expand: expand?.join(',') }
     );
   }
 
@@ -106,16 +124,27 @@ export class WorkItems extends BaseResource {
     );
   }
 
-  /**
-   * Retrieve a work item by identifier
-   */
+  // method overloads
   async retrieveByIdentifier(
     workspaceSlug: string,
-    projectId: string,
-    identifier: string
-  ): Promise<WorkItem> {
-    return this.get<WorkItem>(
-      `/workspaces/${workspaceSlug}/work-items/${identifier}/`
+    identifier: string,
+  ): Promise<WorkItemBase>;
+
+  async retrieveByIdentifier<E extends WorkItemExpandableFieldName>(
+    workspaceSlug: string,
+    identifier: string,
+    expand: E[]
+  ): Promise<WorkItem<E>>;
+
+  // Implementation
+  async retrieveByIdentifier<E extends WorkItemExpandableFieldName>(
+    workspaceSlug: string,
+    identifier: string,
+    expand?: E[]
+  ): Promise<WorkItem<E> | WorkItemBase> {
+    return this.get<WorkItem<E>>(
+      `/workspaces/${workspaceSlug}/work-items/${identifier}/`,
+      { expand: expand?.join(',') }
     );
   }
 

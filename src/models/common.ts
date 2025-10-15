@@ -73,6 +73,8 @@ export type UpdateEntity<T> = Partial<Omit<T, ServerGeneratedFields | "id">>;
 
 export type ResponseEntity<T> = T;
 
+export type PriorityEnum = "urgent" | "high" | "medium" | "low" | "none";
+
 export type TimezoneEnum =
   | "Africa/Abidjan"
   | "Africa/Accra"

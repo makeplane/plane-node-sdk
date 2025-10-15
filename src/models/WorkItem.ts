@@ -1,18 +1,21 @@
-import { Assignee, BaseModel } from './common';
+import { WorkItemType } from './WorkItemType';
+import { BaseModel, PriorityEnum } from './common';
+import { Module } from './Module';
 import { Label } from './Label';
+import { Project } from './Project';
+import { State } from './State';
+import { User } from './User';
 
 /**
  * WorkItem model interfaces
  */
-export interface WorkItem extends BaseModel {
-  id: string;
+export interface WorkItemBase extends BaseModel {
   name: string;
   sequence_id: number;
   description_html?: string;
   project: string;
-  assignee?: string;
-  labels?: string[] | Label[];
-  assignees?: string[] | Assignee[];
+  labels?: string[];
+  assignees?: string[];
   type?: string;
   estimate_point?: string;
   state?: string;
@@ -23,10 +26,34 @@ export interface WorkItem extends BaseModel {
   sort_order?: number;
   target_date?: string;
   start_date?: string;
-  priority?: string;
+  priority?: PriorityEnum;
   description_stripped?: string;
   description_binary?: string;
 }
+
+// 1. Define expandable fields mapping (single source of truth)
+type WorkItemExpandableFields = {
+  type: WorkItemType;
+  module: Module;
+  labels: Label[];
+  assignees: User[];
+  state: State;
+  project: Project;
+};
+
+export type WorkItemExpandableFieldName = keyof WorkItemExpandableFields;
+
+// Smart type that expands based on what's requested
+// Fallback to WorkItemBase if Expanded is never or empty array
+export type WorkItem<Expanded extends WorkItemExpandableFieldName = never> = 
+  [Expanded] extends [never]
+    ? WorkItemBase
+    : Omit<WorkItemBase, Expanded> & {
+        [K in Expanded]: K extends keyof WorkItemExpandableFields 
+          ? WorkItemExpandableFields[K] 
+          : never;
+      };
+
 
 export interface CreateWorkItem {
   name: string;

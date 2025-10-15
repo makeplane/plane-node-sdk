@@ -1,5 +1,7 @@
 import { BaseModel, LogoProps } from './common';
 
+export type WorkItemPropertySettings = TTextSettings | undefined;
+
 /**
  * WorkItemProperty model interfaces
  */
@@ -14,7 +16,7 @@ export interface WorkItemProperty extends BaseModel {
   sort_order: number;
   is_required: boolean;
   default_value: any;
-  settings: TTextSettings | undefined;
+  settings?: WorkItemPropertySettings;
   is_active: boolean;
   is_multi: boolean;
   validation_rules: any;
@@ -25,7 +27,7 @@ export interface WorkItemProperty extends BaseModel {
 
 export type CreateWorkItemProperty = Pick<
   WorkItemProperty,
-  'name' | 'display_name' | 'property_type' | 'options'
+  'name' | 'display_name' | 'property_type' | 'options' | 'settings'
 >;
 
 export type UpdateWorkItemProperty = Partial<WorkItemProperty>;
@@ -85,9 +87,17 @@ export interface WorkItemPropertyValue extends BaseModel {
   project: string;
 }
 
-export type CreateWorkItemPropertyValue = Partial<WorkItemPropertyValue>;
+export type WorkItemPropertyValues = {
+  property_id: string;
+  values: any[];
+}[];
 
-export type UpdateWorkItemPropertyValue = Partial<WorkItemPropertyValue>;
+
+export type UpdateWorkItemPropertyValue = {
+  values: [
+    {value: any}
+  ];
+};
 
 export interface ListWorkItemPropertyValuesParams {
   issue?: string;

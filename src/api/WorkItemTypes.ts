@@ -1,25 +1,8 @@
 import { BaseResource } from './BaseResource';
 import { Configuration } from '../Configuration';
-import { LogoProps, PaginatedResponse, BaseModel } from '../models/common';
+import { PaginatedResponse } from '../models/common';
+import { WorkItemType, CreateWorkItemType, UpdateWorkItemType } from '../models/WorkItemType';
 
-/**
- * WorkItemType model interfaces
- */
-export interface WorkItemType extends BaseModel {
-  name: string;
-  description?: string;
-  logo_props: LogoProps;
-  is_epic: boolean;
-  is_default: boolean;
-  is_active: boolean;
-  level: number;
-  workspace: string;
-  project: string;
-}
-
-export type CreateWorkItemType = Partial<WorkItemType>;
-
-export type UpdateWorkItemType = Partial<WorkItemType>;
 
 export interface ListWorkItemTypesParams {
   project?: string;
