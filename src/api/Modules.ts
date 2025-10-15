@@ -1,40 +1,13 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { PaginatedResponse } from '../models/common';
-import { WorkItem } from '../models/schema-types';
-
-/**
- * Module model interfaces
- */
-export interface Module {
-  id: string;
-  name: string;
-  description?: string;
-  project: string;
-  lead?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateModule {
-  name: string;
-  description?: string;
-  project: string;
-  lead?: string;
-}
-
-export interface UpdateModule {
-  name?: string;
-  description?: string;
-  lead?: string;
-}
-
-export interface ListModulesParams {
-  project?: string;
-  lead?: string;
-  limit?: number;
-  offset?: number;
-}
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { PaginatedResponse } from "../models/common";
+import {
+  CreateModuleRequest,
+  UpdateModuleRequest,
+  Module,
+  ModuleWorkItem,
+  ListModulesParamsRequest,
+} from "../models/Module";
 
 /**
  * Modules API resource
@@ -51,7 +24,7 @@ export class Modules extends BaseResource {
   async create(
     workspaceSlug: string,
     projectId: string,
-    createModule: CreateModule
+    createModule: CreateModuleRequest
   ): Promise<Module> {
     return this.post<Module>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/`,
@@ -79,7 +52,7 @@ export class Modules extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     moduleId: string,
-    updateModule: UpdateModule
+    updateModule: UpdateModuleRequest
   ): Promise<Module> {
     return this.patch<Module>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`,
@@ -106,26 +79,11 @@ export class Modules extends BaseResource {
   async list(
     workspaceSlug: string,
     projectId: string,
-    params?: ListModulesParams
+    params?: ListModulesParamsRequest
   ): Promise<PaginatedResponse<Module>> {
     return this.get<PaginatedResponse<Module>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/`,
       params
-    );
-  }
-
-  /**
-   * Add work item to module
-   */
-  async addWorkItemToModule(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string,
-    workItemIds: string[]
-  ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/work-items/`,
-      { issues: workItemIds }
     );
   }
 
@@ -137,10 +95,39 @@ export class Modules extends BaseResource {
     projectId: string,
     moduleId: string,
     params?: any
-  ): Promise<PaginatedResponse<WorkItem>> {
-    return this.get<PaginatedResponse<WorkItem>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/work-items/`,
+  ): Promise<PaginatedResponse<ModuleWorkItem>> {
+    return this.get<PaginatedResponse<ModuleWorkItem>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`,
       params
+    );
+  }
+
+  /**
+   * Add work items to module
+   */
+  async addWorkItemToModule(
+    workspaceSlug: string,
+    projectId: string,
+    moduleId: string,
+    workItemIds: string[]
+  ): Promise<void> {
+    return this.post<void>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`,
+      { issues: workItemIds }
+    );
+  }
+
+  /**
+   * Delete work item from module
+   */
+  async removeWorkItemFromModule(
+    workspaceSlug: string,
+    projectId: string,
+    moduleId: string,
+    workItemId: string
+  ): Promise<void> {
+    return this.delete(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/${workItemId}/`
     );
   }
 
