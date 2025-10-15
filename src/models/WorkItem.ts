@@ -1,5 +1,5 @@
-import { WorkItemType } from '../api/WorkItemTypes';
-import { Assignee, BaseModel, PriorityEnum } from './common';
+import { WorkItemType } from './WorkItemType';
+import { BaseModel, PriorityEnum } from './common';
 import { Module } from './Module';
 import { Label } from './Label';
 import { Project } from './Project';

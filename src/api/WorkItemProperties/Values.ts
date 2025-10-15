@@ -1,10 +1,10 @@
 import { BaseResource } from '../BaseResource';
 import { Configuration } from '../../Configuration';
 import {
-  WorkItemPropertyValueAPI,
-  WorkItemPropertyValueAPIRequest,
-  WorkItemPropertyValueAPIDetail,
-} from '../../models/schema-types';
+  UpdateWorkItemPropertyValue,
+  ListWorkItemPropertyValuesParams,
+  WorkItemPropertyValues,
+} from '../../models/WorkItemProperty';
 
 /**
  * WorkItemPropertyValues API resource
@@ -23,11 +23,11 @@ export class Values extends BaseResource {
     projectId: string,
     workItemId: string,
     propertyId: string,
-    valueId: string
-  ): Promise<WorkItemPropertyValueAPI> {
-    return this.get<WorkItemPropertyValueAPI>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/${valueId}/`
+  ): Promise<WorkItemPropertyValues> {
+    const propertyValues = await this.get<WorkItemPropertyValues>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/`
     );
+    return propertyValues;
   }
 
   /**
@@ -37,64 +37,28 @@ export class Values extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    params?: any
-  ): Promise<WorkItemPropertyValueAPIDetail[]> {
-    return this.get<WorkItemPropertyValueAPIDetail[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/values/`
+    params?: ListWorkItemPropertyValuesParams
+  ): Promise<WorkItemPropertyValues> {
+    return this.get<WorkItemPropertyValues>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/values/`,
+      params
     );
   }
 
+
   /**
-   * Create a property value
+   * Create/update a property value
    */
   async create(
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
     propertyId: string,
-    valueData: WorkItemPropertyValueAPIRequest
-  ): Promise<WorkItemPropertyValueAPI> {
-    return this.post<WorkItemPropertyValueAPI>(
+    updateData: UpdateWorkItemPropertyValue
+  ): Promise<WorkItemPropertyValues> {
+    return this.post<WorkItemPropertyValues>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/`,
-      {
-        values: [
-          {
-            value: valueData,
-          },
-        ],
-      }
-    );
-  }
-
-  /**
-   * Update a property value
-   */
-  async update(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string,
-    propertyId: string,
-    valueId: string,
-    updateData: WorkItemPropertyValueAPIRequest
-  ): Promise<WorkItemPropertyValueAPI> {
-    return this.patch<WorkItemPropertyValueAPI>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/${valueId}/`,
       updateData
-    );
-  }
-
-  /**
-   * Delete a property value
-   */
-  async del(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string,
-    propertyId: string,
-    valueId: string
-  ): Promise<void> {
-    return this.delete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/${valueId}/`
     );
   }
 }

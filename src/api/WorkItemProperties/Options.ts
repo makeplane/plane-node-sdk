@@ -1,10 +1,11 @@
 import { BaseResource } from '../BaseResource';
 import { Configuration } from '../../Configuration';
 import {
-  WorkItemPropertyOptionAPI,
-  WorkItemPropertyOptionAPIRequest,
-  PatchedIssuePropertyOptionAPIRequest,
-} from '../../models/schema-types';
+  WorkItemPropertyOption,
+  CreateWorkItemPropertyOption,
+  UpdateWorkItemPropertyOption,
+  ListWorkItemPropertyOptionsParams
+} from '../../models/WorkItemProperty';
 
 /**
  * WorkItemPropertyOptions API resource
@@ -23,8 +24,8 @@ export class Options extends BaseResource {
     projectId: string,
     propertyId: string,
     optionId: string
-  ): Promise<WorkItemPropertyOptionAPI> {
-    return this.get<WorkItemPropertyOptionAPI>(
+  ): Promise<WorkItemPropertyOption> {
+    return this.get<WorkItemPropertyOption>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-properties/${propertyId}/options/${optionId}/`
     );
   }
@@ -36,9 +37,9 @@ export class Options extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
-    params?: any
-  ): Promise<WorkItemPropertyOptionAPI[]> {
-    return this.get<WorkItemPropertyOptionAPI[]>(
+    params?: ListWorkItemPropertyOptionsParams
+  ): Promise<WorkItemPropertyOption[]> {
+    return this.get<WorkItemPropertyOption[]>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-properties/${propertyId}/options/`,
       params
     );
@@ -51,9 +52,9 @@ export class Options extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
-    optionData: WorkItemPropertyOptionAPIRequest
-  ): Promise<WorkItemPropertyOptionAPI> {
-    return this.post<WorkItemPropertyOptionAPI>(
+    optionData: CreateWorkItemPropertyOption
+  ): Promise<WorkItemPropertyOption> {
+    return this.post<WorkItemPropertyOption>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-properties/${propertyId}/options/`,
       optionData
     );
@@ -67,9 +68,9 @@ export class Options extends BaseResource {
     projectId: string,
     propertyId: string,
     optionId: string,
-    updateData: PatchedIssuePropertyOptionAPIRequest
-  ): Promise<WorkItemPropertyOptionAPI> {
-    return this.patch<WorkItemPropertyOptionAPI>(
+    updateData: UpdateWorkItemPropertyOption
+  ): Promise<WorkItemPropertyOption> {
+    return this.patch<WorkItemPropertyOption>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-properties/${propertyId}/options/${optionId}/`,
       updateData
     );
