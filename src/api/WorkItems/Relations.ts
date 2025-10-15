@@ -1,10 +1,10 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   WorkItemRelationCreateRequest,
   WorkItemRelationRemoveRequest,
   WorkItemRelationResponse,
-} from '../../models/schema-types';
+} from "../../models/WorkItemRelation";
 
 /**
  * WorkItemRelations API resource
