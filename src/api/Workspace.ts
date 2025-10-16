@@ -1,6 +1,6 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { UserLite } from '../models/schema-types';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { UserLite } from "../models/schema-types";
 
 /**
  * Workspace API resource

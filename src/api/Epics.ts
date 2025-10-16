@@ -1,7 +1,7 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { Epic } from '../models/schema-types';
-import { PaginatedResponse } from '../models/common';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { Epic } from "../models/schema-types";
+import { PaginatedResponse } from "../models/common";
 
 /**
  * Epics API resource
