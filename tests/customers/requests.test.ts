@@ -1,12 +1,9 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testCustomersRequests() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const customerId = config.customerId;
@@ -14,9 +11,9 @@ export async function testCustomersRequests() {
   const customerRequest = await createCustomerRequest(
     client,
     workspaceSlug,
-    customerId,
+    customerId
   );
-  console.log('Created customer request: ', customerRequest);
+  console.log("Created customer request: ", customerRequest);
 
   const retrievedCustomerRequest = await retrieveCustomerRequest(
     client,
@@ -24,7 +21,7 @@ export async function testCustomersRequests() {
     customerId,
     customerRequest.id
   );
-  console.log('Retrieved customer request: ', retrievedCustomerRequest);
+  console.log("Retrieved customer request: ", retrievedCustomerRequest);
 
   const updatedCustomerRequest = await updateCustomerRequest(
     client,
@@ -32,30 +29,35 @@ export async function testCustomersRequests() {
     customerId,
     customerRequest.id
   );
-  console.log('Updated customer request: ', updatedCustomerRequest);
+  console.log("Updated customer request: ", updatedCustomerRequest);
 
   const customerRequests = await listCustomerRequests(
     client,
     workspaceSlug,
-    customerId,
+    customerId
   );
-  console.log('Listed customer requests: ', customerRequests);
+  console.log("Listed customer requests: ", customerRequests);
 
-  await deleteCustomerRequest(client, workspaceSlug, customerId, customerRequest.id);
-  console.log('Deleted customer request: ', customerRequest.id);
+  await deleteCustomerRequest(
+    client,
+    workspaceSlug,
+    customerId,
+    customerRequest.id
+  );
+  console.log("Deleted customer request: ", customerRequest.id);
 }
 
 async function createCustomerRequest(
   client: PlaneClient,
   workspaceSlug: string,
-  customerId: string,
+  customerId: string
 ) {
   const customerRequest = await client.customers.requests.create(
     workspaceSlug,
     customerId,
     {
       name: `Test Customer Request ${new Date().getTime()}`,
-      description: 'Test Customer Request Description',
+      description: "Test Customer Request Description",
     }
   );
   return customerRequest;
@@ -87,7 +89,7 @@ async function updateCustomerRequest(
     requestId,
     {
       name: `Updated Test Customer Request ${new Date().getTime()}`,
-      description: 'Updated Test Customer Request Description',
+      description: "Updated Test Customer Request Description",
     }
   );
 }
@@ -95,7 +97,7 @@ async function updateCustomerRequest(
 async function listCustomerRequests(
   client: PlaneClient,
   workspaceSlug: string,
-  customerId: string,
+  customerId: string
 ) {
   const customerRequests = await client.customers.requests.list(
     workspaceSlug,
@@ -114,11 +116,7 @@ async function deleteCustomerRequest(
   customerId: string,
   requestId: string
 ) {
-  await client.customers.requests.del(
-    workspaceSlug,
-    customerId,
-    requestId
-  );
+  await client.customers.requests.del(workspaceSlug, customerId, requestId);
 }
 
 if (require.main === module) {

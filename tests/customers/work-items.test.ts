@@ -1,12 +1,9 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
-export async function testCustomers() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+export async function testCustomersWorkItems() {
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const customerId = config.customerId;
@@ -18,14 +15,14 @@ export async function testCustomers() {
     customerId,
     [workItemId]
   );
-  console.log('Linked work items to customer: ', customer);
+  console.log("Linked work items to customer: ", customer);
 
   const retrievedCustomerWorkItems = await listCustomerWorkItems(
     client,
     workspaceSlug,
     customerId
   );
-  console.log('Retrieved customer work items: ', retrievedCustomerWorkItems);
+  console.log("Retrieved customer work items: ", retrievedCustomerWorkItems);
 
   const updatedCustomer = await unlinkWorkItemFromCustomer(
     client,
@@ -33,7 +30,7 @@ export async function testCustomers() {
     customerId,
     workItemId
   );
-  console.log('Unlinked work item from customer: ', updatedCustomer);
+  console.log("Unlinked work item from customer: ", updatedCustomer);
 }
 
 async function linkWorkItemsToCustomer(
@@ -76,5 +73,5 @@ async function unlinkWorkItemFromCustomer(
 }
 
 if (require.main === module) {
-  testCustomers().catch(console.error);
+  testCustomersWorkItems().catch(console.error);
 }

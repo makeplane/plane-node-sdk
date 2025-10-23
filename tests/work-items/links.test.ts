@@ -1,25 +1,17 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { Link } from '../../src/models/Link';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { Link } from "../../src/models/Link";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testLinks() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
   const workItemId = config.workItemId;
 
-  const link = await createLink(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemId
-  );
-  console.log('Created link: ', link);
+  const link = await createLink(client, workspaceSlug, projectId, workItemId);
+  console.log("Created link: ", link);
 
   const retrievedLink = await retrieveLink(
     client,
@@ -28,7 +20,7 @@ export async function testLinks() {
     workItemId,
     link.id
   );
-  console.log('Retrieved link: ', retrievedLink);
+  console.log("Retrieved link: ", retrievedLink);
 
   const updatedLink = await updateLink(
     client,
@@ -37,18 +29,13 @@ export async function testLinks() {
     workItemId,
     link.id
   );
-  console.log('Updated link: ', updatedLink);
+  console.log("Updated link: ", updatedLink);
 
-  const links = await listLinks(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemId
-  );
-  console.log('Listed links: ', links);
+  const links = await listLinks(client, workspaceSlug, projectId, workItemId);
+  console.log("Listed links: ", links);
 
   await deleteLink(client, workspaceSlug, projectId, workItemId, link.id);
-  console.log('Deleted link: ', link.id);
+  console.log("Deleted link: ", link.id);
 }
 
 async function createLink(
@@ -62,8 +49,8 @@ async function createLink(
     projectId,
     workItemId,
     {
-      title: 'Test Link',
-      url: 'https://test.com',
+      title: "Test Link",
+      url: "https://test.com",
     }
   );
   return link;
@@ -98,8 +85,8 @@ async function updateLink(
     workItemId,
     linkId,
     {
-      title: 'Updated Test Link',
-      url: 'https://updated.com',
+      title: "Updated Test Link",
+      url: "https://updated.com",
     }
   );
 }

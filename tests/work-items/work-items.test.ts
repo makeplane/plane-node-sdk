@@ -1,18 +1,15 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testWorkItems() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
   const workItem = await createWorkItem(client, workspaceSlug, projectId);
-  console.log('Created work item: ', workItem);
+  console.log("Created work item: ", workItem);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const retrievedWorkItem = await retrieveWorkItem(
@@ -21,20 +18,20 @@ export async function testWorkItems() {
     projectId,
     workItem.id
   );
-  console.log('Retrieved work item: ', retrievedWorkItem);
+  console.log("Retrieved work item: ", retrievedWorkItem);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const updatedWorkItem = await updateWorkItem(
     client,
     workspaceSlug,
     projectId,
-    workItem.id,
+    workItem.id
   );
-  console.log('Updated work item: ', updatedWorkItem);
+  console.log("Updated work item: ", updatedWorkItem);
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
   const workItems = await listWorkItems(client, workspaceSlug, projectId);
-  console.log('Listed work items: ', workItems);
+  console.log("Listed work items: ", workItems);
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
   const workItemByIdentifier = await retrieveWorkItemByIdentifier(
@@ -43,7 +40,7 @@ export async function testWorkItems() {
     projectId,
     workItem.sequence_id!
   );
-  console.log('Retrieved work item by identifier: ', workItemByIdentifier);
+  console.log("Retrieved work item by identifier: ", workItemByIdentifier);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const searchedWorkItems = await searchWorkItems(
@@ -52,12 +49,12 @@ export async function testWorkItems() {
     projectId,
     workItemByIdentifier.name
   );
-  console.log('Searched work items: ', searchedWorkItems);
+  console.log("Searched work items: ", searchedWorkItems);
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await deleteWorkItem(client, workspaceSlug, projectId, workItem.id);
-  console.log('Work item deleted: ', workItem.id);
+  console.log("Work item deleted: ", workItem.id);
 }
 
 async function createWorkItem(
@@ -66,8 +63,8 @@ async function createWorkItem(
   projectId: string
 ) {
   const workItem = await client.workItems.create(workspaceSlug, projectId, {
-    name: 'Test Work Item',
-    description_html: '<p>A work item created via the Plane SDK</p>',
+    name: "Test Work Item",
+    description_html: "<p>A work item created via the Plane SDK</p>",
   });
   return workItem;
 }
@@ -90,7 +87,7 @@ async function updateWorkItem(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  workItemId: string, 
+  workItemId: string
 ) {
   const states = await client.states.list(workspaceSlug, projectId);
   const labels = await client.labels.list(workspaceSlug, projectId);
@@ -103,8 +100,8 @@ async function updateWorkItem(
     projectId,
     workItemId,
     {
-      name: 'Updated Test Work Item',
-      description_html: '<p>Updated Test Work Item Description</p>',
+      name: "Updated Test Work Item",
+      description_html: "<p>Updated Test Work Item Description</p>",
       state: state ? state.id : undefined,
       assignees: [config.userId],
       labels: label ? [label.id] : undefined,
@@ -141,7 +138,7 @@ async function retrieveWorkItemByIdentifier(
   const workItem = await client.workItems.retrieveByIdentifier(
     workspaceSlug,
     `${project.identifier}-${identifier}`,
-    ['project']
+    ["project"]
   );
   return workItem;
 }

@@ -1,14 +1,11 @@
-import { PlaneClient } from '../src/client/plane-client';
-import { PaginatedResponse } from '../src/models/common';
-import { IntakeIssue } from '../src/models/schema-types';
-import { config } from './constants';
+import { PlaneClient } from "../src/client/plane-client";
+import { PaginatedResponse } from "../src/models/common";
+import { IntakeIssue } from "../src/models/schema-types";
+import { config } from "./constants";
+import { createTestClient } from "./test-utils";
 
 export async function testIntake() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
@@ -23,7 +20,7 @@ export async function testIntake() {
   );
 
   const intakeIssue = await createIntake(client, workspaceSlug, projectId);
-  console.log('Created intake: ', intakeIssue);
+  console.log("Created intake: ", intakeIssue);
 
   const retrievedIntake = await retrieveIntake(
     client,
@@ -31,7 +28,7 @@ export async function testIntake() {
     projectId,
     intakeIssue.issue!
   );
-  console.log('Retrieved intake: ', retrievedIntake);
+  console.log("Retrieved intake: ", retrievedIntake);
 
   const updatedIntake = await updateIntake(
     client,
@@ -40,13 +37,13 @@ export async function testIntake() {
     intakeIssue.issue!,
     intakeIssue
   );
-  console.log('Updated intake: ', updatedIntake);
+  console.log("Updated intake: ", updatedIntake);
 
   const intakes = await listIntake(client, workspaceSlug, projectId);
-  console.log('Listed intakes: ', intakes);
+  console.log("Listed intakes: ", intakes);
 
   await deleteIntake(client, workspaceSlug, projectId, intakeIssue.issue!);
-  console.log('Intake deleted: ', intakeIssue.id);
+  console.log("Intake deleted: ", intakeIssue.id);
 }
 
 async function createIntake(
@@ -56,8 +53,8 @@ async function createIntake(
 ): Promise<IntakeIssue> {
   const intake = await client.intake.create(workspaceSlug, projectId, {
     issue: {
-      name: 'Test Intake',
-      description_html: '<p>Test Intake Description</p>',
+      name: "Test Intake",
+      description_html: "<p>Test Intake Description</p>",
     },
   });
   return intake;
@@ -99,8 +96,8 @@ async function updateIntake(
     intakeWorkItemId,
     {
       issue: {
-        name: 'Updated Test Intake',
-        description_html: '<p>Updated Test Intake Description</p>',
+        name: "Updated Test Intake",
+        description_html: "<p>Updated Test Intake Description</p>",
       },
     }
   );

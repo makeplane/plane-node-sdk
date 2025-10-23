@@ -1,13 +1,10 @@
 import fs from "fs";
 import { PlaneClient } from "../src/client/plane-client";
 import { config } from "./constants";
+import { createTestClient } from "./test-utils";
 
 export async function testPage() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const page = await createPage(client, config.workspaceSlug);
   console.log("Created page: ", page);
@@ -72,6 +69,25 @@ async function retrieveProjectPage(
   return client.pages.retrieveProjectPage(workspaceSlug, projectId, pageId);
 }
 
+async function testCreatePageFromFile() {
+  const client = new PlaneClient({
+    apiKey: "plane_api_fae8f19b1e884400831413ef3adfb68b",
+    baseUrl: "https://test-leak.feat.plane.town",
+    enableLogging: true,
+  });
+
+  const file = fs.readFileSync(
+    "/Users/prashantsurya/Projects/sdks/plane-node-sdk/CrashablePage.html",
+    "utf8"
+  );
+
+  const page = await client.pages.createWorkspacePage("testt", {
+    name: "Test Page Crashable 3",
+    description_html: file,
+  });
+  console.log("Created page: ", page);
+}
+
 if (require.main === module) {
-  testPage().catch(console.error);
+  testCreatePageFromFile().catch(console.error);
 }

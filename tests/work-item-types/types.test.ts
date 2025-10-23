@@ -1,29 +1,26 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { PaginatedResponse } from '../../src/models/common';
-import { WorkItemType } from '../../src/models/WorkItemType';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { PaginatedResponse } from "../../src/models/common";
+import { WorkItemType } from "../../src/models/WorkItemType";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testWorkItemTypes() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
   // enable work item types if didn't already
-  await client.projects.update(
-    workspaceSlug,
-    projectId,
-    {
-      is_issue_type_enabled: true,
-    }
-  );
+  await client.projects.update(workspaceSlug, projectId, {
+    is_issue_type_enabled: true,
+  });
 
-  const workItemType = await createWorkItemType(client, workspaceSlug, projectId);
-  console.log('Created work item type: ', workItemType);
+  const workItemType = await createWorkItemType(
+    client,
+    workspaceSlug,
+    projectId
+  );
+  console.log("Created work item type: ", workItemType);
 
   const retrievedWorkItemType = await retrieveWorkItemType(
     client,
@@ -31,21 +28,25 @@ export async function testWorkItemTypes() {
     projectId,
     workItemType.id
   );
-  console.log('Retrieved work item type: ', retrievedWorkItemType);
+  console.log("Retrieved work item type: ", retrievedWorkItemType);
 
   const updatedWorkItemType = await updateWorkItemType(
     client,
     workspaceSlug,
     projectId,
-    workItemType.id,
+    workItemType.id
   );
-  console.log('Updated work item type: ', updatedWorkItemType);
+  console.log("Updated work item type: ", updatedWorkItemType);
 
-  const workItemTypes = await listWorkItemTypes(client, workspaceSlug, projectId);
-  console.log('Listed work item types: ', workItemTypes);
+  const workItemTypes = await listWorkItemTypes(
+    client,
+    workspaceSlug,
+    projectId
+  );
+  console.log("Listed work item types: ", workItemTypes);
 
   await deleteWorkItemType(client, workspaceSlug, projectId, workItemType.id);
-  console.log('Work item type deleted: ', workItemType.id);
+  console.log("Work item type deleted: ", workItemType.id);
 }
 
 async function createWorkItemType(
@@ -53,9 +54,13 @@ async function createWorkItemType(
   workspaceSlug: string,
   projectId: string
 ): Promise<WorkItemType> {
-  const workItemType = await client.workItemTypes.create(workspaceSlug, projectId, {
-    name: `Test WI Type ${new Date().getTime()}`,
-  });
+  const workItemType = await client.workItemTypes.create(
+    workspaceSlug,
+    projectId,
+    {
+      name: `Test WI Type ${new Date().getTime()}`,
+    }
+  );
   return workItemType;
 }
 
@@ -78,10 +83,14 @@ async function listWorkItemTypes(
   workspaceSlug: string,
   projectId: string
 ): Promise<PaginatedResponse<WorkItemType>> {
-  const workItemTypes = await client.workItemTypes.list(workspaceSlug, projectId, {
-    limit: 10,
-    offset: 0,
-  });
+  const workItemTypes = await client.workItemTypes.list(
+    workspaceSlug,
+    projectId,
+    {
+      limit: 10,
+      offset: 0,
+    }
+  );
   return workItemTypes;
 }
 
@@ -89,7 +98,7 @@ async function updateWorkItemType(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  workItemTypeId: string,
+  workItemTypeId: string
 ): Promise<WorkItemType> {
   const updatedWorkItemType = await client.workItemTypes.update(
     workspaceSlug,

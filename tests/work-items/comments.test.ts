@@ -1,13 +1,10 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { WorkItemCommentUpdateRequest } from '../../src/models/Comment';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { WorkItemCommentUpdateRequest } from "../../src/models/Comment";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testComments() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
@@ -19,7 +16,7 @@ export async function testComments() {
     projectId,
     workItemId
   );
-  console.log('Created comment: ', comment);
+  console.log("Created comment: ", comment);
 
   const retrievedComment = await retrieveComment(
     client,
@@ -28,7 +25,7 @@ export async function testComments() {
     workItemId,
     comment.id
   );
-  console.log('Retrieved comment: ', retrievedComment);
+  console.log("Retrieved comment: ", retrievedComment);
 
   const updatedComment = await updateComment(
     client,
@@ -37,7 +34,7 @@ export async function testComments() {
     workItemId,
     comment.id
   );
-  console.log('Updated comment: ', updatedComment);
+  console.log("Updated comment: ", updatedComment);
 
   const comments = await listComments(
     client,
@@ -45,10 +42,10 @@ export async function testComments() {
     projectId,
     workItemId
   );
-  console.log('Listed comments: ', comments);
+  console.log("Listed comments: ", comments);
 
   await deleteComment(client, workspaceSlug, projectId, workItemId, comment.id);
-  console.log('Deleted comment: ', comment.id);
+  console.log("Deleted comment: ", comment.id);
 }
 
 async function createComment(
@@ -62,7 +59,7 @@ async function createComment(
     projectId,
     workItemId,
     {
-      comment_html: '<p>Test Comment</p>',
+      comment_html: "<p>Test Comment</p>",
     }
   );
   return comment;
@@ -97,7 +94,7 @@ async function updateComment(
     workItemId,
     commentId,
     {
-      comment_html: '<p>Updated Test Comment</p>',
+      comment_html: "<p>Updated Test Comment</p>",
     }
   );
 }

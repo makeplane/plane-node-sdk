@@ -1,19 +1,16 @@
-import { PlaneClient } from '../src/client/plane-client';
-import { State } from '../src/models/State';
-import { config } from './constants';
+import { PlaneClient } from "../src/client/plane-client";
+import { State } from "../src/models/State";
+import { config } from "./constants";
+import { createTestClient } from "./test-utils";
 
 export async function testStates() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
   const stateObj = await createState(client, workspaceSlug, projectId);
-  console.log('Created state: ', stateObj);
+  console.log("Created state: ", stateObj);
 
   const retrievedState = await retrieveState(
     client,
@@ -21,7 +18,7 @@ export async function testStates() {
     projectId,
     stateObj.id
   );
-  console.log('Retrieved state: ', retrievedState);
+  console.log("Retrieved state: ", retrievedState);
 
   const updatedState = await updateState(
     client,
@@ -30,13 +27,13 @@ export async function testStates() {
     stateObj.id,
     stateObj
   );
-  console.log('Updated state: ', updatedState);
+  console.log("Updated state: ", updatedState);
 
   const states = await listStates(client, workspaceSlug, projectId);
-  console.log('Listed states: ', states);
+  console.log("Listed states: ", states);
 
   await deleteState(client, workspaceSlug, projectId, stateObj.id);
-  console.log('State deleted: ', stateObj.id);
+  console.log("State deleted: ", stateObj.id);
 }
 
 async function createState(
@@ -45,10 +42,10 @@ async function createState(
   projectId: string
 ) {
   const state = await client.states.create(workspaceSlug, projectId, {
-    name: 'Test State ' + new Date().getTime(),
-    description: 'Test State Description',
-    group: 'started',
-    color: '#9AA4BC',
+    name: "Test State " + new Date().getTime(),
+    description: "Test State Description",
+    group: "started",
+    color: "#9AA4BC",
   });
   return state;
 }
@@ -75,7 +72,7 @@ async function updateState(
     projectId,
     stateId,
     {
-      description: 'Updated Test State Description',
+      description: "Updated Test State Description",
     }
   );
   return updatedState;

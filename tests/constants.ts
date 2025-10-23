@@ -1,8 +1,10 @@
 export const config = {
-  workspaceSlug: "integrations03",
-  projectId: "629929f8-abb1-4ff1-b9dd-1b12e2e34fdb",
-  userId: "63333ab1-c605-42fc-82f7-5cd86799eca1",
-  workItemId: "4c4b9590-c011-4adf-a1a4-58ff33de4ef0",
-  workItemId2: "SDK00-20",
-  customerId: "288a3124-1268-46a9-944c-7c2071181eb1",
+  workspaceSlug: process.env.TEST_WORKSPACE_SLUG!,
+  projectId: process.env.TEST_PROJECT_ID!,
+  userId: process.env.TEST_USER_ID!,
+  workItemId: process.env.TEST_WORK_ITEM_ID!,
+  workItemId2: process.env.TEST_WORK_ITEM_ID_2!,
+  customerId: process.env.TEST_CUSTOMER_ID!,
+  workItemTypeId: process.env.TEST_WORK_ITEM_TYPE_ID!,
+  customTextPropertyId: process.env.TEST_CUSTOM_TEXT_PROPERTY_ID!,
 };

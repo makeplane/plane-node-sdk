@@ -1,13 +1,10 @@
-import { PlaneClient } from '../src/client/plane-client';
-import { UpdateProject } from '../src/models/Project';
-import { config } from './constants';
+import { PlaneClient } from "../src/client/plane-client";
+import { UpdateProject } from "../src/models/Project";
+import { config } from "./constants";
+import { createTestClient } from "./test-utils";
 
 export async function testProjects() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
 
@@ -26,8 +23,8 @@ export async function testProjects() {
     workspaceSlug,
     project.id,
     {
-      name: 'Updated Test Project',
-      description: 'Updated Test Project Description',
+      name: "Updated Test Project",
+      description: "Updated Test Project Description",
     }
   );
   console.log("updated project", updatedProject);
@@ -39,13 +36,13 @@ export async function testProjects() {
   console.log("project members", members);
 
   await deleteProject(client, workspaceSlug, project.id);
-  console.log('project deleted', project.id);
+  console.log("project deleted", project.id);
 }
 
 async function createProject(client: PlaneClient, workspaceSlug: string) {
   const project = await client.projects.create(workspaceSlug, {
-    name: 'Test Project',
-    description: 'Test Project Description',
+    name: "Test Project",
+    description: "Test Project Description",
   });
   return project;
 }

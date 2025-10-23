@@ -1,19 +1,16 @@
-import { PlaneClient } from '../src/client/plane-client';
-import { Label } from '../src/models/schema-types';
-import { config } from './constants';
+import { PlaneClient } from "../src/client/plane-client";
+import { Label } from "../src/models/schema-types";
+import { config } from "./constants";
+import { createTestClient } from "./test-utils";
 
 export async function testLabels() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
   const labelObj = await createLabel(client, workspaceSlug, projectId);
-  console.log('Created label: ', labelObj);
+  console.log("Created label: ", labelObj);
 
   const retrievedLabel = await retrieveLabel(
     client,
@@ -21,7 +18,7 @@ export async function testLabels() {
     projectId,
     labelObj.id
   );
-  console.log('Retrieved label: ', retrievedLabel);
+  console.log("Retrieved label: ", retrievedLabel);
 
   const updatedLabel = await updateLabel(
     client,
@@ -30,13 +27,13 @@ export async function testLabels() {
     labelObj.id,
     labelObj
   );
-  console.log('Updated label: ', updatedLabel);
+  console.log("Updated label: ", updatedLabel);
 
   const labels = await listLabels(client, workspaceSlug, projectId);
-  console.log('Listed labels: ', labels);
+  console.log("Listed labels: ", labels);
 
   await deleteLabel(client, workspaceSlug, projectId, labelObj.id);
-  console.log('Label deleted: ', labelObj.id);
+  console.log("Label deleted: ", labelObj.id);
 }
 
 async function createLabel(
@@ -45,8 +42,8 @@ async function createLabel(
   projectId: string
 ) {
   const label = await client.labels.create(workspaceSlug, projectId, {
-    name: 'Test Label ' + new Date().getTime(),
-    description: 'Test Label Description',
+    name: "Test Label " + new Date().getTime(),
+    description: "Test Label Description",
   });
   return label;
 }
@@ -73,7 +70,7 @@ async function updateLabel(
     projectId,
     labelId,
     {
-      description: 'Updated Test Label Description' + new Date().toISOString(),
+      description: "Updated Test Label Description" + new Date().toISOString(),
     }
   );
   return updatedLabel;

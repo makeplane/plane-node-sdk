@@ -4,13 +4,10 @@ import {
   WorkItemRelationRemoveRequest,
 } from "../../src/models/WorkItemRelation";
 import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testRelations() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;

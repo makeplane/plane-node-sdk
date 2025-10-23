@@ -1,24 +1,18 @@
-import { PlaneClient } from '../../src/client/plane-client';
-import { config } from '../constants';
+import { PlaneClient } from "../../src/client/plane-client";
+import { config } from "../constants";
+import { createTestClient } from "../test-utils";
 
 export async function testCustomersPropertiesOptionsAndValues() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const customerId = config.customerId;
 
-  const customerProperty = await createCustomerProperty(
-    client,
-    workspaceSlug,
-  );
-  console.log('Created customer property: ', customerProperty);
+  const customerProperty = await createCustomerProperty(client, workspaceSlug);
+  console.log("Created customer property: ", customerProperty);
 
   if (!customerProperty.id) {
-    throw new Error('Customer property ID is required');
+    throw new Error("Customer property ID is required");
   }
 
   const retrievedCustomerProperty = await retrieveCustomerProperty(
@@ -26,21 +20,20 @@ export async function testCustomersPropertiesOptionsAndValues() {
     workspaceSlug,
     customerProperty.id
   );
-  console.log('Retrieved customer property: ', retrievedCustomerProperty);
+  console.log("Retrieved customer property: ", retrievedCustomerProperty);
 
   const updatedCustomerProperty = await updateCustomerProperty(
     client,
     workspaceSlug,
     customerProperty.id
   );
-  console.log('Updated customer property: ', updatedCustomerProperty);
+  console.log("Updated customer property: ", updatedCustomerProperty);
 
   const customerProperties = await listCustomerProperties(
     client,
-    workspaceSlug,
+    workspaceSlug
   );
-  console.log('Listed customer properties: ', customerProperties);
-
+  console.log("Listed customer properties: ", customerProperties);
 
   // before deleting we test the property values
   const customerPropertyValue = await updateCustomerPropertyValue(
@@ -49,7 +42,11 @@ export async function testCustomersPropertiesOptionsAndValues() {
     customerId,
     customerProperty.id
   );
-  console.log('Updated customer property value: ', customerProperty.id, customerPropertyValue);
+  console.log(
+    "Updated customer property value: ",
+    customerProperty.id,
+    customerPropertyValue
+  );
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -58,7 +55,7 @@ export async function testCustomersPropertiesOptionsAndValues() {
     workspaceSlug,
     customerId
   );
-  console.log('Listed customer property values: ', allCustomerPropertyValues);
+  console.log("Listed customer property values: ", allCustomerPropertyValues);
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -66,64 +63,65 @@ export async function testCustomersPropertiesOptionsAndValues() {
     client,
     workspaceSlug,
     customerId,
-    customerProperty.id,
+    customerProperty.id
   );
-  console.log('Retrieved customer property value: ', retrievedCustomerPropertyValue);
+  console.log(
+    "Retrieved customer property value: ",
+    retrievedCustomerPropertyValue
+  );
 
-  
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await deleteCustomerProperty(client, workspaceSlug, customerProperty.id);
-  console.log('Deleted customer property: ', customerProperty.id);
+  console.log("Deleted customer property: ", customerProperty.id);
 }
 
-// ===== CUSTOMER PROPERTY API METHODS ===== 
+// ===== CUSTOMER PROPERTY API METHODS =====
 async function createCustomerProperty(
   client: PlaneClient,
-  workspaceSlug: string,
+  workspaceSlug: string
 ) {
-  const customerProperty = await client.customers.properties.createPropertyDefinition(
-    workspaceSlug,
-    {
+  const customerProperty =
+    await client.customers.properties.createPropertyDefinition(workspaceSlug, {
       name: `test-customer-property-${new Date().getTime()}`,
       display_name: `Test Customer Property ${new Date().getTime()}`,
-      description: 'Test Customer Property Description',
-      property_type: 'TEXT',
-    }
-  );
+      description: "Test Customer Property Description",
+      property_type: "TEXT",
+    });
   return customerProperty;
 }
 
 async function retrieveCustomerProperty(
   client: PlaneClient,
   workspaceSlug: string,
-  propertyId: string,
+  propertyId: string
 ) {
-  const customerProperty = await client.customers.properties.retrievePropertyDefinition(
-    workspaceSlug,
-    propertyId,
-  );
+  const customerProperty =
+    await client.customers.properties.retrievePropertyDefinition(
+      workspaceSlug,
+      propertyId
+    );
   return customerProperty;
 }
 
 async function updateCustomerProperty(
   client: PlaneClient,
   workspaceSlug: string,
-  propertyId: string,
+  propertyId: string
 ) {
   return await client.customers.properties.updatePropertyDefinition(
     workspaceSlug,
     propertyId,
     {
       display_name: `Updated Test Customer Property ${new Date().getTime()}`,
-      description: 'Updated Test Customer Property Description',
+      description: "Updated Test Customer Property Description",
     }
   );
 }
 
 async function listCustomerProperties(
   client: PlaneClient,
-  workspaceSlug: string,
+  workspaceSlug: string
 ) {
   return await client.customers.properties.listPropertyDefinitions(
     workspaceSlug,
@@ -137,11 +135,11 @@ async function listCustomerProperties(
 async function deleteCustomerProperty(
   client: PlaneClient,
   workspaceSlug: string,
-  propertyId: string,
+  propertyId: string
 ) {
   return await client.customers.properties.deletePropertyDefinition(
     workspaceSlug,
-    propertyId,
+    propertyId
   );
 }
 
@@ -150,14 +148,14 @@ async function updateCustomerPropertyValue(
   client: PlaneClient,
   workspaceSlug: string,
   customerId: string,
-  propertyId: string,
+  propertyId: string
 ) {
   return await client.customers.properties.updateValue(
     workspaceSlug,
     customerId,
     propertyId,
     {
-      values: ['Property Value Updated'],
+      values: ["Property Value Updated"],
     }
   );
 }
@@ -165,11 +163,11 @@ async function updateCustomerPropertyValue(
 async function listCustomerPropertyValues(
   client: PlaneClient,
   workspaceSlug: string,
-  customerId: string,
+  customerId: string
 ) {
   return await client.customers.properties.listValues(
     workspaceSlug,
-    customerId,
+    customerId
   );
 }
 
@@ -177,12 +175,12 @@ async function retrieveCustomerPropertyValue(
   client: PlaneClient,
   workspaceSlug: string,
   customerId: string,
-  propertyId: string,
+  propertyId: string
 ) {
   return await client.customers.properties.retrieveValue(
     workspaceSlug,
     customerId,
-    propertyId,
+    propertyId
   );
 }
 

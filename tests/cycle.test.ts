@@ -1,13 +1,10 @@
 import { PlaneClient } from "../src/client/plane-client";
 import { UpdateCycleRequest } from "../src/models/Cycle";
 import { config } from "./constants";
+import { createTestClient } from "./test-utils";
 
 export async function testCycles() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
 
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
@@ -269,11 +266,7 @@ async function unArchiveCycle(
 }
 
 async function justArchiveCycle() {
-  const client = new PlaneClient({
-    apiKey: process.env.PLANE_API_KEY!,
-    baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
-  });
+  const client = createTestClient();
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
