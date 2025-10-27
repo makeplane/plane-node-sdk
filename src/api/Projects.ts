@@ -1,13 +1,13 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
 import {
   Project,
   CreateProject,
   UpdateProject,
   ListProjectsParams,
-} from '../models/Project';
-import { PaginatedResponse } from '../models/common';
-import { UserLite } from '../models/schema-types';
+} from "../models/Project";
+import { PaginatedResponse } from "../models/common";
+import { User } from "../models/User";
 
 /**
  * Project API resource
@@ -28,7 +28,7 @@ export class Projects extends BaseResource {
     if (!createProject.identifier) {
       createProject.identifier = createProject.name
         .toUpperCase()
-        .replace(/ /g, '')
+        .replace(/ /g, "")
         .slice(0, 5);
     }
 
@@ -84,11 +84,8 @@ export class Projects extends BaseResource {
   /**
    * Get project members
    */
-  async getMembers(
-    workspaceSlug: string,
-    projectId: string
-  ): Promise<UserLite[]> {
-    return this.get<UserLite[]>(
+  async getMembers(workspaceSlug: string, projectId: string): Promise<User[]> {
+    return this.get<User[]>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/members/`
     );
   }

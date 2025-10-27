@@ -1,13 +1,10 @@
 import { PlaneClient } from "../../src/client/plane-client";
-import { PaginatedResponse } from "../../src/models/common";
+import { PropertyType } from "../../src/models/common";
 import {
-  TTextSettings,
   WorkItemProperty,
   WorkItemPropertyOption,
   WorkItemPropertySettings,
-  WorkItemPropertyType,
 } from "../../src/models/WorkItemProperty";
-import { WorkItemType } from "../../src/models/WorkItemType";
 import { config } from "../constants";
 import { createTestClient } from "../test-utils";
 
@@ -167,7 +164,7 @@ async function createWorkItemTypeProperty(
   workspaceSlug: string,
   projectId: string,
   workItemTypeId: string,
-  propertyType: WorkItemPropertyType,
+  propertyType: PropertyType,
   settings?: WorkItemPropertySettings
 ): Promise<WorkItemProperty> {
   const workItemTypeProperty = await client.workItemProperties.create(
@@ -179,6 +176,7 @@ async function createWorkItemTypeProperty(
       display_name: `Test WI Type Property ${new Date().getTime()}`,
       property_type: propertyType,
       settings,
+      is_required: false,
     }
   );
   return workItemTypeProperty;

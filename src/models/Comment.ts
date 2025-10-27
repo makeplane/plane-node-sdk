@@ -1,4 +1,4 @@
-import { AccessBd4Enum } from './schema-types';
+import { AccessEnum } from "./common";
 
 export interface WorkItemComment {
   id: string;
@@ -9,7 +9,7 @@ export interface WorkItemComment {
   comment_stripped?: string;
   comment_html?: string;
   attachments?: string[];
-  access?: AccessBd4Enum;
+  access?: AccessEnum;
   external_source?: string;
   external_id?: string;
   edited_at?: string;
@@ -24,7 +24,7 @@ export interface WorkItemComment {
 export interface WorkItemCommentCreateRequest {
   comment_json?: any;
   comment_html?: string;
-  access?: AccessBd4Enum;
+  access?: AccessEnum;
   external_source?: string;
   external_id?: string;
 }
@@ -32,7 +32,7 @@ export interface WorkItemCommentCreateRequest {
 export interface WorkItemCommentUpdateRequest {
   comment_json?: any;
   comment_html?: string;
-  access?: AccessBd4Enum;
+  access?: AccessEnum;
   external_source?: string;
   external_id?: string;
 }

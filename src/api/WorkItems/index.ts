@@ -1,5 +1,5 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   WorkItem,
   CreateWorkItem,
@@ -7,15 +7,15 @@ import {
   ListWorkItemsParams,
   WorkItemExpandableFieldName,
   WorkItemBase,
-} from '../../models/WorkItem';
-import { PaginatedResponse } from '../../models/common';
-import { Links } from '../Links';
-import { Relations } from './Relations';
-import { Attachments } from './Attachments';
-import { Comments } from './Comments';
-import { Activities } from './Activities';
-import { WorkLogs } from './WorkLogs';
-import { WorkItemSearch } from '../../models/schema-types';
+  WorkItemSearch,
+} from "../../models/WorkItem";
+import { PaginatedResponse } from "../../models/common";
+import { Links } from "../Links";
+import { Relations } from "./Relations";
+import { Attachments } from "./Attachments";
+import { Comments } from "./Comments";
+import { Activities } from "./Activities";
+import { WorkLogs } from "./WorkLogs";
 
 /**
  * WorkItems API resource
@@ -45,11 +45,11 @@ export class WorkItems extends BaseResource {
   async create(
     workspaceSlug: string,
     projectId: string,
-    createWorkItem: CreateWorkItem
+    createWorkItem: CreateWorkItem,
   ): Promise<WorkItem> {
     return this.post<WorkItem>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`,
-      createWorkItem
+      createWorkItem,
     );
   }
 
@@ -64,7 +64,7 @@ export class WorkItems extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    expand: E[]
+    expand: E[],
   ): Promise<WorkItem<E>>;
 
   /**
@@ -74,11 +74,11 @@ export class WorkItems extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    expand?: E[]
+    expand?: E[],
   ): Promise<WorkItem<E>> {
     return this.get<WorkItem<E>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`,
-      { expand: expand?.join(',') }
+      { expand: expand?.join(",") },
     );
   }
 
@@ -89,11 +89,11 @@ export class WorkItems extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    updateWorkItem: UpdateWorkItem
+    updateWorkItem: UpdateWorkItem,
   ): Promise<WorkItem> {
     return this.patch<WorkItem>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`,
-      updateWorkItem
+      updateWorkItem,
     );
   }
 
@@ -103,10 +103,10 @@ export class WorkItems extends BaseResource {
   async del(
     workspaceSlug: string,
     projectId: string,
-    workItemId: string
+    workItemId: string,
   ): Promise<void> {
     return this.delete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`,
     );
   }
 
@@ -116,11 +116,11 @@ export class WorkItems extends BaseResource {
   async list(
     workspaceSlug: string,
     projectId: string,
-    params?: ListWorkItemsParams
+    params?: ListWorkItemsParams,
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`,
-      params
+      params,
     );
   }
 
@@ -133,18 +133,18 @@ export class WorkItems extends BaseResource {
   async retrieveByIdentifier<E extends WorkItemExpandableFieldName>(
     workspaceSlug: string,
     identifier: string,
-    expand: E[]
+    expand: E[],
   ): Promise<WorkItem<E>>;
 
   // Implementation
   async retrieveByIdentifier<E extends WorkItemExpandableFieldName>(
     workspaceSlug: string,
     identifier: string,
-    expand?: E[]
+    expand?: E[],
   ): Promise<WorkItem<E> | WorkItemBase> {
     return this.get<WorkItem<E>>(
       `/workspaces/${workspaceSlug}/work-items/${identifier}/`,
-      { expand: expand?.join(',') }
+      { expand: expand?.join(",") },
     );
   }
 
@@ -155,11 +155,11 @@ export class WorkItems extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     query: string,
-    params?: any
+    params?: any,
   ): Promise<WorkItemSearch> {
     return this.get<WorkItemSearch>(
       `/workspaces/${workspaceSlug}/work-items/search/`,
-      { ...params, search: query, project: projectId }
+      { ...params, search: query, project: projectId },
     );
   }
 }

@@ -12,6 +12,8 @@ import { testWorkItemTypesPropertiesAndOptions } from "./work-item-types/propert
 import { testWorkItemPropertiesValues } from "./work-item-types/properties-values.test";
 
 import { testWorkItems } from "./work-items/work-items.test";
+import { testWorkLogs } from "./work-items/work-logs.test";
+
 import { testModules } from "./module.test";
 import { testCycles } from "./cycle.test";
 
@@ -36,6 +38,8 @@ async function runAllTests() {
   await testWorkItemPropertiesValues();
   await wait(60);
   await testWorkItems();
+  await testWorkLogs();
+
   await testModules();
   await testCycles();
 

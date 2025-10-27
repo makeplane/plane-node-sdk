@@ -1,19 +1,14 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
+  CustomerProperty,
   CustomerPropertyValue,
   UpdateCustomerPropertyValue,
   ListCustomerPropertyValuesParams,
-  // CustomerProperty,
-  // CreateCustomerProperty,
-  // UpdateCustomerProperty,
   ListCustomerPropertiesParams,
-} from '../../models/Customer';
-
-import {
-  CustomerProperty,
-  PatchedCustomerPropertyRequest,
-} from '../../models/schema-types';
+  CreateCustomerPropertyRequest,
+  UpdateCustomerPropertyRequest,
+} from "../../models/Customer";
 
 /**
  * Customer Properties API resource
@@ -44,7 +39,7 @@ export class Properties extends BaseResource {
    */
   async createPropertyDefinition(
     workspaceSlug: string,
-    createProperty: PatchedCustomerPropertyRequest
+    createProperty: CreateCustomerPropertyRequest
   ): Promise<CustomerProperty> {
     return this.post<CustomerProperty>(
       `/workspaces/${workspaceSlug}/customer-properties/`,
@@ -70,7 +65,7 @@ export class Properties extends BaseResource {
   async updatePropertyDefinition(
     workspaceSlug: string,
     propertyId: string,
-    updateProperty: PatchedCustomerPropertyRequest
+    updateProperty: UpdateCustomerPropertyRequest
   ): Promise<CustomerProperty> {
     return this.patch<CustomerProperty>(
       `/workspaces/${workspaceSlug}/customer-properties/${propertyId}/`,

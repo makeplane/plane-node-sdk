@@ -1,20 +1,20 @@
-import { Configuration } from '../Configuration';
-import { Projects } from '../api/Projects';
-import { WorkItems } from '../api/WorkItems';
-import { WorkItemTypes } from '../api/WorkItemTypes';
-import { WorkItemProperties } from '../api/WorkItemProperties';
-import { Links } from '../api/Links';
-import { Customers } from '../api/Customers';
-import { Pages } from '../api/Pages';
-import { Labels } from '../api/Labels';
-import { States } from '../api/States';
-import { Members } from '../api/Members';
-import { Modules } from '../api/Modules';
-import { Cycles } from '../api/Cycles';
-import { User } from '../api/User';
-import { Workspace } from '../api/Workspace';
-import { Epics } from '../api/Epics';
-import { Intake } from '../api/Intake';
+import { Configuration } from "../Configuration";
+import { Projects } from "../api/Projects";
+import { WorkItems } from "../api/WorkItems";
+import { WorkItemTypes } from "../api/WorkItemTypes";
+import { WorkItemProperties } from "../api/WorkItemProperties";
+import { Links } from "../api/Links";
+import { Customers } from "../api/Customers";
+import { Pages } from "../api/Pages";
+import { Labels } from "../api/Labels";
+import { States } from "../api/States";
+import { Members } from "../api/Members";
+import { Modules } from "../api/Modules";
+import { Cycles } from "../api/Cycles";
+import { Users } from "../api/Users";
+import { Workspace } from "../api/Workspace";
+import { Epics } from "../api/Epics";
+import { Intake } from "../api/Intake";
 
 /**
  * Main Plane Client class
@@ -34,7 +34,7 @@ export class PlaneClient {
   public members: Members;
   public modules: Modules;
   public cycles: Cycles;
-  public user: User;
+  public users: Users;
   public workspace: Workspace;
   public epics: Epics;
   public intake: Intake;
@@ -68,7 +68,7 @@ export class PlaneClient {
     this.members = new Members(this.config);
     this.modules = new Modules(this.config);
     this.cycles = new Cycles(this.config);
-    this.user = new User(this.config);
+    this.users = new Users(this.config);
     this.workspace = new Workspace(this.config);
     this.epics = new Epics(this.config);
     this.intake = new Intake(this.config);

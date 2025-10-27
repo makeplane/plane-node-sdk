@@ -1,11 +1,11 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { PaginatedResponse } from "../models/common";
 import {
-  IntakeIssue,
-  IntakeIssueCreateRequest,
-  PatchedIntakeIssueUpdateRequest,
-} from '../models/schema-types';
-import { PaginatedResponse } from '../models/common';
+  IntakeWorkItem,
+  IntakeWorkItemCreateRequest,
+  UpdateIntakeWorkItemRequest,
+} from "../models/Intake";
 
 /**
  * Intake API resource
@@ -23,8 +23,8 @@ export class Intake extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     intakeId: string
-  ): Promise<IntakeIssue> {
-    return this.get<IntakeIssue>(
+  ): Promise<IntakeWorkItem> {
+    return this.get<IntakeWorkItem>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`
     );
   }
@@ -36,8 +36,8 @@ export class Intake extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     params?: any
-  ): Promise<PaginatedResponse<IntakeIssue>> {
-    return this.get<PaginatedResponse<IntakeIssue>>(
+  ): Promise<PaginatedResponse<IntakeWorkItem>> {
+    return this.get<PaginatedResponse<IntakeWorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/`,
       params
     );
@@ -49,9 +49,9 @@ export class Intake extends BaseResource {
   async create(
     workspaceSlug: string,
     projectId: string,
-    intakeData: IntakeIssueCreateRequest
-  ): Promise<IntakeIssue> {
-    return this.post<IntakeIssue>(
+    intakeData: IntakeWorkItemCreateRequest
+  ): Promise<IntakeWorkItem> {
+    return this.post<IntakeWorkItem>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/`,
       intakeData
     );
@@ -64,9 +64,9 @@ export class Intake extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     intakeId: string,
-    updateData: PatchedIntakeIssueUpdateRequest
-  ): Promise<IntakeIssue> {
-    return this.patch<IntakeIssue>(
+    updateData: UpdateIntakeWorkItemRequest
+  ): Promise<IntakeWorkItem> {
+    return this.patch<IntakeWorkItem>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`,
       updateData
     );

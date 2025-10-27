@@ -1,4 +1,9 @@
-import { BaseModel, LogoProps } from "./common";
+import {
+  BaseModel,
+  LogoProps,
+  PropertyRelationType,
+  PropertyType,
+} from "./common";
 
 export type WorkItemPropertySettings = TTextSettings | undefined;
 
@@ -7,10 +12,10 @@ export type WorkItemPropertySettings = TTextSettings | undefined;
  */
 export interface WorkItemProperty extends BaseModel {
   name: string;
+  property_type: PropertyType;
   display_name: string;
   description?: string;
-  property_type: WorkItemPropertyType;
-  relation_type?: WorkItemPropertyRelationType;
+  relation_type: PropertyRelationType | undefined;
   options?: Partial<WorkItemPropertyOption>[];
   settings?: WorkItemPropertySettings;
   logo_props: LogoProps;
@@ -36,18 +41,22 @@ interface BaseCreateWorkItemProperty {
   name: string;
   display_name: string;
   description?: string;
-  property_type: WorkItemPropertyType;
+  property_type: PropertyType;
+  settings?: WorkItemPropertySettings;
   logo_props?: LogoProps;
   sort_order?: number;
   is_required: boolean;
   default_value?: any;
   is_active?: boolean;
+  relation_type?: PropertyRelationType;
+  options?: Partial<WorkItemPropertyOption>[];
+  is_multi?: boolean;
 }
 
 // Specific interfaces for each property type with their required fields
 interface CreateTextWorkItemProperty extends BaseCreateWorkItemProperty {
   property_type: "TEXT";
-  settings: TTextSettings;
+  settings?: TTextSettings;
 }
 
 interface CreateDecimalWorkItemProperty extends BaseCreateWorkItemProperty {
@@ -56,8 +65,8 @@ interface CreateDecimalWorkItemProperty extends BaseCreateWorkItemProperty {
 
 interface CreateOptionWorkItemProperty extends BaseCreateWorkItemProperty {
   property_type: "OPTION";
-  options: Partial<WorkItemPropertyOption>[];
-  is_multi: boolean;
+  options?: Partial<WorkItemPropertyOption>[];
+  is_multi?: boolean;
 }
 
 interface CreateBooleanWorkItemProperty extends BaseCreateWorkItemProperty {
@@ -70,7 +79,7 @@ interface CreateDateTimeWorkItemProperty extends BaseCreateWorkItemProperty {
 
 interface CreateRelationWorkItemProperty extends BaseCreateWorkItemProperty {
   property_type: "RELATION";
-  relation_type: WorkItemPropertyRelationType;
+  relation_type?: PropertyRelationType;
 }
 
 export type CreateWorkItemProperty =
@@ -88,16 +97,6 @@ export interface ListWorkItemPropertiesParams {
   limit?: number;
   offset?: number;
 }
-
-export type WorkItemPropertyRelationType = "USER" | "ISSUE";
-
-export type WorkItemPropertyType =
-  | "TEXT"
-  | "DECIMAL"
-  | "OPTION"
-  | "BOOLEAN"
-  | "DATETIME"
-  | "RELATION";
 
 export type TTextSettings = {
   display_format: "single-line" | "multi-line" | "readonly";

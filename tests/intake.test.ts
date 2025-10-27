@@ -1,6 +1,6 @@
 import { PlaneClient } from "../src/client/plane-client";
 import { PaginatedResponse } from "../src/models/common";
-import { IntakeIssue } from "../src/models/schema-types";
+import { IntakeWorkItem } from "../src/models/Intake";
 import { config } from "./constants";
 import { createTestClient } from "./test-utils";
 
@@ -16,17 +16,17 @@ export async function testIntake() {
     projectId,
     {
       intake_view: true,
-    }
+    },
   );
 
-  const intakeIssue = await createIntake(client, workspaceSlug, projectId);
-  console.log("Created intake: ", intakeIssue);
+  const intakeWorkItem = await createIntake(client, workspaceSlug, projectId);
+  console.log("Created intake: ", intakeWorkItem);
 
   const retrievedIntake = await retrieveIntake(
     client,
     workspaceSlug,
     projectId,
-    intakeIssue.issue!
+    intakeWorkItem.issue!,
   );
   console.log("Retrieved intake: ", retrievedIntake);
 
@@ -34,23 +34,23 @@ export async function testIntake() {
     client,
     workspaceSlug,
     projectId,
-    intakeIssue.issue!,
-    intakeIssue
+    intakeWorkItem.issue!,
+    intakeWorkItem,
   );
   console.log("Updated intake: ", updatedIntake);
 
   const intakes = await listIntake(client, workspaceSlug, projectId);
   console.log("Listed intakes: ", intakes);
 
-  await deleteIntake(client, workspaceSlug, projectId, intakeIssue.issue!);
-  console.log("Intake deleted: ", intakeIssue.id);
+  await deleteIntake(client, workspaceSlug, projectId, intakeWorkItem.issue!);
+  console.log("Intake deleted: ", intakeWorkItem.id);
 }
 
 async function createIntake(
   client: PlaneClient,
   workspaceSlug: string,
-  projectId: string
-): Promise<IntakeIssue> {
+  projectId: string,
+): Promise<IntakeWorkItem> {
   const intake = await client.intake.create(workspaceSlug, projectId, {
     issue: {
       name: "Test Intake",
@@ -64,12 +64,12 @@ async function retrieveIntake(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  intakeWorkItemId: string
-): Promise<IntakeIssue> {
+  intakeWorkItemId: string,
+): Promise<IntakeWorkItem> {
   const intake = await client.intake.retrieve(
     workspaceSlug,
     projectId,
-    intakeWorkItemId
+    intakeWorkItemId,
   );
   return intake;
 }
@@ -77,8 +77,8 @@ async function retrieveIntake(
 async function listIntake(
   client: PlaneClient,
   workspaceSlug: string,
-  projectId: string
-): Promise<PaginatedResponse<IntakeIssue>> {
+  projectId: string,
+): Promise<PaginatedResponse<IntakeWorkItem>> {
   const intakes = await client.intake.list(workspaceSlug, projectId);
   return intakes;
 }
@@ -88,8 +88,8 @@ async function updateIntake(
   workspaceSlug: string,
   projectId: string,
   intakeWorkItemId: string,
-  intake: IntakeIssue
-): Promise<IntakeIssue> {
+  intake: IntakeWorkItem,
+): Promise<IntakeWorkItem> {
   const updatedIntake = await client.intake.update(
     workspaceSlug,
     projectId,
@@ -99,7 +99,7 @@ async function updateIntake(
         name: "Updated Test Intake",
         description_html: "<p>Updated Test Intake Description</p>",
       },
-    }
+    },
   );
   return updatedIntake;
 }
@@ -108,7 +108,7 @@ async function deleteIntake(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  intakeWorkItemId: string
+  intakeWorkItemId: string,
 ): Promise<void> {
   await client.intake.del(workspaceSlug, projectId, intakeWorkItemId);
 }

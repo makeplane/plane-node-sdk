@@ -75,6 +75,18 @@ export type ResponseEntity<T> = T;
 
 export type PriorityEnum = "urgent" | "high" | "medium" | "low" | "none";
 
+export type PropertyType =
+  | "TEXT"
+  | "DECIMAL"
+  | "OPTION"
+  | "BOOLEAN"
+  | "DATETIME"
+  | "RELATION";
+
+export type PropertyRelationType = "USER" | "ISSUE";
+
+export type AccessEnum = "INTERNAL" | "EXTERNAL";
+
 export type TimezoneEnum =
   | "Africa/Abidjan"
   | "Africa/Accra"

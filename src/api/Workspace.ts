@@ -1,6 +1,6 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { UserLite } from "../models/schema-types";
+import { User } from "../models/User";
 
 /**
  * Workspace API resource
@@ -14,7 +14,7 @@ export class Workspace extends BaseResource {
   /**
    * Get workspace members
    */
-  async getMembers(workspaceSlug: string): Promise<UserLite[]> {
-    return this.get<UserLite[]>(`/workspaces/${workspaceSlug}/members/`);
+  async getMembers(workspaceSlug: string): Promise<User[]> {
+    return this.get<User[]>(`/workspaces/${workspaceSlug}/members/`);
   }
 }

@@ -1,4 +1,4 @@
-import { BaseModel } from './common';
+import { BaseModel, PropertyRelationType, PropertyType } from "./common";
 
 /**
  * Customer model interfaces
@@ -78,31 +78,65 @@ export interface ListCustomerRequestsParams {
   offset?: number;
 }
 
-/**
- * Customer Property model interfaces (for property definitions)
- * TODO: Replace with proper types after API verification
- */
-export interface CustomerProperty extends BaseModel {
-  // Basic customer property definition fields
-  name: string;
-  display_name: string;
-  property_type: string;
-  description?: string;
-  is_required: boolean;
-  is_active: boolean;
-  workspace: string;
-  created_by: string;
-  updated_by?: string;
-  // Additional fields will be added after API verification
-  [key: string]: any;
-}
-
-export type CreateCustomerProperty = Partial<CustomerProperty>;
-
-export type UpdateCustomerProperty = Partial<CustomerProperty>;
-
 export interface ListCustomerPropertiesParams {
   workspace?: string;
   limit?: number;
   offset?: number;
+}
+
+export interface CustomerProperty extends BaseModel {
+  name?: string;
+  display_name: string;
+  description?: string;
+  logo_props?: any;
+  sort_order?: number;
+  property_type: PropertyType;
+  relation_type?: PropertyRelationType;
+  is_required?: boolean;
+  default_value?: string[];
+  settings?: any;
+  is_active?: boolean;
+  is_multi?: boolean;
+  validation_rules?: any;
+  workspace?: string;
+}
+
+export interface CreateCustomerPropertyRequest {
+  name?: string;
+  display_name?: string;
+  description?: string;
+  logo_props?: any;
+  sort_order?: number;
+  property_type?: PropertyType;
+  relation_type?: PropertyRelationType;
+  is_required?: boolean;
+  default_value?: string[];
+  settings?: any;
+  is_active?: boolean;
+  is_multi?: boolean;
+  validation_rules?: any;
+  external_source?: string;
+  external_id?: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+export interface UpdateCustomerPropertyRequest {
+  name?: string;
+  display_name?: string;
+  description?: string;
+  logo_props?: any;
+  sort_order?: number;
+  property_type?: PropertyType;
+  relation_type?: PropertyRelationType;
+  is_required?: boolean;
+  default_value?: string[];
+  settings?: any;
+  is_active?: boolean;
+  is_multi?: boolean;
+  validation_rules?: any;
+  external_source?: string;
+  external_id?: string;
+  created_by?: string;
+  updated_by?: string;
 }

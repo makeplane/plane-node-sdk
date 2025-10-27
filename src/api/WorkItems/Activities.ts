@@ -1,7 +1,7 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
-import { WorkItemActivity } from '../../models/schema-types';
-import { PaginatedResponse } from '../../models/common';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
+import { WorkItemActivity } from "../../models/WorkItem";
+import { PaginatedResponse } from "../../models/common";
 
 /**
  * WorkItemActivities API resource
@@ -19,11 +19,11 @@ export class Activities extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    params?: any
+    params?: any,
   ): Promise<PaginatedResponse<WorkItemActivity>> {
     return this.get<PaginatedResponse<WorkItemActivity>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/activities/`,
-      params
+      params,
     );
   }
 
@@ -34,10 +34,10 @@ export class Activities extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    activityId: string
+    activityId: string,
   ): Promise<WorkItemActivity> {
     return this.get<WorkItemActivity>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/activities/${activityId}/`
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/activities/${activityId}/`,
     );
   }
 }
