@@ -5,7 +5,7 @@ import {
   PropertyType,
 } from "./common";
 
-export type WorkItemPropertySettings = TTextSettings | undefined;
+export type WorkItemPropertySettings = TextSettings | undefined;
 
 /**
  * WorkItemProperty model interfaces
@@ -56,7 +56,7 @@ interface BaseCreateWorkItemProperty {
 // Specific interfaces for each property type with their required fields
 interface CreateTextWorkItemProperty extends BaseCreateWorkItemProperty {
   property_type: "TEXT";
-  settings?: TTextSettings;
+  settings?: TextSettings;
 }
 
 interface CreateDecimalWorkItemProperty extends BaseCreateWorkItemProperty {
@@ -98,7 +98,7 @@ export interface ListWorkItemPropertiesParams {
   offset?: number;
 }
 
-export type TTextSettings = {
+export type TextSettings = {
   display_format: "single-line" | "multi-line" | "readonly";
 };
 
