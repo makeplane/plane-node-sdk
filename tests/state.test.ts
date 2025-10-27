@@ -93,7 +93,7 @@ async function deleteState(
   projectId: string,
   stateId: string
 ) {
-  await client.states.del(workspaceSlug, projectId, stateId);
+  await client.states.delete(workspaceSlug, projectId, stateId);
 }
 
 if (require.main === module) {

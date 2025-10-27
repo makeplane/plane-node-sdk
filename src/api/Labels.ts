@@ -1,6 +1,6 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { PaginatedResponse } from '../models/common';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { PaginatedResponse } from "../models/common";
 
 /**
  * Label model interfaces
@@ -87,12 +87,12 @@ export class Labels extends BaseResource {
   /**
    * Delete a label
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     labelId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`
     );
   }

@@ -1,8 +1,11 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { PaginatedResponse } from '../models/common';
-import { WorkItemType, CreateWorkItemType, UpdateWorkItemType } from '../models/WorkItemType';
-
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { PaginatedResponse } from "../models/common";
+import {
+  WorkItemType,
+  CreateWorkItemType,
+  UpdateWorkItemType,
+} from "../models/WorkItemType";
 
 export interface ListWorkItemTypesParams {
   project?: string;
@@ -64,12 +67,12 @@ export class WorkItemTypes extends BaseResource {
   /**
    * Delete a work item type
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     workItemTypeId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/${workItemTypeId}/`
     );
   }

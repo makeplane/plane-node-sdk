@@ -2,9 +2,9 @@ import axios, {
   AxiosResponse,
   AxiosError,
   InternalAxiosRequestConfig,
-} from 'axios';
-import { Configuration } from '../Configuration';
-import { HttpError } from '../errors';
+} from "axios";
+import { Configuration } from "../Configuration";
+import { HttpError } from "../errors";
 
 /**
  * Base resource class containing HTTP logic and authentication
@@ -12,7 +12,7 @@ import { HttpError } from '../errors';
  */
 export abstract class BaseResource {
   protected config: Configuration;
-  protected apiBasePath: string = '/api/v1';
+  protected apiBasePath: string = "/api/v1";
 
   constructor(config: Configuration) {
     this.config = config;
@@ -27,15 +27,15 @@ export abstract class BaseResource {
 
     const sanitized = { ...headers };
     const sensitiveKeys = [
-      'authorization',
-      'x-api-key',
-      'cookie',
-      'set-cookie',
+      "authorization",
+      "x-api-key",
+      "cookie",
+      "set-cookie",
     ];
 
     sensitiveKeys.forEach((key) => {
       if (sanitized[key]) {
-        sanitized[key] = '[REDACTED]';
+        sanitized[key] = "[REDACTED]";
       }
     });
 
@@ -51,7 +51,7 @@ export abstract class BaseResource {
     // If data is too large, truncate it
     const dataStr = JSON.stringify(data);
     if (dataStr.length > 1000) {
-      return JSON.parse(dataStr.substring(0, 1000)) + '... [TRUNCATED]';
+      return JSON.parse(dataStr.substring(0, 1000)) + "... [TRUNCATED]";
     }
 
     return data;
@@ -117,7 +117,7 @@ export abstract class BaseResource {
   /**
    * DELETE request
    */
-  protected async delete<T>(endpoint: string): Promise<void> {
+  protected async httpDelete<T>(endpoint: string): Promise<void> {
     try {
       await axios.delete(this.buildUrl(endpoint), {
         headers: this.getHeaders(),
@@ -139,17 +139,17 @@ export abstract class BaseResource {
    */
   protected getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     // Add API Key if available
     if (this.config.apiKey) {
-      headers['X-Api-Key'] = this.config.apiKey;
+      headers["X-Api-Key"] = this.config.apiKey;
     }
 
     // Add Access Token if available
     if (this.config.accessToken) {
-      headers['Authorization'] = `Bearer ${this.config.accessToken}`;
+      headers["Authorization"] = `Bearer ${this.config.accessToken}`;
     }
 
     return headers;
@@ -166,7 +166,7 @@ export abstract class BaseResource {
     if (axios.isAxiosError(error)) {
       const statusCode = error.response?.status || 500;
       const message =
-        error.response?.data?.message || error.message || 'Request failed';
+        error.response?.data?.message || error.message || "Request failed";
       throw new HttpError(message, statusCode, error.response?.data);
     }
 
@@ -181,7 +181,7 @@ export abstract class BaseResource {
     axios.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         if (this.config.enableLogging) {
-          console.log('🚀 [REQUEST]', {
+          console.log("🚀 [REQUEST]", {
             method: config.method?.toUpperCase(),
             url: config.url,
             headers: this.sanitizeHeaders(config.headers),
@@ -193,7 +193,7 @@ export abstract class BaseResource {
       },
       (error) => {
         if (this.config.enableLogging) {
-          console.error('❌ [REQUEST ERROR]', error);
+          console.error("❌ [REQUEST ERROR]", error);
         }
         return Promise.reject(error);
       }
@@ -203,7 +203,7 @@ export abstract class BaseResource {
     axios.interceptors.response.use(
       (response: AxiosResponse) => {
         if (this.config.enableLogging) {
-          console.log('✅ [RESPONSE]', {
+          console.log("✅ [RESPONSE]", {
             status: response.status,
             statusText: response.statusText,
             url: response.config.url,
@@ -216,7 +216,7 @@ export abstract class BaseResource {
       },
       (error: AxiosError) => {
         if (this.config.enableLogging) {
-          console.error('❌ [RESPONSE ERROR]', {
+          console.error("❌ [RESPONSE ERROR]", {
             status: error.response?.status,
             statusText: error.response?.statusText,
             url: error.config?.url,

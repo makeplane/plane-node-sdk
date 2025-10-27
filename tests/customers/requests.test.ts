@@ -116,7 +116,7 @@ async function deleteCustomerRequest(
   customerId: string,
   requestId: string
 ) {
-  await client.customers.requests.del(workspaceSlug, customerId, requestId);
+  await client.customers.requests.delete(workspaceSlug, customerId, requestId);
 }
 
 if (require.main === module) {

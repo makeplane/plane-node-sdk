@@ -80,7 +80,7 @@ export class Properties extends BaseResource {
     workspaceSlug: string,
     propertyId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/customer-properties/${propertyId}/`
     );
   }

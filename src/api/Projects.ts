@@ -64,8 +64,10 @@ export class Projects extends BaseResource {
   /**
    * Delete a project
    */
-  async del(workspaceSlug: string, projectId: string): Promise<void> {
-    return this.delete(`/workspaces/${workspaceSlug}/projects/${projectId}/`);
+  async delete(workspaceSlug: string, projectId: string): Promise<void> {
+    return this.httpDelete(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/`
+    );
   }
 
   /**

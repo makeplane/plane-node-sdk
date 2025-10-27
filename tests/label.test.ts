@@ -16,7 +16,7 @@ export async function testLabels() {
     client,
     workspaceSlug,
     projectId,
-    labelObj.id,
+    labelObj.id
   );
   console.log("Retrieved label: ", retrievedLabel);
 
@@ -25,7 +25,7 @@ export async function testLabels() {
     workspaceSlug,
     projectId,
     labelObj.id,
-    labelObj,
+    labelObj
   );
   console.log("Updated label: ", updatedLabel);
 
@@ -39,7 +39,7 @@ export async function testLabels() {
 async function createLabel(
   client: PlaneClient,
   workspaceSlug: string,
-  projectId: string,
+  projectId: string
 ) {
   const label = await client.labels.create(workspaceSlug, projectId, {
     name: "Test Label " + new Date().getTime(),
@@ -52,7 +52,7 @@ async function retrieveLabel(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  labelId: string,
+  labelId: string
 ) {
   const label = await client.labels.retrieve(workspaceSlug, projectId, labelId);
   return label;
@@ -63,7 +63,7 @@ async function updateLabel(
   workspaceSlug: string,
   projectId: string,
   labelId: string,
-  label: Label,
+  label: Label
 ) {
   const updatedLabel = await client.labels.update(
     workspaceSlug,
@@ -71,7 +71,7 @@ async function updateLabel(
     labelId,
     {
       description: "Updated Test Label Description" + new Date().toISOString(),
-    },
+    }
   );
   return updatedLabel;
 }
@@ -80,15 +80,15 @@ async function deleteLabel(
   client: PlaneClient,
   workspaceSlug: string,
   projectId: string,
-  labelId: string,
+  labelId: string
 ) {
-  await client.labels.del(workspaceSlug, projectId, labelId);
+  await client.labels.delete(workspaceSlug, projectId, labelId);
 }
 
 async function listLabels(
   client: PlaneClient,
   workspaceSlug: string,
-  projectId: string,
+  projectId: string
 ) {
   const labels = await client.labels.list(workspaceSlug, projectId);
   return labels;

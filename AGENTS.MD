@@ -141,7 +141,7 @@ export abstract class BaseResource {
     return this.handleResponse<T>(response);
   }
 
-  protected async delete<T>(endpoint: string): Promise<void> {
+  protected async httpDelete<T>(endpoint: string): Promise<void> {
     const url = this.buildUrl(endpoint);
     const headers = this.getHeaders();
     
@@ -225,8 +225,8 @@ export class ProjectApi extends BaseResource {
     return this.patch<Project>(`/${projectId}`, updateProject);
   }
 
-  async del(projectId: string): Promise<void> {
-    return this.delete(`/${projectId}`);
+  async delete(projectId: string): Promise<void> {
+    return this.httpDelete(`/${projectId}`);
   }
 
   async list(params?: ListProjectsParams): Promise<Project[]> {

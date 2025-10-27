@@ -22,10 +22,10 @@ export class Attachments extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    attachmentId: string,
+    attachmentId: string
   ): Promise<WorkItemAttachment> {
     return this.get<WorkItemAttachment>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/${attachmentId}/`,
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/${attachmentId}/`
     );
   }
 
@@ -36,11 +36,11 @@ export class Attachments extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    params?: any,
+    params?: any
   ): Promise<WorkItemAttachment[]> {
     return this.get<WorkItemAttachment[]>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/`,
-      params,
+      params
     );
   }
 
@@ -51,11 +51,11 @@ export class Attachments extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    uploadData: WorkItemAttachmentUploadRequest,
+    uploadData: WorkItemAttachmentUploadRequest
   ): Promise<WorkItemAttachment> {
     return this.post<WorkItemAttachment>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/`,
-      uploadData,
+      uploadData
     );
   }
 
@@ -67,25 +67,25 @@ export class Attachments extends BaseResource {
     projectId: string,
     workItemId: string,
     attachmentId: string,
-    updateData: UpdateWorkItemAttachmentRequest,
+    updateData: UpdateWorkItemAttachmentRequest
   ): Promise<WorkItemAttachment> {
     return this.patch<WorkItemAttachment>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/${attachmentId}/`,
-      updateData,
+      updateData
     );
   }
 
   /**
    * Delete an attachment
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    attachmentId: string,
+    attachmentId: string
   ): Promise<void> {
-    return this.delete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/${attachmentId}/`,
+    return this.httpDelete(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/${attachmentId}/`
     );
   }
 }

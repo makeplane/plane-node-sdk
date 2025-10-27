@@ -72,7 +72,7 @@ async function deleteCustomer(
   workspaceSlug: string,
   customerId: string
 ) {
-  await client.customers.del(workspaceSlug, customerId);
+  await client.customers.delete(workspaceSlug, customerId);
 }
 
 if (require.main === module) {

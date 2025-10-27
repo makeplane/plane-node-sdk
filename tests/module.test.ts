@@ -119,7 +119,7 @@ async function deleteModule(
   projectId: string,
   moduleId: string
 ) {
-  return await client.modules.del(workspaceSlug, projectId, moduleId);
+  return await client.modules.delete(workspaceSlug, projectId, moduleId);
 }
 
 async function addWorkItemToModule(

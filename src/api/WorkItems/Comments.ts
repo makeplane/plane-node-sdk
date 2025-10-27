@@ -1,10 +1,10 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   WorkItemComment,
   WorkItemCommentCreateRequest,
   WorkItemCommentUpdateRequest,
-} from '../../models/Comment';
+} from "../../models/Comment";
 
 /**
  * WorkItemComments API resource
@@ -78,13 +78,13 @@ export class Comments extends BaseResource {
   /**
    * Delete a comment
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
     commentId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/comments/${commentId}/`
     );
   }

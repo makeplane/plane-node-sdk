@@ -1,13 +1,13 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   Customer,
   CreateCustomer,
   UpdateCustomer,
   ListCustomersParams,
-} from '../../models/Customer';
-import { Properties } from './Properties';
-import { Requests } from './Requests';
+} from "../../models/Customer";
+import { Properties } from "./Properties";
+import { Requests } from "./Requests";
 
 /**
  * Customers API resource
@@ -63,8 +63,10 @@ export class Customers extends BaseResource {
   /**
    * Delete a customer
    */
-  async del(workspaceSlug: string, customerId: string): Promise<void> {
-    return this.delete(`/workspaces/${workspaceSlug}/customers/${customerId}/`);
+  async delete(workspaceSlug: string, customerId: string): Promise<void> {
+    return this.httpDelete(
+      `/workspaces/${workspaceSlug}/customers/${customerId}/`
+    );
   }
 
   /**
@@ -116,7 +118,7 @@ export class Customers extends BaseResource {
     customerId: string,
     issueId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/customers/${customerId}/issues/${issueId}/`
     );
   }

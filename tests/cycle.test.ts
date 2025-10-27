@@ -178,7 +178,7 @@ async function deleteCycle(
   projectId: string,
   cycleId: string
 ) {
-  return await client.cycles.del(workspaceSlug, projectId, cycleId);
+  return await client.cycles.delete(workspaceSlug, projectId, cycleId);
 }
 
 async function addWorkItemsToCycle(

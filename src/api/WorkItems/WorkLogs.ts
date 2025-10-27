@@ -62,13 +62,13 @@ export class WorkLogs extends BaseResource {
   /**
    * Delete a work log
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
     workLogId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/${workLogId}/`
     );
   }

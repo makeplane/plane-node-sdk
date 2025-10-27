@@ -5,9 +5,9 @@ import {
   CreateModuleRequest,
   UpdateModuleRequest,
   Module,
-  ModuleWorkItem,
   ListModulesParamsRequest,
 } from "../models/Module";
+import { WorkItem } from "../models/WorkItem";
 
 /**
  * Modules API resource
@@ -63,12 +63,12 @@ export class Modules extends BaseResource {
   /**
    * Delete a module
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     moduleId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`
     );
   }
@@ -95,8 +95,8 @@ export class Modules extends BaseResource {
     projectId: string,
     moduleId: string,
     params?: any
-  ): Promise<PaginatedResponse<ModuleWorkItem>> {
-    return this.get<PaginatedResponse<ModuleWorkItem>>(
+  ): Promise<PaginatedResponse<WorkItem>> {
+    return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`,
       params
     );
@@ -126,7 +126,7 @@ export class Modules extends BaseResource {
     moduleId: string,
     workItemId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/${workItemId}/`
     );
   }

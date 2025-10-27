@@ -1,12 +1,12 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { PaginatedResponse } from '../models/common';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { PaginatedResponse } from "../models/common";
 import {
   CreateState,
   State,
   UpdateState,
   ListStatesParams,
-} from '../models/State';
+} from "../models/State";
 
 /**
  * States API resource
@@ -62,12 +62,12 @@ export class States extends BaseResource {
   /**
    * Delete a state
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     stateId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/states/${stateId}/`
     );
   }

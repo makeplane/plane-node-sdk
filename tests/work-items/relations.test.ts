@@ -76,7 +76,7 @@ async function deleteRelation(
   workItemId: string,
   relationData: WorkItemRelationRemoveRequest
 ) {
-  return client.workItems.relations.del(
+  return client.workItems.relations.delete(
     workspaceSlug,
     projectId,
     workItemId,

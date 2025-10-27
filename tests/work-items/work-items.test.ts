@@ -125,7 +125,7 @@ async function deleteWorkItem(
   projectId: string,
   workItemId: string
 ) {
-  await client.workItems.del(workspaceSlug, projectId, workItemId);
+  await client.workItems.delete(workspaceSlug, projectId, workItemId);
 }
 
 async function retrieveWorkItemByIdentifier(

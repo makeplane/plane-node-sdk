@@ -33,7 +33,7 @@ export class Relations extends BaseResource {
   /**
    * Delete a relation between work items
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     workItemId: string,

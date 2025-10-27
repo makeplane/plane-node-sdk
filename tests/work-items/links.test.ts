@@ -112,7 +112,7 @@ async function deleteLink(
   workItemId: string,
   linkId: string
 ) {
-  await client.workItems.links.del(
+  await client.workItems.links.delete(
     workspaceSlug,
     projectId,
     workItemId,

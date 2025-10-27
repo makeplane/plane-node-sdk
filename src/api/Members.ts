@@ -1,5 +1,5 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
 
 /**
  * Member model interfaces
@@ -44,7 +44,7 @@ export class Members extends BaseResource {
    * Create a new member
    */
   async create(createMember: CreateMember): Promise<Member> {
-    return this.post<Member>('', createMember);
+    return this.post<Member>("", createMember);
   }
 
   /**
@@ -65,13 +65,13 @@ export class Members extends BaseResource {
    * Delete a member
    */
   async delete(memberId: string): Promise<void> {
-    return this.delete(`/${memberId}`);
+    return this.httpDelete(`/${memberId}`);
   }
 
   /**
    * List members with optional filtering
    */
   async list(params?: ListMembersParams): Promise<Member[]> {
-    return this.get<Member[]>('', params);
+    return this.get<Member[]>("", params);
   }
 }

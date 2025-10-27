@@ -242,7 +242,7 @@ async function deleteWorkItemTypeProperty(
   workItemTypeId: string,
   workItemPropertyId: string
 ): Promise<void> {
-  await client.workItemProperties.del(
+  await client.workItemProperties.delete(
     workspaceSlug,
     projectId,
     workItemTypeId,
@@ -312,7 +312,7 @@ async function deleteWorkItemPropertyOption(
   workItemPropertyId: string,
   workItemPropertyOptionId: string
 ): Promise<void> {
-  await client.workItemProperties.options.del(
+  await client.workItemProperties.options.delete(
     workspaceSlug,
     projectId,
     workItemPropertyId,

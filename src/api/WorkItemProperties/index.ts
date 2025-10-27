@@ -71,13 +71,13 @@ export class WorkItemProperties extends BaseResource {
   /**
    * Delete a work item property
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     workItemTypeId: string,
     workItemPropertyId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/${workItemTypeId}/work-item-properties/${workItemPropertyId}/`
     );
   }

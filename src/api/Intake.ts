@@ -75,12 +75,12 @@ export class Intake extends BaseResource {
   /**
    * Delete an intake issue
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     intakeId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`
     );
   }

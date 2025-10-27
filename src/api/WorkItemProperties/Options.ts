@@ -1,11 +1,11 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   WorkItemPropertyOption,
   CreateWorkItemPropertyOption,
   UpdateWorkItemPropertyOption,
-  ListWorkItemPropertyOptionsParams
-} from '../../models/WorkItemProperty';
+  ListWorkItemPropertyOptionsParams,
+} from "../../models/WorkItemProperty";
 
 /**
  * WorkItemPropertyOptions API resource
@@ -79,13 +79,13 @@ export class Options extends BaseResource {
   /**
    * Delete a property option
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     propertyId: string,
     optionId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-properties/${propertyId}/options/${optionId}/`
     );
   }

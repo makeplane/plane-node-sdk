@@ -120,7 +120,7 @@ async function deleteComment(
   workItemId: string,
   commentId: string
 ) {
-  await client.workItems.comments.del(
+  await client.workItems.comments.delete(
     workspaceSlug,
     projectId,
     workItemId,

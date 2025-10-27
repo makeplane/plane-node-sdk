@@ -1,11 +1,11 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   CustomerRequest,
   CreateCustomerRequest,
   UpdateCustomerRequest,
   ListCustomerRequestsParams,
-} from '../../models/Customer';
+} from "../../models/Customer";
 
 /**
  * Customer Requests API resource
@@ -75,12 +75,12 @@ export class Requests extends BaseResource {
   /**
    * Delete customer request
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     customerId: string,
     requestId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/customers/${customerId}/requests/${requestId}/`
     );
   }

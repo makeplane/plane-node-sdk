@@ -97,7 +97,7 @@ async function deleteWorkLog(
   workItemId: string,
   workLogId: string
 ) {
-  return client.workItems.workLogs.del(
+  return client.workItems.workLogs.delete(
     workspaceSlug,
     projectId,
     workItemId,

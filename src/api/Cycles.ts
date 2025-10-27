@@ -64,12 +64,12 @@ export class Cycles extends BaseResource {
   /**
    * Delete a cycle
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     cycleId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`
     );
   }
@@ -108,7 +108,7 @@ export class Cycles extends BaseResource {
     projectId: string,
     cycleId: string
   ): Promise<void> {
-    return this.delete<void>(
+    return this.httpDelete<void>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/unarchive/`
     );
   }
@@ -165,7 +165,7 @@ export class Cycles extends BaseResource {
     cycleId: string,
     workItemId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/${workItemId}/`
     );
   }

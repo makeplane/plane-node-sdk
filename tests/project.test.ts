@@ -89,7 +89,7 @@ async function deleteProject(
   workspaceSlug: string,
   projectId: string
 ) {
-  await client.projects.del(workspaceSlug, projectId);
+  await client.projects.delete(workspaceSlug, projectId);
 }
 
 if (require.main === module) {

@@ -117,7 +117,7 @@ async function deleteWorkItemType(
   projectId: string,
   workItemTypeId: string
 ): Promise<void> {
-  await client.workItemTypes.del(workspaceSlug, projectId, workItemTypeId);
+  await client.workItemTypes.delete(workspaceSlug, projectId, workItemTypeId);
 }
 
 if (require.main === module) {

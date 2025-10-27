@@ -1,6 +1,6 @@
-import { BaseResource } from './BaseResource';
-import { Configuration } from '../Configuration';
-import { Link, CreateLink, UpdateLink, ListLinksParams } from '../models/Link';
+import { BaseResource } from "./BaseResource";
+import { Configuration } from "../Configuration";
+import { Link, CreateLink, UpdateLink, ListLinksParams } from "../models/Link";
 
 /**
  * Links API resource
@@ -59,13 +59,13 @@ export class Links extends BaseResource {
   /**
    * Delete a link
    */
-  async del(
+  async delete(
     workspaceSlug: string,
     projectId: string,
     issueId: string,
     linkId: string
   ): Promise<void> {
-    return this.delete(
+    return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/${linkId}/`
     );
   }
