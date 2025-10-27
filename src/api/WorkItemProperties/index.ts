@@ -1,13 +1,13 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
   WorkItemProperty,
   CreateWorkItemProperty,
   UpdateWorkItemProperty,
   ListWorkItemPropertiesParams,
-} from '../../models/WorkItemProperty';
-import { Options } from './Options';
-import { Values } from './Values';
+} from "../../models/WorkItemProperty";
+import { Options } from "./Options";
+import { Values } from "./Values";
 
 /**
  * WorkItemProperties API resource
@@ -32,11 +32,6 @@ export class WorkItemProperties extends BaseResource {
     workItemTypeId: string,
     createWorkItemProperty: CreateWorkItemProperty
   ): Promise<WorkItemProperty> {
-    if (createWorkItemProperty.property_type === 'TEXT' && !createWorkItemProperty.settings) {
-      createWorkItemProperty.settings = {
-        display_format: 'single-line',
-      };
-    }
     return this.post<WorkItemProperty>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/${workItemTypeId}/work-item-properties/`,
       createWorkItemProperty

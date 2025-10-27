@@ -1,4 +1,4 @@
-import { BaseModel, LogoProps } from './common';
+import { BaseModel, LogoProps } from "./common";
 
 export type WorkItemPropertySettings = TTextSettings | undefined;
 
@@ -8,15 +8,15 @@ export type WorkItemPropertySettings = TTextSettings | undefined;
 export interface WorkItemProperty extends BaseModel {
   name: string;
   display_name: string;
+  description?: string;
   property_type: WorkItemPropertyType;
   relation_type?: WorkItemPropertyRelationType;
-  description?: string;
   options?: Partial<WorkItemPropertyOption>[];
+  settings?: WorkItemPropertySettings;
   logo_props: LogoProps;
   sort_order: number;
   is_required: boolean;
   default_value: any;
-  settings?: WorkItemPropertySettings;
   is_active: boolean;
   is_multi: boolean;
   validation_rules: any;
@@ -25,10 +25,61 @@ export interface WorkItemProperty extends BaseModel {
   project: string;
 }
 
-export type CreateWorkItemProperty = Pick<
-  WorkItemProperty,
-  'name' | 'display_name' | 'property_type' | 'options' | 'settings'
->;
+/**
+ * CreateWorkItemProperty model interface
+ * This is the model used to create a new work item property to add validations according to the property type
+ * as defined above.
+ */
+
+// Base interface for creating work item properties (excluding auto-generated fields)
+interface BaseCreateWorkItemProperty {
+  name: string;
+  display_name: string;
+  description?: string;
+  property_type: WorkItemPropertyType;
+  logo_props?: LogoProps;
+  sort_order?: number;
+  is_required: boolean;
+  default_value?: any;
+  is_active?: boolean;
+}
+
+// Specific interfaces for each property type with their required fields
+interface CreateTextWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "TEXT";
+  settings: TTextSettings;
+}
+
+interface CreateDecimalWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "DECIMAL";
+}
+
+interface CreateOptionWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "OPTION";
+  options: Partial<WorkItemPropertyOption>[];
+  is_multi: boolean;
+}
+
+interface CreateBooleanWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "BOOLEAN";
+}
+
+interface CreateDateTimeWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "DATETIME";
+}
+
+interface CreateRelationWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "RELATION";
+  relation_type: WorkItemPropertyRelationType;
+}
+
+export type CreateWorkItemProperty =
+  | CreateTextWorkItemProperty
+  | CreateDecimalWorkItemProperty
+  | CreateOptionWorkItemProperty
+  | CreateBooleanWorkItemProperty
+  | CreateDateTimeWorkItemProperty
+  | CreateRelationWorkItemProperty;
 
 export type UpdateWorkItemProperty = Partial<WorkItemProperty>;
 
@@ -38,18 +89,18 @@ export interface ListWorkItemPropertiesParams {
   offset?: number;
 }
 
-export type WorkItemPropertyRelationType = 'USER' | 'ISSUE';
+export type WorkItemPropertyRelationType = "USER" | "ISSUE";
 
 export type WorkItemPropertyType =
-  | 'TEXT'
-  | 'DECIMAL'
-  | 'OPTION'
-  | 'BOOLEAN'
-  | 'DATETIME'
-  | 'RELATION';
+  | "TEXT"
+  | "DECIMAL"
+  | "OPTION"
+  | "BOOLEAN"
+  | "DATETIME"
+  | "RELATION";
 
 export type TTextSettings = {
-  display_format: 'single-line' | 'multi-line' | 'readonly';
+  display_format: "single-line" | "multi-line" | "readonly";
 };
 
 /**
@@ -92,11 +143,8 @@ export type WorkItemPropertyValues = {
   values: any[];
 }[];
 
-
 export type UpdateWorkItemPropertyValue = {
-  values: [
-    {value: any}
-  ];
+  values: [{ value: any }];
 };
 
 export interface ListWorkItemPropertyValuesParams {
