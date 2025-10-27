@@ -5,8 +5,22 @@ A comprehensive TypeScript/JavaScript SDK for the Plane API, providing a clean a
 ## Installation
 
 ```bash
-npm install @plane/node-sdk
+npm install @makeplane/plane-node-sdk
 ```
+
+## ⚠️ Version 0.2.0 Breaking Changes
+
+**Important:** Version 0.2.0 introduces breaking changes with new API signatures. If you're migrating from version 0.1.x, please review the following:
+
+- **New PlaneClient Structure**: Instead of importing each API separately, you now use a single `PlaneClient` instance that provides access to all APIs
+- **Updated Method Signatures**: Method parameters and return types have been updated for better readability and consistency
+
+**Migration Guide:**
+- Replace individual API imports with the new `PlaneClient` approach
+- Review the new API documentation for updated method signatures
+- Test thoroughly in a development environment before upgrading
+
+For detailed migration instructions, please refer to the [Migration Guide](MIGRATION.md) or check the [changelog](CHANGELOG.md).
 
 ## Quick Start
 
