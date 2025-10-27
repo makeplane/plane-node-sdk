@@ -1,10 +1,10 @@
-import { BaseResource } from '../BaseResource';
-import { Configuration } from '../../Configuration';
+import { BaseResource } from "../BaseResource";
+import { Configuration } from "../../Configuration";
 import {
-  WorkItemWorkLogAPI,
-  WorkItemWorkLogAPIRequest,
-  PatchedIssueWorkLogAPIRequest,
-} from '../../models/schema-types';
+  WorkLog,
+  CreateWorkLogRequest,
+  UpdateWorkLogRequest,
+} from "../../models/WorkLog";
 
 /**
  * WorkLogs API resource
@@ -16,31 +16,15 @@ export class WorkLogs extends BaseResource {
   }
 
   /**
-   * Retrieve a work log by ID
-   */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string,
-    workLogId: string
-  ): Promise<WorkItemWorkLogAPI> {
-    return this.get<WorkItemWorkLogAPI>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-logs/${workLogId}/`
-    );
-  }
-
-  /**
    * List work logs for a work item
    */
   async list(
     workspaceSlug: string,
     projectId: string,
-    workItemId: string,
-    params?: any
-  ): Promise<WorkItemWorkLogAPI[]> {
-    return this.get<WorkItemWorkLogAPI[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-logs/`,
-      params
+    workItemId: string
+  ): Promise<WorkLog[]> {
+    return this.get<WorkLog[]>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/`
     );
   }
 
@@ -51,10 +35,10 @@ export class WorkLogs extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    workLogData: WorkItemWorkLogAPIRequest
-  ): Promise<WorkItemWorkLogAPI> {
-    return this.post<WorkItemWorkLogAPI>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-logs/`,
+    workLogData: CreateWorkLogRequest
+  ): Promise<WorkLog> {
+    return this.post<WorkLog>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/`,
       workLogData
     );
   }
@@ -67,10 +51,10 @@ export class WorkLogs extends BaseResource {
     projectId: string,
     workItemId: string,
     workLogId: string,
-    updateData: PatchedIssueWorkLogAPIRequest
-  ): Promise<WorkItemWorkLogAPI> {
-    return this.patch<WorkItemWorkLogAPI>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-logs/${workLogId}/`,
+    updateData: UpdateWorkLogRequest
+  ): Promise<WorkLog> {
+    return this.patch<WorkLog>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/${workLogId}/`,
       updateData
     );
   }
@@ -85,7 +69,7 @@ export class WorkLogs extends BaseResource {
     workLogId: string
   ): Promise<void> {
     return this.delete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-logs/${workLogId}/`
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/${workLogId}/`
     );
   }
 }

@@ -7,8 +7,8 @@ import {
   CreateCycleRequest,
   UpdateCycleRequest,
   TransferCycleWorkItemRequest,
-  CycleWorkItem,
 } from "../models/Cycle";
+import { WorkItem } from "../models/WorkItem";
 
 /**
  * Cycles API resource
@@ -134,8 +134,8 @@ export class Cycles extends BaseResource {
     projectId: string,
     cycleId: string,
     params?: any
-  ): Promise<PaginatedResponse<CycleWorkItem>> {
-    return this.get<PaginatedResponse<CycleWorkItem>>(
+  ): Promise<PaginatedResponse<WorkItem>> {
+    return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`,
       params
     );
