@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -133,6 +133,30 @@ export interface PatchedProjectUpdateRequest {
     timezone?: TimezoneEnum;
     /**
      * 
+     * @type {any}
+     * @memberof PatchedProjectUpdateRequest
+     */
+    logoProps?: any | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PatchedProjectUpdateRequest
+     */
+    externalSource?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PatchedProjectUpdateRequest
+     */
+    externalId?: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PatchedProjectUpdateRequest
+     */
+    isIssueTypeEnabled?: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof PatchedProjectUpdateRequest
      */
@@ -181,6 +205,10 @@ export function PatchedProjectUpdateRequestFromJSONTyped(json: any, ignoreDiscri
         'archiveIn': json['archive_in'] == null ? undefined : json['archive_in'],
         'closeIn': json['close_in'] == null ? undefined : json['close_in'],
         'timezone': json['timezone'] == null ? undefined : TimezoneEnumFromJSON(json['timezone']),
+        'logoProps': json['logo_props'] == null ? undefined : json['logo_props'],
+        'externalSource': json['external_source'] == null ? undefined : json['external_source'],
+        'externalId': json['external_id'] == null ? undefined : json['external_id'],
+        'isIssueTypeEnabled': json['is_issue_type_enabled'] == null ? undefined : json['is_issue_type_enabled'],
         'defaultState': json['default_state'] == null ? undefined : json['default_state'],
         'estimate': json['estimate'] == null ? undefined : json['estimate'],
     };
@@ -214,6 +242,10 @@ export function PatchedProjectUpdateRequestToJSONTyped(value?: PatchedProjectUpd
         'archive_in': value['archiveIn'],
         'close_in': value['closeIn'],
         'timezone': TimezoneEnumToJSON(value['timezone']),
+        'logo_props': value['logoProps'],
+        'external_source': value['externalSource'],
+        'external_id': value['externalId'],
+        'is_issue_type_enabled': value['isIssueTypeEnabled'],
         'default_state': value['defaultState'],
         'estimate': value['estimate'],
     };

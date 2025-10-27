@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -16,6 +16,10 @@ import * as runtime from '../runtime';
 import type {
   Issue,
   IssueDetail,
+  IssueRelation,
+  IssueRelationCreateRequest,
+  IssueRelationRemoveRequest,
+  IssueRelationResponse,
   IssueRequest,
   IssueSearch,
   PaginatedWorkItemResponse,
@@ -26,6 +30,14 @@ import {
     IssueToJSON,
     IssueDetailFromJSON,
     IssueDetailToJSON,
+    IssueRelationFromJSON,
+    IssueRelationToJSON,
+    IssueRelationCreateRequestFromJSON,
+    IssueRelationCreateRequestToJSON,
+    IssueRelationRemoveRequestFromJSON,
+    IssueRelationRemoveRequestToJSON,
+    IssueRelationResponseFromJSON,
+    IssueRelationResponseToJSON,
     IssueRequestFromJSON,
     IssueRequestToJSON,
     IssueSearchFromJSON,
@@ -42,6 +54,13 @@ export interface CreateWorkItemRequest {
     issueRequest: IssueRequest;
 }
 
+export interface CreateWorkItemRelationRequest {
+    issueId: string;
+    projectId: string;
+    slug: string;
+    issueRelationCreateRequest: IssueRelationCreateRequest;
+}
+
 export interface DeleteWorkItemRequest {
     pk: string;
     projectId: string;
@@ -54,6 +73,17 @@ export interface GetWorkspaceWorkItemRequest {
     slug: string;
 }
 
+export interface ListWorkItemRelationsRequest {
+    issueId: string;
+    projectId: string;
+    slug: string;
+    cursor?: string;
+    expand?: string;
+    fields?: string;
+    orderBy?: string;
+    perPage?: number;
+}
+
 export interface ListWorkItemsRequest {
     projectId: string;
     slug: string;
@@ -64,6 +94,13 @@ export interface ListWorkItemsRequest {
     fields?: string;
     orderBy?: string;
     perPage?: number;
+}
+
+export interface RemoveWorkItemRelationRequest {
+    issueId: string;
+    projectId: string;
+    slug: string;
+    issueRelationRemoveRequest: IssueRelationRemoveRequest;
 }
 
 export interface RetrieveWorkItemRequest {
@@ -160,6 +197,79 @@ export class WorkItemsApi extends runtime.BaseAPI {
      */
     async createWorkItem(requestParameters: CreateWorkItemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Issue> {
         const response = await this.createWorkItemRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create relationships between work items. Supports various relation types including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after.
+     * Create work item relation
+     */
+    async createWorkItemRelationRaw(requestParameters: CreateWorkItemRelationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<IssueRelation>>> {
+        if (requestParameters['issueId'] == null) {
+            throw new runtime.RequiredError(
+                'issueId',
+                'Required parameter "issueId" was null or undefined when calling createWorkItemRelation().'
+            );
+        }
+
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling createWorkItemRelation().'
+            );
+        }
+
+        if (requestParameters['slug'] == null) {
+            throw new runtime.RequiredError(
+                'slug',
+                'Required parameter "slug" was null or undefined when calling createWorkItemRelation().'
+            );
+        }
+
+        if (requestParameters['issueRelationCreateRequest'] == null) {
+            throw new runtime.RequiredError(
+                'issueRelationCreateRequest',
+                'Required parameter "issueRelationCreateRequest" was null or undefined when calling createWorkItemRelation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // ApiKeyAuthentication authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        const response = await this.request({
+            path: `/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/`.replace(`{${"issue_id"}}`, encodeURIComponent(String(requestParameters['issueId']))).replace(`{${"project_id"}}`, encodeURIComponent(String(requestParameters['projectId']))).replace(`{${"slug"}}`, encodeURIComponent(String(requestParameters['slug']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: IssueRelationCreateRequestToJSON(requestParameters['issueRelationCreateRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(IssueRelationFromJSON));
+    }
+
+    /**
+     * Create relationships between work items. Supports various relation types including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after.
+     * Create work item relation
+     */
+    async createWorkItemRelation(requestParameters: CreateWorkItemRelationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IssueRelation>> {
+        const response = await this.createWorkItemRelationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -289,6 +399,89 @@ export class WorkItemsApi extends runtime.BaseAPI {
     }
 
     /**
+     * Retrieve all relationships for a work item including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after relations.
+     * List work item relations
+     */
+    async listWorkItemRelationsRaw(requestParameters: ListWorkItemRelationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssueRelationResponse>> {
+        if (requestParameters['issueId'] == null) {
+            throw new runtime.RequiredError(
+                'issueId',
+                'Required parameter "issueId" was null or undefined when calling listWorkItemRelations().'
+            );
+        }
+
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling listWorkItemRelations().'
+            );
+        }
+
+        if (requestParameters['slug'] == null) {
+            throw new runtime.RequiredError(
+                'slug',
+                'Required parameter "slug" was null or undefined when calling listWorkItemRelations().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['cursor'] != null) {
+            queryParameters['cursor'] = requestParameters['cursor'];
+        }
+
+        if (requestParameters['expand'] != null) {
+            queryParameters['expand'] = requestParameters['expand'];
+        }
+
+        if (requestParameters['fields'] != null) {
+            queryParameters['fields'] = requestParameters['fields'];
+        }
+
+        if (requestParameters['orderBy'] != null) {
+            queryParameters['order_by'] = requestParameters['orderBy'];
+        }
+
+        if (requestParameters['perPage'] != null) {
+            queryParameters['per_page'] = requestParameters['perPage'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // ApiKeyAuthentication authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        const response = await this.request({
+            path: `/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/`.replace(`{${"issue_id"}}`, encodeURIComponent(String(requestParameters['issueId']))).replace(`{${"project_id"}}`, encodeURIComponent(String(requestParameters['projectId']))).replace(`{${"slug"}}`, encodeURIComponent(String(requestParameters['slug']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => IssueRelationResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Retrieve all relationships for a work item including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after relations.
+     * List work item relations
+     */
+    async listWorkItemRelations(requestParameters: ListWorkItemRelationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssueRelationResponse> {
+        const response = await this.listWorkItemRelationsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Retrieve a paginated list of all work items in a project. Supports filtering, ordering, and field selection through query parameters.
      * List work items
      */
@@ -370,6 +563,78 @@ export class WorkItemsApi extends runtime.BaseAPI {
     async listWorkItems(requestParameters: ListWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaginatedWorkItemResponse> {
         const response = await this.listWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     * Remove a relationship between work items by specifying the related work item ID.
+     * Remove work item relation
+     */
+    async removeWorkItemRelationRaw(requestParameters: RemoveWorkItemRelationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['issueId'] == null) {
+            throw new runtime.RequiredError(
+                'issueId',
+                'Required parameter "issueId" was null or undefined when calling removeWorkItemRelation().'
+            );
+        }
+
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling removeWorkItemRelation().'
+            );
+        }
+
+        if (requestParameters['slug'] == null) {
+            throw new runtime.RequiredError(
+                'slug',
+                'Required parameter "slug" was null or undefined when calling removeWorkItemRelation().'
+            );
+        }
+
+        if (requestParameters['issueRelationRemoveRequest'] == null) {
+            throw new runtime.RequiredError(
+                'issueRelationRemoveRequest',
+                'Required parameter "issueRelationRemoveRequest" was null or undefined when calling removeWorkItemRelation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // ApiKeyAuthentication authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        const response = await this.request({
+            path: `/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/remove/`.replace(`{${"issue_id"}}`, encodeURIComponent(String(requestParameters['issueId']))).replace(`{${"project_id"}}`, encodeURIComponent(String(requestParameters['projectId']))).replace(`{${"slug"}}`, encodeURIComponent(String(requestParameters['slug']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: IssueRelationRemoveRequestToJSON(requestParameters['issueRelationRemoveRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Remove a relationship between work items by specifying the related work item ID.
+     * Remove work item relation
+     */
+    async removeWorkItemRelation(requestParameters: RemoveWorkItemRelationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.removeWorkItemRelationRaw(requestParameters, initOverrides);
     }
 
     /**

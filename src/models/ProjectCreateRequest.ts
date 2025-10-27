@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -131,6 +131,30 @@ export interface ProjectCreateRequest {
      * @memberof ProjectCreateRequest
      */
     timezone?: TimezoneEnum;
+    /**
+     * 
+     * @type {any}
+     * @memberof ProjectCreateRequest
+     */
+    logoProps?: any | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectCreateRequest
+     */
+    externalSource?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectCreateRequest
+     */
+    externalId?: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ProjectCreateRequest
+     */
+    isIssueTypeEnabled?: boolean;
 }
 
 
@@ -171,6 +195,10 @@ export function ProjectCreateRequestFromJSONTyped(json: any, ignoreDiscriminator
         'archiveIn': json['archive_in'] == null ? undefined : json['archive_in'],
         'closeIn': json['close_in'] == null ? undefined : json['close_in'],
         'timezone': json['timezone'] == null ? undefined : TimezoneEnumFromJSON(json['timezone']),
+        'logoProps': json['logo_props'] == null ? undefined : json['logo_props'],
+        'externalSource': json['external_source'] == null ? undefined : json['external_source'],
+        'externalId': json['external_id'] == null ? undefined : json['external_id'],
+        'isIssueTypeEnabled': json['is_issue_type_enabled'] == null ? undefined : json['is_issue_type_enabled'],
     };
 }
 
@@ -202,6 +230,10 @@ export function ProjectCreateRequestToJSONTyped(value?: ProjectCreateRequest | n
         'archive_in': value['archiveIn'],
         'close_in': value['closeIn'],
         'timezone': TimezoneEnumToJSON(value['timezone']),
+        'logo_props': value['logoProps'],
+        'external_source': value['externalSource'],
+        'external_id': value['externalId'],
+        'is_issue_type_enabled': value['isIssueTypeEnabled'],
     };
 }
 

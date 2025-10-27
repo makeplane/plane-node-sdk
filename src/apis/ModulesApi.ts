@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -133,7 +133,7 @@ export class ModulesApi extends runtime.BaseAPI {
      * Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
      * Add Work Items to Module
      */
-    async addModuleWorkItemsRaw(requestParameters: AddModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ModuleIssue>> {
+    async addModuleWorkItemsRaw(requestParameters: AddModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<ModuleIssue>>> {
         if (requestParameters['moduleId'] == null) {
             throw new runtime.RequiredError(
                 'moduleId',
@@ -190,14 +190,14 @@ export class ModulesApi extends runtime.BaseAPI {
             body: ModuleIssueRequestRequestToJSON(requestParameters['moduleIssueRequestRequest']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ModuleIssueFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ModuleIssueFromJSON));
     }
 
     /**
      * Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
      * Add Work Items to Module
      */
-    async addModuleWorkItems(requestParameters: AddModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ModuleIssue> {
+    async addModuleWorkItems(requestParameters: AddModuleWorkItemsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<ModuleIssue>> {
         const response = await this.addModuleWorkItemsRaw(requestParameters, initOverrides);
         return await response.value();
     }

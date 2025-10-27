@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -94,6 +94,13 @@ export interface ListIssuePropertyOptionsRequest {
 }
 
 export interface ListIssuePropertyValuesRequest {
+    issueId: string;
+    projectId: string;
+    propertyId: string;
+    slug: string;
+}
+
+export interface ListIssuePropertyValuesForAWorkitemRequest {
     issueId: string;
     projectId: string;
     propertyId: string;
@@ -692,6 +699,76 @@ export class WorkItemPropertiesApi extends runtime.BaseAPI {
      */
     async listIssuePropertyValues(requestParameters: ListIssuePropertyValuesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<IssuePropertyValueAPIDetail>> {
         const response = await this.listIssuePropertyValuesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List issue property values for a workitem
+     * List issue property values for a workitem
+     */
+    async listIssuePropertyValuesForAWorkitemRaw(requestParameters: ListIssuePropertyValuesForAWorkitemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<IssuePropertyValueAPI>> {
+        if (requestParameters['issueId'] == null) {
+            throw new runtime.RequiredError(
+                'issueId',
+                'Required parameter "issueId" was null or undefined when calling listIssuePropertyValuesForAWorkitem().'
+            );
+        }
+
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling listIssuePropertyValuesForAWorkitem().'
+            );
+        }
+
+        if (requestParameters['propertyId'] == null) {
+            throw new runtime.RequiredError(
+                'propertyId',
+                'Required parameter "propertyId" was null or undefined when calling listIssuePropertyValuesForAWorkitem().'
+            );
+        }
+
+        if (requestParameters['slug'] == null) {
+            throw new runtime.RequiredError(
+                'slug',
+                'Required parameter "slug" was null or undefined when calling listIssuePropertyValuesForAWorkitem().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // ApiKeyAuthentication authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        const response = await this.request({
+            path: `/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-properties/values/`.replace(`{${"issue_id"}}`, encodeURIComponent(String(requestParameters['issueId']))).replace(`{${"project_id"}}`, encodeURIComponent(String(requestParameters['projectId']))).replace(`{${"property_id"}}`, encodeURIComponent(String(requestParameters['propertyId']))).replace(`{${"slug"}}`, encodeURIComponent(String(requestParameters['slug']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => IssuePropertyValueAPIFromJSON(jsonValue));
+    }
+
+    /**
+     * List issue property values for a workitem
+     * List issue property values for a workitem
+     */
+    async listIssuePropertyValuesForAWorkitem(requestParameters: ListIssuePropertyValuesForAWorkitemRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IssuePropertyValueAPI> {
+        const response = await this.listIssuePropertyValuesForAWorkitemRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

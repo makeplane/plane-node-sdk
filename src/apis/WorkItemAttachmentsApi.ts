@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -52,6 +52,14 @@ export interface RetrieveWorkItemAttachmentRequest {
     pk: string;
     projectId: string;
     slug: string;
+}
+
+export interface UploadWorkItemAttachmentRequest {
+    issueId: string;
+    pk: string;
+    projectId: string;
+    slug: string;
+    body?: any | null;
 }
 
 /**
@@ -330,6 +338,78 @@ export class WorkItemAttachmentsApi extends runtime.BaseAPI {
      */
     async retrieveWorkItemAttachment(requestParameters: RetrieveWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.retrieveWorkItemAttachmentRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Mark an attachment as uploaded after successful file transfer to storage.
+     * Endpoints for issue attachment create/update/delete and fetch issue attachment details
+     */
+    async uploadWorkItemAttachmentRaw(requestParameters: UploadWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['issueId'] == null) {
+            throw new runtime.RequiredError(
+                'issueId',
+                'Required parameter "issueId" was null or undefined when calling uploadWorkItemAttachment().'
+            );
+        }
+
+        if (requestParameters['pk'] == null) {
+            throw new runtime.RequiredError(
+                'pk',
+                'Required parameter "pk" was null or undefined when calling uploadWorkItemAttachment().'
+            );
+        }
+
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling uploadWorkItemAttachment().'
+            );
+        }
+
+        if (requestParameters['slug'] == null) {
+            throw new runtime.RequiredError(
+                'slug',
+                'Required parameter "slug" was null or undefined when calling uploadWorkItemAttachment().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-API-Key"] = await this.configuration.apiKey("X-API-Key"); // ApiKeyAuthentication authentication
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        if (this.configuration && this.configuration.accessToken) {
+            // oauth required
+            headerParameters["Authorization"] = await this.configuration.accessToken("OAuth2Authentication", []);
+        }
+
+        const response = await this.request({
+            path: `/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/`.replace(`{${"issue_id"}}`, encodeURIComponent(String(requestParameters['issueId']))).replace(`{${"pk"}}`, encodeURIComponent(String(requestParameters['pk']))).replace(`{${"project_id"}}`, encodeURIComponent(String(requestParameters['projectId']))).replace(`{${"slug"}}`, encodeURIComponent(String(requestParameters['slug']))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['body'] as any,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Mark an attachment as uploaded after successful file transfer to storage.
+     * Endpoints for issue attachment create/update/delete and fetch issue attachment details
+     */
+    async uploadWorkItemAttachment(requestParameters: UploadWorkItemAttachmentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.uploadWorkItemAttachmentRaw(requestParameters, initOverrides);
     }
 
 }

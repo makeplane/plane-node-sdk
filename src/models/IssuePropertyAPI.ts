@@ -4,7 +4,7 @@
  * The Plane REST API
  * The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
  *
- * The version of the API Spec: 0.0.1
+ * The version of the API Spec: 0.0.2
  * Contact: support@plane.so
  *
  * NOTE: This class is auto generated.
@@ -12,13 +12,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { RelationTypeEnum } from './RelationTypeEnum';
+import type { IssuePropertyAPIRelationTypeEnum } from './IssuePropertyAPIRelationTypeEnum';
 import {
-    RelationTypeEnumFromJSON,
-    RelationTypeEnumFromJSONTyped,
-    RelationTypeEnumToJSON,
-    RelationTypeEnumToJSONTyped,
-} from './RelationTypeEnum';
+    IssuePropertyAPIRelationTypeEnumFromJSON,
+    IssuePropertyAPIRelationTypeEnumFromJSONTyped,
+    IssuePropertyAPIRelationTypeEnumToJSON,
+    IssuePropertyAPIRelationTypeEnumToJSONTyped,
+} from './IssuePropertyAPIRelationTypeEnum';
 import type { PropertyTypeEnum } from './PropertyTypeEnum';
 import {
     PropertyTypeEnumFromJSON,
@@ -47,10 +47,10 @@ export interface IssuePropertyAPI {
     readonly deletedAt?: Date | null;
     /**
      * 
-     * @type {RelationTypeEnum}
+     * @type {IssuePropertyAPIRelationTypeEnum}
      * @memberof IssuePropertyAPI
      */
-    relationType?: RelationTypeEnum;
+    relationType?: IssuePropertyAPIRelationTypeEnum | null;
     /**
      * 
      * @type {Date}
@@ -202,7 +202,7 @@ export function IssuePropertyAPIFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'id': json['id'] == null ? undefined : json['id'],
         'deletedAt': json['deleted_at'] == null ? undefined : (new Date(json['deleted_at'])),
-        'relationType': json['relation_type'] == null ? undefined : RelationTypeEnumFromJSON(json['relation_type']),
+        'relationType': json['relation_type'] == null ? undefined : IssuePropertyAPIRelationTypeEnumFromJSON(json['relation_type']),
         'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
         'updatedAt': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
         'name': json['name'] == null ? undefined : json['name'],
@@ -238,7 +238,7 @@ export function IssuePropertyAPIToJSONTyped(value?: Omit<IssuePropertyAPI, 'id'|
 
     return {
         
-        'relation_type': RelationTypeEnumToJSON(value['relationType']),
+        'relation_type': IssuePropertyAPIRelationTypeEnumToJSON(value['relationType']),
         'display_name': value['displayName'],
         'description': value['description'],
         'property_type': PropertyTypeEnumToJSON(value['propertyType']),
