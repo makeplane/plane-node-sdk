@@ -15,7 +15,6 @@ export async function testRelations() {
 
   const workItem2 = await client.workItems.retrieveByIdentifier(
     workspaceSlug,
-    projectId,
     config.workItemId2
   );
 

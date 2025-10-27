@@ -13,6 +13,7 @@ import { testWorkItemPropertiesValues } from "./work-item-types/properties-value
 
 import { testWorkItems } from "./work-items/work-items.test";
 import { testWorkLogs } from "./work-items/work-logs.test";
+import { testRelations } from "./work-items/relations.test";
 
 import { testModules } from "./module.test";
 import { testCycles } from "./cycle.test";
@@ -21,6 +22,11 @@ import { testCustomersWorkItems } from "./customers/work-items.test";
 import { testCustomersPropertiesOptionsAndValues } from "./customers/properties-options.test";
 import { testCustomers } from "./customers/customers.test";
 import { testCustomersRequests } from "./customers/requests.test";
+
+import { testOAuth } from "./oauth.test";
+import { testComments } from "./work-items/comments.test";
+import { testLinks } from "./work-items/links.test";
+import { testActivities } from "./work-items/activities.test";
 
 async function runAllTests() {
   await testIntake();
@@ -38,6 +44,7 @@ async function runAllTests() {
   await testWorkItemPropertiesValues();
   await wait(60);
   await testWorkItems();
+  await testRelations();
   await testWorkLogs();
 
   await testModules();
@@ -48,6 +55,14 @@ async function runAllTests() {
   await testCustomersWorkItems();
   await testCustomersPropertiesOptionsAndValues();
   await testCustomersRequests();
+
+  await wait(60);
+  await testComments();
+  await testLinks();
+  await testActivities();
+
+  await wait(60);
+  await testOAuth();
 }
 
 if (require.main === module) {
