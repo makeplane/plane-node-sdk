@@ -1,4 +1,4 @@
-import { LogoProps, BaseModel } from './common';
+import { LogoProps, BaseModel } from "./common";
 
 /**
  * Project model interfaces
@@ -29,7 +29,6 @@ export interface Project extends BaseModel {
   cover_image?: string;
   archive_in: number;
   close_in: number;
-  logo_props: LogoProps;
   archived_at?: Date;
   timezone: string;
   workspace: string;
@@ -40,11 +39,8 @@ export interface Project extends BaseModel {
   default_state: null;
 }
 
-export type CreateProject = Pick<
-  Project,
-  'name'| 'identifier'
-> &
-  Partial<Omit<Project, 'name' | 'identifier'>>;
+export type CreateProject = Pick<Project, "name" | "identifier"> &
+  Partial<Omit<Project, "name" | "identifier">>;
 
 export type UpdateProject = Partial<Project>;
 
