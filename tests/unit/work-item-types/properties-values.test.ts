@@ -1,5 +1,5 @@
-import { PlaneClient } from "../../src/client/plane-client";
-import { WorkItemPropertyValues } from "../../src/models/WorkItemProperty";
+import { PlaneClient } from "../../../src/client/plane-client";
+import { WorkItemPropertyValues } from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
 import { createTestClient } from "../test-utils";
 
@@ -16,10 +16,9 @@ export async function testWorkItemPropertiesValues() {
     is_issue_type_enabled: true,
   });
 
-  if (!workItemId || !propertyId) {
-    throw new Error(
-      "workItemId and propertyId are required to test work item properties and values"
-    );
+  if (!workspaceSlug || !projectId || !workItemId || !propertyId) {
+    console.error("workItemId and propertyId are required to test work item properties and values");
+    return;
   }
 
   const workItemPropertyValue = await updateWorkItemPropertyValue(
@@ -38,17 +37,9 @@ export async function testWorkItemPropertiesValues() {
     workItemId,
     propertyId
   );
-  console.log(
-    "Retrieved work item property value: ",
-    retrievedWorkItemPropertyValue
-  );
+  console.log("Retrieved work item property value: ", retrievedWorkItemPropertyValue);
 
-  const workItemPropertyValues = await listWorkItemPropertyValues(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemId
-  );
+  const workItemPropertyValues = await listWorkItemPropertyValues(client, workspaceSlug, projectId, workItemId);
   console.log("Listed work item property values: ", workItemPropertyValues);
 }
 
@@ -93,15 +84,10 @@ async function listWorkItemPropertyValues(
   projectId: string,
   workItemId: string
 ): Promise<WorkItemPropertyValues> {
-  const workItemPropertyValues = await client.workItemProperties.values.list(
-    workspaceSlug,
-    projectId,
-    workItemId,
-    {
-      limit: 10,
-      offset: 0,
-    }
-  );
+  const workItemPropertyValues = await client.workItemProperties.values.list(workspaceSlug, projectId, workItemId, {
+    limit: 10,
+    offset: 0,
+  });
   return workItemPropertyValues;
 }
 

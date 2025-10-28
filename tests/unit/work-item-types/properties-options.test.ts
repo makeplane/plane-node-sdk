@@ -1,10 +1,10 @@
-import { PlaneClient } from "../../src/client/plane-client";
-import { PropertyType } from "../../src/models/common";
+import { PlaneClient } from "../../../src/client/plane-client";
+import { PropertyType } from "../../../src/models/common";
 import {
   WorkItemProperty,
   WorkItemPropertyOption,
   WorkItemPropertySettings,
-} from "../../src/models/WorkItemProperty";
+} from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
 import { createTestClient } from "../test-utils";
 
@@ -15,10 +15,9 @@ export async function testWorkItemTypesPropertiesAndOptions() {
   const projectId = config.projectId;
   const workItemTypeId = config.workItemTypeId;
 
-  if (!workItemTypeId) {
-    throw new Error(
-      "workItemTypeId is required to test work item properties and options"
-    );
+  if (!workspaceSlug || !projectId || !workItemTypeId) {
+    console.error("workspaceSlug, projectId and workItemTypeId are required");
+    return;
   }
 
   // enable work item types if didn't already
@@ -46,10 +45,7 @@ export async function testWorkItemTypesPropertiesAndOptions() {
     workItemTypeId,
     workItemTypeProperty.id
   );
-  console.log(
-    "Retrieved work item type property: ",
-    retrievedWorkItemTypeProperty
-  );
+  console.log("Retrieved work item type property: ", retrievedWorkItemTypeProperty);
 
   const updatedWorkItemTypeProperty = await updateWorkItemTypeProperty(
     client,
@@ -60,21 +56,10 @@ export async function testWorkItemTypesPropertiesAndOptions() {
   );
   console.log("Updated work item type property: ", updatedWorkItemTypeProperty);
 
-  const workItemTypeProperties = await listWorkItemTypeProperties(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId
-  );
+  const workItemTypeProperties = await listWorkItemTypeProperties(client, workspaceSlug, projectId, workItemTypeId);
   console.log("Listed work item type properties: ", workItemTypeProperties);
 
-  await deleteWorkItemTypeProperty(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    workItemTypeProperty.id
-  );
+  await deleteWorkItemTypeProperty(client, workspaceSlug, projectId, workItemTypeId, workItemTypeProperty.id);
   console.log("Work item type property deleted: ", workItemTypeProperty.id);
 
   // test the work item type property options
@@ -88,15 +73,10 @@ export async function testWorkItemTypesPropertiesAndOptions() {
     workItemTypeId,
     "OPTION"
   );
-  console.log(
-    "Created option work item type property: ",
-    optionWorkItemTypeProperty
-  );
+  console.log("Created option work item type property: ", optionWorkItemTypeProperty);
 
   if (!optionWorkItemTypeProperty.id) {
-    throw new Error(
-      "optionWorkItemTypeProperty ID is required to test work item property options"
-    );
+    throw new Error("optionWorkItemTypeProperty ID is required to test work item property options");
   }
 
   const createdWorkItemPropertyOption = await createWorkItemPropertyOption(
@@ -105,10 +85,7 @@ export async function testWorkItemTypesPropertiesAndOptions() {
     projectId,
     optionWorkItemTypeProperty.id
   );
-  console.log(
-    "Created work item property option: ",
-    createdWorkItemPropertyOption
-  );
+  console.log("Created work item property option: ", createdWorkItemPropertyOption);
 
   const retrievedWorkItemPropertyOption = await retrieveWorkItemPropertyOption(
     client,
@@ -117,10 +94,7 @@ export async function testWorkItemTypesPropertiesAndOptions() {
     optionWorkItemTypeProperty.id,
     createdWorkItemPropertyOption.id
   );
-  console.log(
-    "Retrieved work item property option: ",
-    retrievedWorkItemPropertyOption
-  );
+  console.log("Retrieved work item property option: ", retrievedWorkItemPropertyOption);
 
   const updatedWorkItemPropertyOption = await updateWorkItemPropertyOption(
     client,
@@ -129,10 +103,7 @@ export async function testWorkItemTypesPropertiesAndOptions() {
     optionWorkItemTypeProperty.id,
     createdWorkItemPropertyOption.id
   );
-  console.log(
-    "Updated work item property option: ",
-    updatedWorkItemPropertyOption
-  );
+  console.log("Updated work item property option: ", updatedWorkItemPropertyOption);
 
   await deleteWorkItemPropertyOption(
     client,
@@ -141,22 +112,10 @@ export async function testWorkItemTypesPropertiesAndOptions() {
     optionWorkItemTypeProperty.id,
     createdWorkItemPropertyOption.id
   );
-  console.log(
-    "Work item property option deleted: ",
-    createdWorkItemPropertyOption.id
-  );
+  console.log("Work item property option deleted: ", createdWorkItemPropertyOption.id);
 
-  await deleteWorkItemTypeProperty(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    optionWorkItemTypeProperty.id
-  );
-  console.log(
-    "Option work item type property deleted: ",
-    optionWorkItemTypeProperty.id
-  );
+  await deleteWorkItemTypeProperty(client, workspaceSlug, projectId, workItemTypeId, optionWorkItemTypeProperty.id);
+  console.log("Option work item type property deleted: ", optionWorkItemTypeProperty.id);
 }
 
 async function createWorkItemTypeProperty(
@@ -167,18 +126,13 @@ async function createWorkItemTypeProperty(
   propertyType: PropertyType,
   settings?: WorkItemPropertySettings
 ): Promise<WorkItemProperty> {
-  const workItemTypeProperty = await client.workItemProperties.create(
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    {
-      name: `Test WI Type Property ${new Date().getTime()}`,
-      display_name: `Test WI Type Property ${new Date().getTime()}`,
-      property_type: propertyType,
-      settings,
-      is_required: false,
-    }
-  );
+  const workItemTypeProperty = await client.workItemProperties.create(workspaceSlug, projectId, workItemTypeId, {
+    name: `Test WI Type Property ${new Date().getTime()}`,
+    display_name: `Test WI Type Property ${new Date().getTime()}`,
+    property_type: propertyType,
+    settings,
+    is_required: false,
+  });
   return workItemTypeProperty;
 }
 
@@ -204,15 +158,10 @@ async function listWorkItemTypeProperties(
   projectId: string,
   workItemTypeId: string
 ): Promise<WorkItemProperty[]> {
-  const workItemTypeProperties = await client.workItemProperties.list(
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    {
-      limit: 10,
-      offset: 0,
-    }
-  );
+  const workItemTypeProperties = await client.workItemProperties.list(workspaceSlug, projectId, workItemTypeId, {
+    limit: 10,
+    offset: 0,
+  });
   return workItemTypeProperties;
 }
 
@@ -242,12 +191,7 @@ async function deleteWorkItemTypeProperty(
   workItemTypeId: string,
   workItemPropertyId: string
 ): Promise<void> {
-  await client.workItemProperties.delete(
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    workItemPropertyId
-  );
+  await client.workItemProperties.delete(workspaceSlug, projectId, workItemTypeId, workItemPropertyId);
 }
 
 async function createWorkItemPropertyOption(
@@ -256,15 +200,14 @@ async function createWorkItemPropertyOption(
   projectId: string,
   workItemPropertyId: string
 ): Promise<WorkItemPropertyOption> {
-  const workItemTypePropertyOption =
-    await client.workItemProperties.options.create(
-      workspaceSlug,
-      projectId,
-      workItemPropertyId,
-      {
-        name: `Test Property Option ${new Date().getTime()}`,
-      }
-    );
+  const workItemTypePropertyOption = await client.workItemProperties.options.create(
+    workspaceSlug,
+    projectId,
+    workItemPropertyId,
+    {
+      name: `Test Property Option ${new Date().getTime()}`,
+    }
+  );
   return workItemTypePropertyOption;
 }
 
@@ -275,13 +218,12 @@ async function retrieveWorkItemPropertyOption(
   workItemPropertyId: string,
   workItemPropertyOptionId: string
 ): Promise<WorkItemPropertyOption> {
-  const workItemTypePropertyOption =
-    await client.workItemProperties.options.retrieve(
-      workspaceSlug,
-      projectId,
-      workItemPropertyId,
-      workItemPropertyOptionId
-    );
+  const workItemTypePropertyOption = await client.workItemProperties.options.retrieve(
+    workspaceSlug,
+    projectId,
+    workItemPropertyId,
+    workItemPropertyOptionId
+  );
   return workItemTypePropertyOption;
 }
 
@@ -292,16 +234,15 @@ async function updateWorkItemPropertyOption(
   workItemPropertyId: string,
   workItemPropertyOptionId: string
 ): Promise<WorkItemPropertyOption> {
-  const workItemTypePropertyOption =
-    await client.workItemProperties.options.update(
-      workspaceSlug,
-      projectId,
-      workItemPropertyId,
-      workItemPropertyOptionId,
-      {
-        name: `Updated Property Option ${new Date().getTime()}`,
-      }
-    );
+  const workItemTypePropertyOption = await client.workItemProperties.options.update(
+    workspaceSlug,
+    projectId,
+    workItemPropertyId,
+    workItemPropertyOptionId,
+    {
+      name: `Updated Property Option ${new Date().getTime()}`,
+    }
+  );
   return workItemTypePropertyOption;
 }
 

@@ -47,7 +47,7 @@ Sensitive information like API keys and authorization tokens are automatically r
 When adding new examples:
 
 1. Create a new `.ts` file in this directory
-2. Import the SDK: `import { PlaneClient } from '../src'`
+2. Import the SDK: `import { PlaneClient } from '../../src'`
 3. Include proper error handling
 4. Add documentation comments
 5. Update this README with a description

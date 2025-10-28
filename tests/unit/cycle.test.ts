@@ -1,5 +1,5 @@
-import { PlaneClient } from "../src/client/plane-client";
-import { UpdateCycleRequest } from "../src/models/Cycle";
+import { PlaneClient } from "../../src/client/plane-client";
+import { UpdateCycleRequest } from "../../src/models/Cycle";
 import { config } from "./constants";
 import { createTestClient } from "./test-utils";
 
@@ -9,6 +9,11 @@ export async function testCycles() {
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
   const workItemId = config.workItemId;
+
+  if (!workspaceSlug || !projectId || !workItemId) {
+    console.error("workspaceSlug, projectId and workItemId are required");
+    return;
+  }
 
   const project = await client.projects.retrieve(workspaceSlug, projectId);
   if (!project.cycle_view) {
@@ -21,25 +26,14 @@ export async function testCycles() {
   console.log("Created cycle: ", cycle);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const retrievedCycle = await retrieveCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id
-  );
+  const retrievedCycle = await retrieveCycle(client, workspaceSlug, projectId, cycle.id);
   console.log("Retrieved cycle: ", retrievedCycle);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const updatedCycle = await updateCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id,
-    {
-      name: "Updated Test Cycle",
-      description: "Updated Test Cycle Description",
-    }
-  );
+  const updatedCycle = await updateCycle(client, workspaceSlug, projectId, cycle.id, {
+    name: "Updated Test Cycle",
+    description: "Updated Test Cycle Description",
+  });
   console.log("Updated cycle: ", updatedCycle);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -47,32 +41,15 @@ export async function testCycles() {
   console.log("Listed cycles: ", cycles);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  await addWorkItemsToCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id,
-    workItemId
-  );
+  await addWorkItemsToCycle(client, workspaceSlug, projectId, cycle.id, workItemId);
   console.log("Added work item to cycle: ", workItemId);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const itemsInCycle = await listWorkItemsInCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id
-  );
+  const itemsInCycle = await listWorkItemsInCycle(client, workspaceSlug, projectId, cycle.id);
   console.log("Listed work items in cycle: ", itemsInCycle);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const removedItem = await removeWorkItemFromCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id,
-    workItemId
-  );
+  const removedItem = await removeWorkItemFromCycle(client, workspaceSlug, projectId, cycle.id, workItemId);
   console.log("Removed work item from cycle: ", removedItem);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -89,23 +66,11 @@ export async function testCycles() {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // Add work item back to first cycle for transfer test
-  await addWorkItemsToCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id,
-    workItemId
-  );
+  await addWorkItemsToCycle(client, workspaceSlug, projectId, cycle.id, workItemId);
   console.log("Re-added work item to first cycle: ", workItemId);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  await transferWorkItemsToAnotherCycle(
-    client,
-    workspaceSlug,
-    projectId,
-    cycle.id,
-    cycle2.id
-  );
+  await transferWorkItemsToAnotherCycle(client, workspaceSlug, projectId, cycle.id, cycle2.id);
   console.log("Transferred work items to another cycle");
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -133,11 +98,7 @@ export async function testCycles() {
   console.log("Deleted second cycle: ", cycle2.id);
 }
 
-async function createCycle(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function createCycle(client: PlaneClient, workspaceSlug: string, projectId: string) {
   return await client.cycles.create(workspaceSlug, projectId, {
     name: "Test Cycle",
     description: "Test Cycle Description",
@@ -145,12 +106,7 @@ async function createCycle(
   });
 }
 
-async function retrieveCycle(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  cycleId: string
-) {
+async function retrieveCycle(client: PlaneClient, workspaceSlug: string, projectId: string, cycleId: string) {
   return await client.cycles.retrieve(workspaceSlug, projectId, cycleId);
 }
 
@@ -164,20 +120,11 @@ async function updateCycle(
   return await client.cycles.update(workspaceSlug, projectId, cycleId, cycle);
 }
 
-async function listCycles(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function listCycles(client: PlaneClient, workspaceSlug: string, projectId: string) {
   return await client.cycles.list(workspaceSlug, projectId);
 }
 
-async function deleteCycle(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  cycleId: string
-) {
+async function deleteCycle(client: PlaneClient, workspaceSlug: string, projectId: string, cycleId: string) {
   return await client.cycles.delete(workspaceSlug, projectId, cycleId);
 }
 
@@ -188,25 +135,11 @@ async function addWorkItemsToCycle(
   cycleId: string,
   workItemId: string
 ) {
-  return await client.cycles.addWorkItemsToCycle(
-    workspaceSlug,
-    projectId,
-    cycleId,
-    [workItemId]
-  );
+  return await client.cycles.addWorkItemsToCycle(workspaceSlug, projectId, cycleId, [workItemId]);
 }
 
-async function listWorkItemsInCycle(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  cycleId: string
-) {
-  return await client.cycles.listWorkItemsInCycle(
-    workspaceSlug,
-    projectId,
-    cycleId
-  );
+async function listWorkItemsInCycle(client: PlaneClient, workspaceSlug: string, projectId: string, cycleId: string) {
+  return await client.cycles.listWorkItemsInCycle(workspaceSlug, projectId, cycleId);
 }
 
 async function removeWorkItemFromCycle(
@@ -216,12 +149,7 @@ async function removeWorkItemFromCycle(
   cycleId: string,
   workItemId: string
 ) {
-  return await client.cycles.removeWorkItemFromCycle(
-    workspaceSlug,
-    projectId,
-    cycleId,
-    workItemId
-  );
+  return await client.cycles.removeWorkItemFromCycle(workspaceSlug, projectId, cycleId, workItemId);
 }
 
 async function transferWorkItemsToAnotherCycle(
@@ -231,37 +159,20 @@ async function transferWorkItemsToAnotherCycle(
   cycleId: string,
   newCycleId: string
 ) {
-  return await client.cycles.transferWorkItemsToAnotherCycle(
-    workspaceSlug,
-    projectId,
-    cycleId,
-    { new_cycle_id: newCycleId }
-  );
+  return await client.cycles.transferWorkItemsToAnotherCycle(workspaceSlug, projectId, cycleId, {
+    new_cycle_id: newCycleId,
+  });
 }
 
-async function archiveCycle(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  cycleId: string
-) {
+async function archiveCycle(client: PlaneClient, workspaceSlug: string, projectId: string, cycleId: string) {
   return await client.cycles.archive(workspaceSlug, projectId, cycleId);
 }
 
-async function listArchivedCycles(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function listArchivedCycles(client: PlaneClient, workspaceSlug: string, projectId: string) {
   return await client.cycles.listArchived(workspaceSlug, projectId);
 }
 
-async function unArchiveCycle(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  cycleId: string
-) {
+async function unArchiveCycle(client: PlaneClient, workspaceSlug: string, projectId: string, cycleId: string) {
   return await client.cycles.unArchive(workspaceSlug, projectId, cycleId);
 }
 
@@ -277,11 +188,7 @@ async function justArchiveCycle() {
     });
   }
 
-  return await client.cycles.archive(
-    workspaceSlug,
-    projectId,
-    "e1ca5ee2-c968-4be5-80fa-f6dff66bea98"
-  );
+  return await client.cycles.archive(workspaceSlug, projectId, "e1ca5ee2-c968-4be5-80fa-f6dff66bea98");
 }
 
 if (require.main === module) {

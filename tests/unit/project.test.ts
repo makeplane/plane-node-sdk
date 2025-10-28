@@ -1,5 +1,5 @@
-import { PlaneClient } from "../src/client/plane-client";
-import { UpdateProject } from "../src/models/Project";
+import { PlaneClient } from "../../src/client/plane-client";
+import { UpdateProject } from "../../src/models/Project";
 import { config } from "./constants";
 import { createTestClient } from "./test-utils";
 
@@ -8,25 +8,21 @@ export async function testProjects() {
 
   const workspaceSlug = config.workspaceSlug;
 
+  if (!workspaceSlug) {
+    console.error("workspaceSlug is required");
+    return;
+  }
+
   const project = await createProject(client, workspaceSlug);
   console.log("created project", project);
 
-  const retrievedProject = await retrieveProject(
-    client,
-    workspaceSlug,
-    project.id
-  );
+  const retrievedProject = await retrieveProject(client, workspaceSlug, project.id);
   console.log("retrieved project", retrievedProject);
 
-  const updatedProject = await updateProject(
-    client,
-    workspaceSlug,
-    project.id,
-    {
-      name: "Updated Test Project",
-      description: "Updated Test Project Description",
-    }
-  );
+  const updatedProject = await updateProject(client, workspaceSlug, project.id, {
+    name: "Updated Test Project",
+    description: "Updated Test Project Description",
+  });
   console.log("updated project", updatedProject);
 
   const projects = await listProjects(client, workspaceSlug);
@@ -47,26 +43,13 @@ async function createProject(client: PlaneClient, workspaceSlug: string) {
   return project;
 }
 
-async function retrieveProject(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function retrieveProject(client: PlaneClient, workspaceSlug: string, projectId: string) {
   const project = await client.projects.retrieve(workspaceSlug, projectId);
   return project;
 }
 
-async function updateProject(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  project: UpdateProject
-) {
-  const updatedProject = await client.projects.update(
-    workspaceSlug,
-    projectId,
-    project
-  );
+async function updateProject(client: PlaneClient, workspaceSlug: string, projectId: string, project: UpdateProject) {
+  const updatedProject = await client.projects.update(workspaceSlug, projectId, project);
   return updatedProject;
 }
 
@@ -75,20 +58,12 @@ async function listProjects(client: PlaneClient, workspaceSlug: string) {
   return projects;
 }
 
-async function getMembers(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function getMembers(client: PlaneClient, workspaceSlug: string, projectId: string) {
   const members = await client.projects.getMembers(workspaceSlug, projectId);
   return members;
 }
 
-async function deleteProject(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function deleteProject(client: PlaneClient, workspaceSlug: string, projectId: string) {
   await client.projects.delete(workspaceSlug, projectId);
 }
 

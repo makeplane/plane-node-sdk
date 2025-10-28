@@ -1,4 +1,4 @@
-import { PlaneClient } from "../../src/client/plane-client";
+import { PlaneClient } from "../../../src/client/plane-client";
 import { config } from "../constants";
 import { createTestClient } from "../test-utils";
 
@@ -7,21 +7,18 @@ export async function testCustomers() {
 
   const workspaceSlug = config.workspaceSlug;
 
+  if (!workspaceSlug) {
+    console.error("workspaceSlug is required");
+    return;
+  }
+
   const customer = await createCustomer(client, workspaceSlug);
   console.log("Created customer: ", customer);
 
-  const retrievedCustomer = await retrieveCustomer(
-    client,
-    workspaceSlug,
-    customer.id
-  );
+  const retrievedCustomer = await retrieveCustomer(client, workspaceSlug, customer.id);
   console.log("Retrieved customer: ", retrievedCustomer);
 
-  const updatedCustomer = await updateCustomer(
-    client,
-    workspaceSlug,
-    customer.id
-  );
+  const updatedCustomer = await updateCustomer(client, workspaceSlug, customer.id);
   console.log("Updated customer: ", updatedCustomer);
 
   const customers = await listCustomers(client, workspaceSlug);
@@ -39,20 +36,12 @@ async function createCustomer(client: PlaneClient, workspaceSlug: string) {
   return customer;
 }
 
-async function retrieveCustomer(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string
-) {
+async function retrieveCustomer(client: PlaneClient, workspaceSlug: string, customerId: string) {
   const customer = await client.customers.retrieve(workspaceSlug, customerId);
   return customer;
 }
 
-async function updateCustomer(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string
-) {
+async function updateCustomer(client: PlaneClient, workspaceSlug: string, customerId: string) {
   return await client.customers.update(workspaceSlug, customerId, {
     name: `Updated Test Customer ${new Date().getTime()}`,
     description: "Updated Test Customer Description",
@@ -67,11 +56,7 @@ async function listCustomers(client: PlaneClient, workspaceSlug: string) {
   return customers;
 }
 
-async function deleteCustomer(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string
-) {
+async function deleteCustomer(client: PlaneClient, workspaceSlug: string, customerId: string) {
   await client.customers.delete(workspaceSlug, customerId);
 }
 

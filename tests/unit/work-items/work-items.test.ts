@@ -1,4 +1,4 @@
-import { PlaneClient } from "../../src/client/plane-client";
+import { PlaneClient } from "../../../src/client/plane-client";
 import { config } from "../constants";
 import { createTestClient } from "../test-utils";
 
@@ -8,25 +8,20 @@ export async function testWorkItems() {
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
+  if (!workspaceSlug || !projectId) {
+    console.error("workspaceSlug and projectId are required");
+    return;
+  }
+
   const workItem = await createWorkItem(client, workspaceSlug, projectId);
   console.log("Created work item: ", workItem);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const retrievedWorkItem = await retrieveWorkItem(
-    client,
-    workspaceSlug,
-    projectId,
-    workItem.id
-  );
+  const retrievedWorkItem = await retrieveWorkItem(client, workspaceSlug, projectId, workItem.id);
   console.log("Retrieved work item: ", retrievedWorkItem);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const updatedWorkItem = await updateWorkItem(
-    client,
-    workspaceSlug,
-    projectId,
-    workItem.id
-  );
+  const updatedWorkItem = await updateWorkItem(client, workspaceSlug, projectId, workItem.id);
   console.log("Updated work item: ", updatedWorkItem);
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -43,12 +38,7 @@ export async function testWorkItems() {
   console.log("Retrieved work item by identifier: ", workItemByIdentifier);
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const searchedWorkItems = await searchWorkItems(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemByIdentifier.name
-  );
+  const searchedWorkItems = await searchWorkItems(client, workspaceSlug, projectId, workItemByIdentifier.name);
   console.log("Searched work items: ", searchedWorkItems);
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -57,11 +47,7 @@ export async function testWorkItems() {
   console.log("Work item deleted: ", workItem.id);
 }
 
-async function createWorkItem(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function createWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string) {
   const workItem = await client.workItems.create(workspaceSlug, projectId, {
     name: "Test Work Item",
     description_html: "<p>A work item created via the Plane SDK</p>",
@@ -69,62 +55,34 @@ async function createWorkItem(
   return workItem;
 }
 
-async function retrieveWorkItem(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string
-) {
-  const workItem = await client.workItems.retrieve(
-    workspaceSlug,
-    projectId,
-    workItemId
-  );
+async function retrieveWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
+  const workItem = await client.workItems.retrieve(workspaceSlug, projectId, workItemId);
   return workItem;
 }
 
-async function updateWorkItem(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string
-) {
+async function updateWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
   const states = await client.states.list(workspaceSlug, projectId);
   const labels = await client.labels.list(workspaceSlug, projectId);
 
   const label = labels.results[0];
   const state = states.results[0];
 
-  const updatedWorkItem = await client.workItems.update(
-    workspaceSlug,
-    projectId,
-    workItemId,
-    {
-      name: "Updated Test Work Item",
-      description_html: "<p>Updated Test Work Item Description</p>",
-      state: state ? state.id : undefined,
-      assignees: [config.userId],
-      labels: label ? [label.id] : undefined,
-    }
-  );
+  const updatedWorkItem = await client.workItems.update(workspaceSlug, projectId, workItemId, {
+    name: "Updated Test Work Item",
+    description_html: "<p>Updated Test Work Item Description</p>",
+    state: state ? state.id : undefined,
+    assignees: [config.userId],
+    labels: label ? [label.id] : undefined,
+  });
   return updatedWorkItem;
 }
 
-async function listWorkItems(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function listWorkItems(client: PlaneClient, workspaceSlug: string, projectId: string) {
   const workItems = await client.workItems.list(workspaceSlug, projectId);
   return workItems;
 }
 
-async function deleteWorkItem(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string
-) {
+async function deleteWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
   await client.workItems.delete(workspaceSlug, projectId, workItemId);
 }
 
@@ -135,25 +93,14 @@ async function retrieveWorkItemByIdentifier(
   identifier: number
 ) {
   const project = await client.projects.retrieve(workspaceSlug, projectId);
-  const workItem = await client.workItems.retrieveByIdentifier(
-    workspaceSlug,
-    `${project.identifier}-${identifier}`,
-    ["project"]
-  );
+  const workItem = await client.workItems.retrieveByIdentifier(workspaceSlug, `${project.identifier}-${identifier}`, [
+    "project",
+  ]);
   return workItem;
 }
 
-async function searchWorkItems(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  query: string
-) {
-  const workItems = await client.workItems.search(
-    workspaceSlug,
-    projectId,
-    query
-  );
+async function searchWorkItems(client: PlaneClient, workspaceSlug: string, projectId: string, query: string) {
+  const workItems = await client.workItems.search(workspaceSlug, projectId, query);
   return workItems;
 }
 

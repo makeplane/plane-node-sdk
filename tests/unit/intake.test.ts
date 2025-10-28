@@ -1,6 +1,6 @@
-import { PlaneClient } from "../src/client/plane-client";
-import { PaginatedResponse } from "../src/models/common";
-import { IntakeWorkItem } from "../src/models/Intake";
+import { PlaneClient } from "../../src/client/plane-client";
+import { PaginatedResponse } from "../../src/models/common";
+import { IntakeWorkItem } from "../../src/models/Intake";
 import { config } from "./constants";
 import { createTestClient } from "./test-utils";
 
@@ -10,33 +10,23 @@ export async function testIntake() {
   const workspaceSlug = config.workspaceSlug;
   const projectId = config.projectId;
 
+  if (!workspaceSlug || !projectId) {
+    console.error("workspaceSlug and projectId are required");
+    return;
+  }
+
   // enable intake if didn't already
-  const updatedProject = await client.projects.update(
-    workspaceSlug,
-    projectId,
-    {
-      intake_view: true,
-    }
-  );
+  const updatedProject = await client.projects.update(workspaceSlug, projectId, {
+    intake_view: true,
+  });
 
   const intakeWorkItem = await createIntake(client, workspaceSlug, projectId);
   console.log("Created intake: ", intakeWorkItem);
 
-  const retrievedIntake = await retrieveIntake(
-    client,
-    workspaceSlug,
-    projectId,
-    intakeWorkItem.issue!
-  );
+  const retrievedIntake = await retrieveIntake(client, workspaceSlug, projectId, intakeWorkItem.issue!);
   console.log("Retrieved intake: ", retrievedIntake);
 
-  const updatedIntake = await updateIntake(
-    client,
-    workspaceSlug,
-    projectId,
-    intakeWorkItem.issue!,
-    intakeWorkItem
-  );
+  const updatedIntake = await updateIntake(client, workspaceSlug, projectId, intakeWorkItem.issue!, intakeWorkItem);
   console.log("Updated intake: ", updatedIntake);
 
   const intakes = await listIntake(client, workspaceSlug, projectId);
@@ -46,11 +36,7 @@ export async function testIntake() {
   console.log("Intake deleted: ", intakeWorkItem.id);
 }
 
-async function createIntake(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-): Promise<IntakeWorkItem> {
+async function createIntake(client: PlaneClient, workspaceSlug: string, projectId: string): Promise<IntakeWorkItem> {
   const intake = await client.intake.create(workspaceSlug, projectId, {
     issue: {
       name: "Test Intake",
@@ -66,11 +52,7 @@ async function retrieveIntake(
   projectId: string,
   intakeWorkItemId: string
 ): Promise<IntakeWorkItem> {
-  const intake = await client.intake.retrieve(
-    workspaceSlug,
-    projectId,
-    intakeWorkItemId
-  );
+  const intake = await client.intake.retrieve(workspaceSlug, projectId, intakeWorkItemId);
   return intake;
 }
 
@@ -90,17 +72,12 @@ async function updateIntake(
   intakeWorkItemId: string,
   intake: IntakeWorkItem
 ): Promise<IntakeWorkItem> {
-  const updatedIntake = await client.intake.update(
-    workspaceSlug,
-    projectId,
-    intakeWorkItemId,
-    {
-      issue: {
-        name: "Updated Test Intake",
-        description_html: "<p>Updated Test Intake Description</p>",
-      },
-    }
-  );
+  const updatedIntake = await client.intake.update(workspaceSlug, projectId, intakeWorkItemId, {
+    issue: {
+      name: "Updated Test Intake",
+      description_html: "<p>Updated Test Intake Description</p>",
+    },
+  });
   return updatedIntake;
 }
 

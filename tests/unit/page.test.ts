@@ -1,34 +1,34 @@
 import fs from "fs";
-import { PlaneClient } from "../src/client/plane-client";
+import { PlaneClient } from "../../src/client/plane-client";
 import { config } from "./constants";
 import { createTestClient } from "./test-utils";
 
 export async function testPage() {
   const client = createTestClient();
 
-  const page = await createPage(client, config.workspaceSlug);
+  const workspaceSlug = config.workspaceSlug;
+  const projectId = config.projectId;
+
+  if (!workspaceSlug) {
+    console.error("workspaceSlug is required");
+    return;
+  }
+
+  if (!projectId) {
+    console.error("projectId is required");
+    return;
+  }
+
+  const page = await createPage(client, workspaceSlug);
   console.log("Created page: ", page);
 
-  const retrievedPage = await retrievePage(
-    client,
-    config.workspaceSlug,
-    page.id
-  );
+  const retrievedPage = await retrievePage(client, workspaceSlug, page.id);
   console.log("Retrieved page: ", retrievedPage);
 
-  const projectPage = await createProjectPage(
-    client,
-    config.workspaceSlug,
-    config.projectId
-  );
+  const projectPage = await createProjectPage(client, workspaceSlug, projectId);
   console.log("Created project page: ", projectPage);
 
-  const retrievedProjectPage = await retrieveProjectPage(
-    client,
-    config.workspaceSlug,
-    config.projectId,
-    projectPage.id
-  );
+  const retrievedProjectPage = await retrieveProjectPage(client, workspaceSlug, projectId, projectPage.id);
   console.log("Retrieved project page: ", retrievedProjectPage);
 }
 
@@ -40,19 +40,11 @@ async function createPage(client: PlaneClient, workspaceSlug: string) {
   });
 }
 
-async function retrievePage(
-  client: PlaneClient,
-  workspaceSlug: string,
-  pageId: string
-) {
+async function retrievePage(client: PlaneClient, workspaceSlug: string, pageId: string) {
   return client.pages.retrieveWorkspacePage(workspaceSlug, pageId);
 }
 
-async function createProjectPage(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-) {
+async function createProjectPage(client: PlaneClient, workspaceSlug: string, projectId: string) {
   const content = "<p> Blank Space </p>";
   return client.pages.createProjectPage(workspaceSlug, projectId, {
     name: "Test Page Crashable 3",
@@ -60,12 +52,7 @@ async function createProjectPage(
   });
 }
 
-async function retrieveProjectPage(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  pageId: string
-) {
+async function retrieveProjectPage(client: PlaneClient, workspaceSlug: string, projectId: string, pageId: string) {
   return client.pages.retrieveProjectPage(workspaceSlug, projectId, pageId);
 }
 
@@ -76,10 +63,7 @@ async function testCreatePageFromFile() {
     enableLogging: true,
   });
 
-  const file = fs.readFileSync(
-    "/Users/prashantsurya/Projects/sdks/plane-node-sdk/CrashablePage.html",
-    "utf8"
-  );
+  const file = fs.readFileSync("/Users/prashantsurya/Projects/sdks/plane-node-sdk/CrashablePage.html", "utf8");
 
   const page = await client.pages.createWorkspacePage("testt", {
     name: "Test Page Crashable 3",

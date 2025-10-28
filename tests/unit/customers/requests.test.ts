@@ -1,4 +1,4 @@
-import { PlaneClient } from "../../src/client/plane-client";
+import { PlaneClient } from "../../../src/client/plane-client";
 import { config } from "../constants";
 import { createTestClient } from "../test-utils";
 
@@ -8,58 +8,32 @@ export async function testCustomersRequests() {
   const workspaceSlug = config.workspaceSlug;
   const customerId = config.customerId;
 
-  const customerRequest = await createCustomerRequest(
-    client,
-    workspaceSlug,
-    customerId
-  );
+  if (!workspaceSlug || !customerId) {
+    console.error("workspaceSlug and customerId are required");
+    return;
+  }
+
+  const customerRequest = await createCustomerRequest(client, workspaceSlug, customerId);
   console.log("Created customer request: ", customerRequest);
 
-  const retrievedCustomerRequest = await retrieveCustomerRequest(
-    client,
-    workspaceSlug,
-    customerId,
-    customerRequest.id
-  );
+  const retrievedCustomerRequest = await retrieveCustomerRequest(client, workspaceSlug, customerId, customerRequest.id);
   console.log("Retrieved customer request: ", retrievedCustomerRequest);
 
-  const updatedCustomerRequest = await updateCustomerRequest(
-    client,
-    workspaceSlug,
-    customerId,
-    customerRequest.id
-  );
+  const updatedCustomerRequest = await updateCustomerRequest(client, workspaceSlug, customerId, customerRequest.id);
   console.log("Updated customer request: ", updatedCustomerRequest);
 
-  const customerRequests = await listCustomerRequests(
-    client,
-    workspaceSlug,
-    customerId
-  );
+  const customerRequests = await listCustomerRequests(client, workspaceSlug, customerId);
   console.log("Listed customer requests: ", customerRequests);
 
-  await deleteCustomerRequest(
-    client,
-    workspaceSlug,
-    customerId,
-    customerRequest.id
-  );
+  await deleteCustomerRequest(client, workspaceSlug, customerId, customerRequest.id);
   console.log("Deleted customer request: ", customerRequest.id);
 }
 
-async function createCustomerRequest(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string
-) {
-  const customerRequest = await client.customers.requests.create(
-    workspaceSlug,
-    customerId,
-    {
-      name: `Test Customer Request ${new Date().getTime()}`,
-      description: "Test Customer Request Description",
-    }
-  );
+async function createCustomerRequest(client: PlaneClient, workspaceSlug: string, customerId: string) {
+  const customerRequest = await client.customers.requests.create(workspaceSlug, customerId, {
+    name: `Test Customer Request ${new Date().getTime()}`,
+    description: "Test Customer Request Description",
+  });
   return customerRequest;
 }
 
@@ -69,11 +43,7 @@ async function retrieveCustomerRequest(
   customerId: string,
   requestId: string
 ) {
-  const customerRequest = await client.customers.requests.retrieve(
-    workspaceSlug,
-    customerId,
-    requestId
-  );
+  const customerRequest = await client.customers.requests.retrieve(workspaceSlug, customerId, requestId);
   return customerRequest;
 }
 
@@ -83,30 +53,17 @@ async function updateCustomerRequest(
   customerId: string,
   requestId: string
 ) {
-  return await client.customers.requests.update(
-    workspaceSlug,
-    customerId,
-    requestId,
-    {
-      name: `Updated Test Customer Request ${new Date().getTime()}`,
-      description: "Updated Test Customer Request Description",
-    }
-  );
+  return await client.customers.requests.update(workspaceSlug, customerId, requestId, {
+    name: `Updated Test Customer Request ${new Date().getTime()}`,
+    description: "Updated Test Customer Request Description",
+  });
 }
 
-async function listCustomerRequests(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string
-) {
-  const customerRequests = await client.customers.requests.list(
-    workspaceSlug,
-    customerId,
-    {
-      limit: 10,
-      offset: 0,
-    }
-  );
+async function listCustomerRequests(client: PlaneClient, workspaceSlug: string, customerId: string) {
+  const customerRequests = await client.customers.requests.list(workspaceSlug, customerId, {
+    limit: 10,
+    offset: 0,
+  });
   return customerRequests;
 }
 

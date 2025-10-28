@@ -1,4 +1,4 @@
-import { PlaneClient } from "../src/client/plane-client";
+import { PlaneClient } from "../../src/client/plane-client";
 
 /**
  * Creates a configured PlaneClient instance for testing
@@ -8,7 +8,6 @@ export function createTestClient(): PlaneClient {
   return new PlaneClient({
     apiKey: process.env.PLANE_API_KEY!,
     baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
   });
 }
 

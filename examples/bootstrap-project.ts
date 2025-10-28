@@ -1,5 +1,5 @@
 // examples/project-bootstrap.ts
-import { CreateWorkItemProperty, PlaneClient, WorkItemProperty } from "../src";
+import { CreateWorkItemProperty, PlaneClient, WorkItemProperty } from "../../src";
 
 async function bootstrapProject(workspaceSlug: string) {
   const client = new PlaneClient({
@@ -30,11 +30,7 @@ async function bootstrapProject(workspaceSlug: string) {
   ];
 
   for (const type of workItemTypes) {
-    const workItemType = await client.workItemTypes.create(
-      workspaceSlug,
-      project.id,
-      type
-    );
+    const workItemType = await client.workItemTypes.create(workspaceSlug, project.id, type);
     const workItemTypeId = workItemType.id;
     const customProperties: CreateWorkItemProperty[] = [
       {
@@ -47,12 +43,7 @@ async function bootstrapProject(workspaceSlug: string) {
     ];
     // 3. Create custom properties
     for (const prop of customProperties) {
-      await client.workItemProperties.create(
-        workspaceSlug,
-        project.id,
-        workItemTypeId,
-        prop
-      );
+      await client.workItemProperties.create(workspaceSlug, project.id, workItemTypeId, prop);
     }
   }
 

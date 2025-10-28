@@ -1,6 +1,6 @@
-import { PlaneClient } from "../src/client/plane-client";
-import { OAuthClient } from "../src/client/oauth-client";
-import { Configuration } from "../src/Configuration";
+import { PlaneClient } from "../../src/client/plane-client";
+import { OAuthClient } from "../../src/client/oauth-client";
+import { Configuration } from "../../src/Configuration";
 
 /**
  * Test OAuth functionality with both standalone and integrated approaches
@@ -33,15 +33,11 @@ export async function testOAuth() {
     const authUrl = oauthClient.getAuthorizationUrl();
     console.log("  ✅ Authorization URL generated:", authUrl);
 
-    const botToken = await oauthClient.getBotToken(
-      process.env.PLANE_APP_INSTALLATION_ID!
-    );
+    const botToken = await oauthClient.getBotToken(process.env.PLANE_APP_INSTALLATION_ID!);
 
     console.log("  ✅ Bot token generated:", botToken);
 
-    const installations = await oauthClient.getAppInstallations(
-      botToken.access_token
-    );
+    const installations = await oauthClient.getAppInstallations(botToken.access_token);
 
     console.log("  ✅ App installations generated:", installations);
 
