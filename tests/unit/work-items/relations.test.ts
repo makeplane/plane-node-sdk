@@ -1,7 +1,7 @@
 import { PlaneClient } from "../../../src/client/plane-client";
 import { WorkItemRelationCreateRequest, WorkItemRelationRemoveRequest } from "../../../src/models/WorkItemRelation";
 import { config } from "../constants";
-import { createTestClient } from "../test-utils";
+import { createTestClient } from "../../helpers/test-utils";
 
 export async function testRelations() {
   const client = createTestClient();

@@ -1,7 +1,7 @@
 import { PlaneClient } from "../../../src/client/plane-client";
 import { WorkItemPropertyValues } from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
-import { createTestClient } from "../test-utils";
+import { createTestClient } from "../../helpers/test-utils";
 
 export async function testWorkItemPropertiesValues() {
   const client = createTestClient();

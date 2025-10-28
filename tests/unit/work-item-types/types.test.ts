@@ -2,7 +2,7 @@ import { PlaneClient } from "../../../src/client/plane-client";
 import { PaginatedResponse } from "../../../src/models/common";
 import { WorkItemType } from "../../../src/models/WorkItemType";
 import { config } from "../constants";
-import { createTestClient } from "../test-utils";
+import { createTestClient } from "../../helpers/test-utils";
 
 export async function testWorkItemTypes() {
   const client = createTestClient();

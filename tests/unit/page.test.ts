@@ -1,7 +1,7 @@
 import fs from "fs";
 import { PlaneClient } from "../../src/client/plane-client";
 import { config } from "./constants";
-import { createTestClient } from "./test-utils";
+import { createTestClient } from "../helpers/test-utils";
 
 export async function testPage() {
   const client = createTestClient();

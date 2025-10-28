@@ -6,7 +6,7 @@ import {
   WorkItemPropertySettings,
 } from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
-import { createTestClient } from "../test-utils";
+import { createTestClient } from "../../helpers/test-utils";
 
 export async function testWorkItemTypesPropertiesAndOptions() {
   const client = createTestClient();

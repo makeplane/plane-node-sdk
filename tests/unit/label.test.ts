@@ -1,7 +1,7 @@
 import { PlaneClient } from "../../src/client/plane-client";
 import { Label } from "../../src/models/Label";
 import { config } from "./constants";
-import { createTestClient } from "./test-utils";
+import { createTestClient } from "../helpers/test-utils";
 
 export async function testLabels() {
   const client = createTestClient();

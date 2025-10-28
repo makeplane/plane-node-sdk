@@ -1,7 +1,7 @@
 import { PlaneClient } from "../../src/client/plane-client";
 import { UpdateProject } from "../../src/models/Project";
 import { config } from "./constants";
-import { createTestClient } from "./test-utils";
+import { createTestClient } from "../helpers/test-utils";
 
 export async function testProjects() {
   const client = createTestClient();

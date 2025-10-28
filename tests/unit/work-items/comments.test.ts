@@ -1,7 +1,7 @@
 import { PlaneClient } from "../../../src/client/plane-client";
 import { WorkItemCommentUpdateRequest } from "../../../src/models/Comment";
 import { config } from "../constants";
-import { createTestClient } from "../test-utils";
+import { createTestClient } from "../../helpers/test-utils";
 
 export async function testComments() {
   const client = createTestClient();
