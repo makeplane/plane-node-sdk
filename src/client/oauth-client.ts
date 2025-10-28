@@ -1,8 +1,5 @@
 import axios from "axios";
-import {
-  PlaneOAuthTokenResponse,
-  PlaneOAuthAppInstallation,
-} from "../models/OAuth";
+import { PlaneOAuthTokenResponse, PlaneOAuthAppInstallation } from "../models/OAuth";
 
 /**
  * Standalone OAuth client for app development
@@ -14,12 +11,7 @@ export class OAuthClient {
   private redirectUri: string;
   private baseUrl: string;
 
-  constructor(config: {
-    baseUrl?: string;
-    clientId: string;
-    clientSecret: string;
-    redirectUri: string;
-  }) {
+  constructor(config: { baseUrl?: string; clientId: string; clientSecret: string; redirectUri: string }) {
     this.baseUrl = config.baseUrl || "https://api.plane.so";
     this.clientId = config.clientId;
     this.clientSecret = config.clientSecret;
@@ -52,10 +44,7 @@ export class OAuthClient {
    * @param grantType - The grant type (default: "authorization_code")
    * @returns Promise resolving to token response
    */
-  async exchangeCodeForToken(
-    code: string,
-    grantType: string = "authorization_code"
-  ): Promise<PlaneOAuthTokenResponse> {
+  async exchangeCodeForToken(code: string, grantType: string = "authorization_code"): Promise<PlaneOAuthTokenResponse> {
     const data = new URLSearchParams({
       grant_type: grantType,
       code: code,
@@ -64,16 +53,12 @@ export class OAuthClient {
       redirect_uri: this.redirectUri,
     });
 
-    const response = await axios.post(
-      `${this.baseUrl}/auth/o/token/`,
-      data.toString(),
-      {
-        headers: {
-          "Cache-Control": "no-cache",
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
+    const response = await axios.post(`${this.baseUrl}/auth/o/token/`, data.toString(), {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
 
     return response.data;
   }
@@ -83,9 +68,7 @@ export class OAuthClient {
    * @param refreshToken - The refresh token
    * @returns Promise resolving to token response
    */
-  async getRefreshToken(
-    refreshToken: string
-  ): Promise<PlaneOAuthTokenResponse> {
+  async getRefreshToken(refreshToken: string): Promise<PlaneOAuthTokenResponse> {
     const data = new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
@@ -93,16 +76,12 @@ export class OAuthClient {
       client_secret: this.clientSecret,
     });
 
-    const response = await axios.post(
-      `${this.baseUrl}/auth/o/token/`,
-      data.toString(),
-      {
-        headers: {
-          "Cache-Control": "no-cache",
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
+    const response = await axios.post(`${this.baseUrl}/auth/o/token/`, data.toString(), {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
 
     return response.data;
   }
@@ -112,25 +91,19 @@ export class OAuthClient {
    * @param appInstallationId - The app installation ID
    * @returns Promise resolving to token response
    */
-  async getBotToken(
-    appInstallationId: string
-  ): Promise<PlaneOAuthTokenResponse> {
+  async getBotToken(appInstallationId: string): Promise<PlaneOAuthTokenResponse> {
     const data = new URLSearchParams({
       grant_type: "client_credentials",
       app_installation_id: appInstallationId,
     });
 
-    const response = await axios.post(
-      `${this.baseUrl}/auth/o/token/`,
-      data.toString(),
-      {
-        headers: {
-          "Cache-Control": "no-cache",
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${this.getBasicAuthToken()}`,
-        },
-      }
-    );
+    const response = await axios.post(`${this.baseUrl}/auth/o/token/`, data.toString(), {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${this.getBasicAuthToken()}`,
+      },
+    });
 
     return response.data;
   }
@@ -141,10 +114,7 @@ export class OAuthClient {
    * @param appInstallationId - The app installation ID
    * @returns Promise resolving to app installation
    */
-  async getAppInstallations(
-    token: string,
-    appInstallationId?: string
-  ): Promise<PlaneOAuthAppInstallation[]> {
+  async getAppInstallations(token: string, appInstallationId?: string): Promise<PlaneOAuthAppInstallation[]> {
     let endpoint = "/auth/o/app-installation/";
     if (appInstallationId) {
       endpoint += `?id=${appInstallationId}`;

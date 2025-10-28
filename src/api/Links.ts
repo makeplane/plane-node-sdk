@@ -14,12 +14,7 @@ export class Links extends BaseResource {
   /**
    * Create a new link for a work item
    */
-  async create(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    createLink: CreateLink
-  ): Promise<Link> {
+  async create(workspaceSlug: string, projectId: string, issueId: string, createLink: CreateLink): Promise<Link> {
     return this.post<Link>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/`,
       createLink
@@ -29,15 +24,8 @@ export class Links extends BaseResource {
   /**
    * Retrieve a link by ID
    */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    linkId: string
-  ): Promise<Link> {
-    return this.get<Link>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/${linkId}/`
-    );
+  async retrieve(workspaceSlug: string, projectId: string, issueId: string, linkId: string): Promise<Link> {
+    return this.get<Link>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/${linkId}/`);
   }
 
   /**
@@ -59,29 +47,14 @@ export class Links extends BaseResource {
   /**
    * Delete a link
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    linkId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/${linkId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, issueId: string, linkId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/${linkId}/`);
   }
 
   /**
    * List links for a work item with optional filtering
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    issueId: string,
-    params?: ListLinksParams
-  ): Promise<Link[]> {
-    return this.get<Link[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/`,
-      params
-    );
+  async list(workspaceSlug: string, projectId: string, issueId: string, params?: ListLinksParams): Promise<Link[]> {
+    return this.get<Link[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/`, params);
   }
 }

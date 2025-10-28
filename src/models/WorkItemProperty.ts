@@ -1,9 +1,4 @@
-import {
-  BaseModel,
-  LogoProps,
-  PropertyRelationType,
-  PropertyType,
-} from "./common";
+import { BaseModel, LogoProps, PropertyRelationType, PropertyType } from "./common";
 
 export type WorkItemPropertySettings = TextSettings | undefined;
 

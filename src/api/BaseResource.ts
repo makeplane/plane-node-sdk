@@ -1,8 +1,4 @@
-import axios, {
-  AxiosResponse,
-  AxiosError,
-  InternalAxiosRequestConfig,
-} from "axios";
+import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from "axios";
 import { Configuration } from "../Configuration";
 import { HttpError } from "../errors";
 
@@ -28,12 +24,7 @@ export abstract class BaseResource {
     if (!headers) return headers;
 
     const sanitized = { ...headers };
-    const sensitiveKeys = [
-      "authorization",
-      "x-api-key",
-      "cookie",
-      "set-cookie",
-    ];
+    const sensitiveKeys = ["authorization", "x-api-key", "cookie", "set-cookie"];
 
     // iterate through sanitized and remove the sensitive keys
     for (const key in sanitized) {
@@ -168,8 +159,7 @@ export abstract class BaseResource {
 
     if (axios.isAxiosError(error)) {
       const statusCode = error.response?.status || 500;
-      const message =
-        error.response?.data?.message || error.message || "Request failed";
+      const message = error.response?.data?.message || error.message || "Request failed";
       throw new HttpError(message, statusCode, error.response?.data);
     }
 

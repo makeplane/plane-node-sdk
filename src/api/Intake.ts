@@ -1,11 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
-import {
-  IntakeWorkItem,
-  IntakeWorkItemCreateRequest,
-  UpdateIntakeWorkItemRequest,
-} from "../models/Intake";
+import { IntakeWorkItem, IntakeWorkItemCreateRequest, UpdateIntakeWorkItemRequest } from "../models/Intake";
 
 /**
  * Intake API resource
@@ -19,24 +15,14 @@ export class Intake extends BaseResource {
   /**
    * Retrieve an intake issue by ID
    */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    intakeId: string
-  ): Promise<IntakeWorkItem> {
-    return this.get<IntakeWorkItem>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`
-    );
+  async retrieve(workspaceSlug: string, projectId: string, intakeId: string): Promise<IntakeWorkItem> {
+    return this.get<IntakeWorkItem>(`/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`);
   }
 
   /**
    * List intake issues
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    params?: any
-  ): Promise<PaginatedResponse<IntakeWorkItem>> {
+  async list(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<IntakeWorkItem>> {
     return this.get<PaginatedResponse<IntakeWorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/`,
       params
@@ -51,10 +37,7 @@ export class Intake extends BaseResource {
     projectId: string,
     intakeData: IntakeWorkItemCreateRequest
   ): Promise<IntakeWorkItem> {
-    return this.post<IntakeWorkItem>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/`,
-      intakeData
-    );
+    return this.post<IntakeWorkItem>(`/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/`, intakeData);
   }
 
   /**
@@ -75,13 +58,7 @@ export class Intake extends BaseResource {
   /**
    * Delete an intake issue
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    intakeId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, intakeId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`);
   }
 }

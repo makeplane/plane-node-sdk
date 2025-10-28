@@ -56,13 +56,7 @@ export interface Module extends BaseModel {
   members?: string[];
 }
 
-export type ModuleStatusEnum =
-  | "backlog"
-  | "planned"
-  | "in-progress"
-  | "paused"
-  | "completed"
-  | "cancelled";
+export type ModuleStatusEnum = "backlog" | "planned" | "in-progress" | "paused" | "completed" | "cancelled";
 
 export interface ListModulesParamsRequest {
   limit?: number;
