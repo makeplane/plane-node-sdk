@@ -35,11 +35,12 @@ export abstract class BaseResource {
       "set-cookie",
     ];
 
-    sensitiveKeys.forEach((key) => {
-      if (sanitized[key]) {
+    // iterate through sanitized and remove the sensitive keys
+    for (const key in sanitized) {
+      if (sensitiveKeys.includes(key.toLowerCase())) {
         sanitized[key] = "[REDACTED]";
       }
-    });
+    }
 
     return sanitized;
   }
@@ -193,34 +194,6 @@ export abstract class BaseResource {
       },
       (error) => {
         console.error("❌ [REQUEST ERROR]", error);
-        return Promise.reject(error);
-      }
-    );
-
-    // Response interceptor
-    axios.interceptors.response.use(
-      (response: AxiosResponse) => {
-        console.log("✅ [RESPONSE]", {
-          status: response.status,
-          statusText: response.statusText,
-          url: response.config.url,
-          method: response.config.method?.toUpperCase(),
-          data: this.sanitizeData(response.data),
-          headers: this.sanitizeHeaders(response.headers),
-        });
-        return response;
-      },
-      (error: AxiosError) => {
-        console.error("❌ [RESPONSE ERROR]", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          method: error.config?.method?.toUpperCase(),
-          data: error.response?.data
-            ? this.sanitizeData(error.response.data)
-            : undefined,
-          message: error.message,
-        });
         return Promise.reject(error);
       }
     );
