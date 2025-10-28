@@ -83,7 +83,7 @@ async function addWorkItemToModule(
   moduleId: string,
   workItemId: string
 ) {
-  return await client.modules.addWorkItemToModule(workspaceSlug, projectId, moduleId, [workItemId]);
+  return await client.modules.addWorkItemsToModule(workspaceSlug, projectId, moduleId, [workItemId]);
 }
 async function listWorkItemsInModule(client: PlaneClient, workspaceSlug: string, projectId: string, moduleId: string) {
   return await client.modules.listWorkItemsInModule(workspaceSlug, projectId, moduleId);

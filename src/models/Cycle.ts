@@ -21,7 +21,9 @@ export interface CycleWorkItem {
 export interface Cycle extends BaseModel {
   name: string;
   description?: string;
+  // YYYY-MM-DD format
   start_date?: string;
+  // YYYY-MM-DD format
   end_date?: string;
   view_props?: any;
   sort_order?: number;
@@ -38,12 +40,15 @@ export interface Cycle extends BaseModel {
 export interface CreateCycleRequest {
   name: string;
   description?: string;
+  // YYYY-MM-DD format
   start_date?: string;
+  // YYYY-MM-DD format
   end_date?: string;
   owned_by: string;
   external_source?: string;
   external_id?: string;
   timezone?: TimezoneEnum;
+  project_id: string;
 }
 
 export interface UpdateCycleRequest {

@@ -103,6 +103,7 @@ async function createCycle(client: PlaneClient, workspaceSlug: string, projectId
     name: "Test Cycle",
     description: "Test Cycle Description",
     owned_by: config.userId,
+    project_id: projectId,
   });
 }
 

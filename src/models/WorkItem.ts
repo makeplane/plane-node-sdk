@@ -57,6 +57,13 @@ export interface CreateWorkItem {
   state?: string;
   assignees?: string[];
   labels?: string[];
+  parent?: string;
+  estimate_point?: string;
+  type?: string;
+  module?: string;
+  target_date?: string;
+  start_date?: string;
+  priority?: PriorityEnum;
 }
 
 export interface UpdateWorkItem {
@@ -65,6 +72,13 @@ export interface UpdateWorkItem {
   state?: string;
   assignees?: string[];
   labels?: string[];
+  parent?: string;
+  estimate_point?: string;
+  type?: string;
+  module?: string;
+  target_date?: string;
+  start_date?: string;
+  priority?: PriorityEnum;
 }
 
 export interface ListWorkItemsParams {

@@ -75,7 +75,7 @@ export class Modules extends BaseResource {
   /**
    * Add work items to module
    */
-  async addWorkItemToModule(
+  async addWorkItemsToModule(
     workspaceSlug: string,
     projectId: string,
     moduleId: string,
