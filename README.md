@@ -16,6 +16,7 @@ npm install @makeplane/plane-node-sdk
 - **Updated Method Signatures**: Method parameters and return types have been updated for better readability and consistency
 
 **Migration Guide:**
+
 - Replace individual API imports with the new `PlaneClient` approach
 - Review the new API documentation for updated method signatures
 - Test thoroughly in a development environment before upgrading
@@ -23,27 +24,26 @@ npm install @makeplane/plane-node-sdk
 ## Quick Start
 
 ```typescript
-import { PlaneClient } from '@plane/node-sdk';
+import { PlaneClient } from "@plane/node-sdk";
 
 const client = new PlaneClient({
-  apiKey: 'your-api-key',
+  apiKey: "your-api-key",
 });
 
 // Or with custom base URL
 const client = new PlaneClient({
-  baseUrl: 'https://your-custom-api.plane.so',
-  accessToken: 'your-access-token'
+  baseUrl: "https://your-custom-api.plane.so",
+  accessToken: "your-access-token",
 });
 
-  // List projects
-  const projects = await client.projects.list();
+// List projects
+const projects = await client.projects.list();
 
 // Create a project
-const project = await client.projects.create('workspace-slug', {
-  name: 'My Project',
-  description: 'A new project',
+const project = await client.projects.create("workspace-slug", {
+  name: "My Project",
+  description: "A new project",
 });
-
 ```
 
 ## Features
@@ -99,11 +99,13 @@ pnpm format
 Before running tests, you need to configure your test environment:
 
 1. **Copy the environment template:**
+
    ```bash
    cp env.example .env.test
    ```
 
 2. **Update `.env.test` with your test environment values:**
+
    ```bash
    # Edit the file with your actual test environment details
    nano .env.test
