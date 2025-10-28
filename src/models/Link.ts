@@ -1,4 +1,4 @@
-import { BaseModel } from './common';
+import { BaseModel } from "./common";
 
 /**
  * Link model interfaces

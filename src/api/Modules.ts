@@ -1,12 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
-import {
-  CreateModuleRequest,
-  UpdateModuleRequest,
-  Module,
-  ListModulesParamsRequest,
-} from "../models/Module";
+import { CreateModuleRequest, UpdateModuleRequest, Module, ListModulesParamsRequest } from "../models/Module";
 import { WorkItem } from "../models/WorkItem";
 
 /**
@@ -21,28 +16,15 @@ export class Modules extends BaseResource {
   /**
    * Create a new module
    */
-  async create(
-    workspaceSlug: string,
-    projectId: string,
-    createModule: CreateModuleRequest
-  ): Promise<Module> {
-    return this.post<Module>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/`,
-      createModule
-    );
+  async create(workspaceSlug: string, projectId: string, createModule: CreateModuleRequest): Promise<Module> {
+    return this.post<Module>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/`, createModule);
   }
 
   /**
    * Retrieve a module by ID
    */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string
-  ): Promise<Module> {
-    return this.get<Module>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`
-    );
+  async retrieve(workspaceSlug: string, projectId: string, moduleId: string): Promise<Module> {
+    return this.get<Module>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`);
   }
 
   /**
@@ -54,23 +36,14 @@ export class Modules extends BaseResource {
     moduleId: string,
     updateModule: UpdateModuleRequest
   ): Promise<Module> {
-    return this.patch<Module>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`,
-      updateModule
-    );
+    return this.patch<Module>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`, updateModule);
   }
 
   /**
    * Delete a module
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, moduleId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/`);
   }
 
   /**
@@ -81,10 +54,7 @@ export class Modules extends BaseResource {
     projectId: string,
     params?: ListModulesParamsRequest
   ): Promise<PaginatedResponse<Module>> {
-    return this.get<PaginatedResponse<Module>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/`,
-      params
-    );
+    return this.get<PaginatedResponse<Module>>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/`, params);
   }
 
   /**
@@ -111,10 +81,9 @@ export class Modules extends BaseResource {
     moduleId: string,
     workItemIds: string[]
   ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`,
-      { issues: workItemIds }
-    );
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`, {
+      issues: workItemIds,
+    });
   }
 
   /**
@@ -148,26 +117,14 @@ export class Modules extends BaseResource {
   /**
    * Archive a module
    */
-  async archiveModule(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string
-  ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/archive/`
-    );
+  async archiveModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<void> {
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/archive/`);
   }
 
   /**
    * Unarchive a module
    */
-  async unArchiveModule(
-    workspaceSlug: string,
-    projectId: string,
-    moduleId: string
-  ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/unarchive/`
-    );
+  async unArchiveModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<void> {
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/unarchive/`);
   }
 }

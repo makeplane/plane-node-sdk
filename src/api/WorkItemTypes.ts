@@ -1,11 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
-import {
-  WorkItemType,
-  CreateWorkItemType,
-  UpdateWorkItemType,
-} from "../models/WorkItemType";
+import { WorkItemType, CreateWorkItemType, UpdateWorkItemType } from "../models/WorkItemType";
 
 export interface ListWorkItemTypesParams {
   project?: string;
@@ -39,11 +35,7 @@ export class WorkItemTypes extends BaseResource {
   /**
    * Retrieve a work item type by ID
    */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    workItemTypeId: string
-  ): Promise<WorkItemType> {
+  async retrieve(workspaceSlug: string, projectId: string, workItemTypeId: string): Promise<WorkItemType> {
     return this.get<WorkItemType>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/${workItemTypeId}/`
     );
@@ -67,14 +59,8 @@ export class WorkItemTypes extends BaseResource {
   /**
    * Delete a work item type
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    workItemTypeId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/${workItemTypeId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, workItemTypeId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/${workItemTypeId}/`);
   }
 
   /**

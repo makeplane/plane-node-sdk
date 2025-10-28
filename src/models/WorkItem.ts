@@ -45,14 +45,10 @@ export type WorkItemExpandableFieldName = keyof WorkItemExpandableFields;
 
 // Smart type that expands based on what's requested
 // Fallback to WorkItemBase if Expanded is never or empty array
-export type WorkItem<Expanded extends WorkItemExpandableFieldName = never> = [
-  Expanded,
-] extends [never]
+export type WorkItem<Expanded extends WorkItemExpandableFieldName = never> = [Expanded] extends [never]
   ? WorkItemBase
   : Omit<WorkItemBase, Expanded> & {
-      [K in Expanded]: K extends keyof WorkItemExpandableFields
-        ? WorkItemExpandableFields[K]
-        : never;
+      [K in Expanded]: K extends keyof WorkItemExpandableFields ? WorkItemExpandableFields[K] : never;
     };
 
 export interface CreateWorkItem {

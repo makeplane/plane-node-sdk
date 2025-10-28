@@ -1,4 +1,4 @@
-import { CreateEntity, UpdateEntity } from './common';
+import { CreateEntity, UpdateEntity } from "./common";
 /**
  * State model interfaces
  */
@@ -43,10 +43,4 @@ export type ListStatesParams = {
   offset?: number;
 };
 
-export type GroupEnum =
-  | 'backlog'
-  | 'unstarted'
-  | 'started'
-  | 'completed'
-  | 'cancelled'
-  | 'triage';
+export type GroupEnum = "backlog" | "unstarted" | "started" | "completed" | "cancelled" | "triage";

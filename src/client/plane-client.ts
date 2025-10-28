@@ -39,12 +39,7 @@ export class PlaneClient {
   public epics: Epics;
   public intake: Intake;
 
-  constructor(config: {
-    baseUrl?: string;
-    apiKey?: string;
-    accessToken?: string;
-    enableLogging?: boolean;
-  }) {
+  constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
     this.config = new Configuration({
       baseUrl: config.baseUrl,
       apiKey: config.apiKey,

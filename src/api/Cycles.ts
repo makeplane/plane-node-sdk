@@ -2,12 +2,7 @@ import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
 
-import {
-  Cycle,
-  CreateCycleRequest,
-  UpdateCycleRequest,
-  TransferCycleWorkItemRequest,
-} from "../models/Cycle";
+import { Cycle, CreateCycleRequest, UpdateCycleRequest, TransferCycleWorkItemRequest } from "../models/Cycle";
 import { WorkItem } from "../models/WorkItem";
 
 /**
@@ -22,28 +17,15 @@ export class Cycles extends BaseResource {
   /**
    * Create a new cycle
    */
-  async create(
-    workspaceSlug: string,
-    projectId: string,
-    createCycle: CreateCycleRequest
-  ): Promise<Cycle> {
-    return this.post<Cycle>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`,
-      createCycle
-    );
+  async create(workspaceSlug: string, projectId: string, createCycle: CreateCycleRequest): Promise<Cycle> {
+    return this.post<Cycle>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`, createCycle);
   }
 
   /**
    * Retrieve a cycle by ID
    */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    cycleId: string
-  ): Promise<Cycle> {
-    return this.get<Cycle>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`
-    );
+  async retrieve(workspaceSlug: string, projectId: string, cycleId: string): Promise<Cycle> {
+    return this.get<Cycle>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`);
   }
 
   /**
@@ -55,45 +37,27 @@ export class Cycles extends BaseResource {
     cycleId: string,
     updateCycle: UpdateCycleRequest
   ): Promise<Cycle> {
-    return this.patch<Cycle>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`,
-      updateCycle
-    );
+    return this.patch<Cycle>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`, updateCycle);
   }
 
   /**
    * Delete a cycle
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    cycleId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, cycleId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/`);
   }
 
   /**
    * List cycles with optional filtering
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string
-  ): Promise<PaginatedResponse<Cycle>> {
-    return this.get<PaginatedResponse<Cycle>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`
-    );
+  async list(workspaceSlug: string, projectId: string): Promise<PaginatedResponse<Cycle>> {
+    return this.get<PaginatedResponse<Cycle>>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/`);
   }
 
   /**
    * List archived cycles
    */
-  async listArchived(
-    workspaceSlug: string,
-    projectId: string,
-    params?: any
-  ): Promise<PaginatedResponse<Cycle>> {
+  async listArchived(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<Cycle>> {
     return this.get<PaginatedResponse<Cycle>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/`,
       params
@@ -103,11 +67,7 @@ export class Cycles extends BaseResource {
   /**
    * Unarchive a cycle
    */
-  async unArchive(
-    workspaceSlug: string,
-    projectId: string,
-    cycleId: string
-  ): Promise<void> {
+  async unArchive(workspaceSlug: string, projectId: string, cycleId: string): Promise<void> {
     return this.httpDelete<void>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/unarchive/`
     );
@@ -116,14 +76,8 @@ export class Cycles extends BaseResource {
   /**
    * Archive a cycle
    */
-  async archive(
-    workspaceSlug: string,
-    projectId: string,
-    cycleId: string
-  ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/archive/`
-    );
+  async archive(workspaceSlug: string, projectId: string, cycleId: string): Promise<void> {
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/archive/`);
   }
 
   /**
@@ -150,10 +104,9 @@ export class Cycles extends BaseResource {
     cycleId: string,
     workItemIds: string[]
   ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`,
-      { issues: workItemIds }
-    );
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`, {
+      issues: workItemIds,
+    });
   }
 
   /**

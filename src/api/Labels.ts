@@ -45,69 +45,35 @@ export class Labels extends BaseResource {
   /**
    * Create a new label
    */
-  async create(
-    workspaceSlug: string,
-    projectId: string,
-    createLabel: CreateLabel
-  ): Promise<Label> {
-    return this.post<Label>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/labels/`,
-      createLabel
-    );
+  async create(workspaceSlug: string, projectId: string, createLabel: CreateLabel): Promise<Label> {
+    return this.post<Label>(`/workspaces/${workspaceSlug}/projects/${projectId}/labels/`, createLabel);
   }
 
   /**
    * Retrieve a label by ID
    */
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    labelId: string
-  ): Promise<Label> {
-    return this.get<Label>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`
-    );
+  async retrieve(workspaceSlug: string, projectId: string, labelId: string): Promise<Label> {
+    return this.get<Label>(`/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`);
   }
 
   /**
    * Update a label
    */
-  async update(
-    workspaceSlug: string,
-    projectId: string,
-    labelId: string,
-    updateLabel: UpdateLabel
-  ): Promise<Label> {
-    return this.patch<Label>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`,
-      updateLabel
-    );
+  async update(workspaceSlug: string, projectId: string, labelId: string, updateLabel: UpdateLabel): Promise<Label> {
+    return this.patch<Label>(`/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`, updateLabel);
   }
 
   /**
    * Delete a label
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    labelId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, labelId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/labels/${labelId}/`);
   }
 
   /**
    * List labels with optional filtering
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    params?: ListLabelsParams
-  ): Promise<PaginatedResponse<Label>> {
-    return this.get<PaginatedResponse<Label>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/labels/`,
-      params
-    );
+  async list(workspaceSlug: string, projectId: string, params?: ListLabelsParams): Promise<PaginatedResponse<Label>> {
+    return this.get<PaginatedResponse<Label>>(`/workspaces/${workspaceSlug}/projects/${projectId}/labels/`, params);
   }
 }

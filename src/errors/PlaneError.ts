@@ -7,7 +7,7 @@ export class PlaneError extends Error {
 
   constructor(message: string, statusCode?: number, response?: any) {
     super(message);
-    this.name = 'PlaneError';
+    this.name = "PlaneError";
     this.statusCode = statusCode;
     this.response = response;
   }

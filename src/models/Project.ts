@@ -39,8 +39,7 @@ export interface Project extends BaseModel {
   default_state: null;
 }
 
-export type CreateProject = Pick<Project, "name" | "identifier"> &
-  Partial<Omit<Project, "name" | "identifier">>;
+export type CreateProject = Pick<Project, "name" | "identifier"> & Partial<Omit<Project, "name" | "identifier">>;
 
 export type UpdateProject = Partial<Project>;
 
