@@ -22,7 +22,7 @@
   "author": "Plane Team",
   "license": "MIT",
   "dependencies": {
-    "axios": "1.12.1",
+    "axios": "1.12.2",
     "ts-jest": "^29.4.4"
   },
   "devDependencies": {
