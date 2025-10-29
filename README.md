@@ -1,95 +1,136 @@
-## @makeplane/plane-node-sdk@0.1.5
+# Plane Node SDK
 
-This generator creates TypeScript/JavaScript client that utilizes [Fetch API](https://fetch.spec.whatwg.org/). The generated Node module can be used in the following environments:
+A comprehensive TypeScript/JavaScript SDK for the Plane API, providing a clean and type-safe interface for all Plane operations.
 
-Environment
-* Node.js
-* Webpack
-* Browserify
+## Installation
 
-Language level
-* ES5 - you must have a Promises/A+ library installed
-* ES6
-
-Module system
-* CommonJS
-* ES6 module system
-
-It can be used in both TypeScript and JavaScript. In TypeScript, the definition will be automatically resolved via `package.json`. ([Reference](https://www.typescriptlang.org/docs/handbook/declaration-files/consumption.html))
-
-### Building
-
-To build and compile the typescript sources to javascript use:
-```
-npm install
-npm run build
+```bash
+npm install @makeplane/plane-node-sdk
 ```
 
-### Publishing
+## ⚠️ Version 0.2.0 Breaking Changes
 
-First build the package then run `npm publish`
+**Important:** Version 0.2.0 introduces breaking changes with new API signatures. If you're migrating from version 0.1.x, please review the following:
 
-### Consuming
+- **New PlaneClient Structure**: Instead of importing each API separately, you now use a single `PlaneClient` instance that provides access to all APIs
+- **Updated Method Signatures**: Method parameters and return types have been updated for better readability and consistency
 
-navigate to the folder of your consuming project and run one of the following commands.
+**Migration Guide:**
 
-_published:_
+- Replace individual API imports with the new `PlaneClient` approach
+- Review the new API documentation for updated method signatures
+- Test thoroughly in a development environment before upgrading
 
+## Quick Start
+
+```typescript
+import { PlaneClient } from "@plane/node-sdk";
+
+const client = new PlaneClient({
+  apiKey: "your-api-key",
+});
+
+// Or with custom base URL
+const client = new PlaneClient({
+  baseUrl: "https://your-custom-api.plane.so",
+  accessToken: "your-access-token",
+});
+
+// List projects
+const projects = await client.projects.list();
+
+// Create a project
+const project = await client.projects.create("workspace-slug", {
+  name: "My Project",
+  description: "A new project",
+});
 ```
-npm install @makeplane/plane-node-sdk@0.1.5 --save
+
+## Features
+
+- ✅ TypeScript support with full type safety
+- ✅ Centralized HTTP logic with BaseResource
+- ✅ Automatic authentication handling
+- ✅ Modern async/await patterns
+- ✅ Extensible architecture
+
+## API Resources
+
+- **Projects**: Project management and organization
+- **WorkItems**: Issue and task management with full CRUD operations
+- **WorkItemTypes**: Custom work item type definitions and management
+- **WorkItemProperties**: Custom properties for work items
+- **Labels**: Issue categorization and tagging
+- **States**: Workflow state management
+- **Users**: User management and profiles
+- **Members**: Team membership and permissions
+- **Modules**: Feature organization and module management
+- **Cycles**: Sprint and iteration management
+- **Customers**: Customer management and operations
+- **Pages**: Workspace and project page management
+- **Links**: Work item linking and relationships
+- **Workspace**: Workspace-level operations
+- **Epics**: Epic management and organization
+- **Intake**: Intake form and request management
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build the project
+pnpm build
+
+# Run tests
+pnpm test
+
+# Lint code
+pnpm lint
+
+# Format code
+pnpm format
 ```
 
-_unPublished (not recommended):_
+## Testing
 
+### Setup Test Environment
+
+Before running tests, you need to configure your test environment:
+
+1. **Copy the environment template:**
+
+   ```bash
+   cp env.example .env.test
+   ```
+
+2. **Update `.env.test` with your test environment values:**
+
+   ```bash
+   # Edit the file with your actual test environment details
+   nano .env.test
+   ```
+
+3. **Required environment variables:**
+   - `TEST_WORKSPACE_SLUG`: Your test workspace slug
+   - `TEST_PROJECT_ID`: Your test project ID
+   - `TEST_USER_ID`: Your test user ID
+   - `TEST_WORK_ITEM_ID`: A test work item ID
+   - `TEST_CUSTOMER_ID`: A test customer ID
+   - And other test-specific IDs as needed
+
+### Running Tests
+
+```bash
+# Run all tests (recommended)
+npm test
+# or
+pnpm test
+
+# Run specific test files
+pnpx ts-node tests/page.test.ts
 ```
-npm install PATH_TO_GENERATED_PACKAGE --save
-```
 
-### Example Usage
-```ts
-import {
-  Configuration,
-  ProjectsApi,
-  UsersApi,
-} from "@makeplane/plane-node-sdk";
+## License
 
-async function testPlaneSDK() {
-  console.log("🚀 Testing Plane Node SDK...\n");
-
-  try {
-    // Create configuration using API Key Authentication
-    const config = new Configuration({
-      apiKey: "<PLANE_API_KEY>",
-    });
-
-    // Create configuration using OAuth Client Credentials Authentication
-    // const config = new Configuration({
-    //   accessToken: "<PLANE_ACCESS_TOKEN>",
-    // });
-
-    console.log("✅ Configuration created successfully");
-    console.log(`Base URL: ${config.basePath}\n`);
-
-    // Initialize APIs
-    const projectsApi = new ProjectsApi(config);
-    const usersApi = new UsersApi(config);
-
-    console.log("✅ APIs initialized successfully\n");
-
-    const user = await usersApi.getCurrentUser();
-    console.log(user);
-
-    const projectsResponse = await projectsApi.listProjects({
-      slug: "<workspace-slug>",
-    });
-    for (const project of projectsResponse.results) {
-      console.log(`${project.id} - ${project.name}`);
-    }
-  } catch (error) {
-    console.error("❌ Error initializing SDK:", error);
-  }
-}
-
-// Run the test
-testPlaneSDK().catch(console.error);
-```
+MIT

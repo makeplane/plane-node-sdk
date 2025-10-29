@@ -1,0 +1,33 @@
+name: Build and Test Node SDK
+
+on:
+    pull_request:
+        branches:
+            - main
+        types: ["opened", "synchronize", "reopened"]
+jobs:
+    build-lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+
+            - name: Enable corepack
+              run: corepack enable pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run lint
+              run: pnpm run check:lint
+
+            - name: Run format
+              run: pnpm run check:format
+
+            - name: Run build
+              run: pnpm run build
+
+            - name: Run tests
+              run: pnpm run test:e2e
