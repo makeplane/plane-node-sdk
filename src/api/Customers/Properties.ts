@@ -8,7 +8,9 @@ import {
   ListCustomerPropertiesParams,
   CreateCustomerPropertyRequest,
   UpdateCustomerPropertyRequest,
+  CustomPropertyValueResponse,
 } from "../../models/Customer";
+import { PaginatedResponse } from "../../models/common";
 
 /**
  * Customer Properties API resource
@@ -27,11 +29,8 @@ export class Properties extends BaseResource {
   async listPropertyDefinitions(
     workspaceSlug: string,
     params?: ListCustomerPropertiesParams
-  ): Promise<CustomerProperty[]> {
-    return this.get<CustomerProperty[]>(
-      `/workspaces/${workspaceSlug}/customer-properties/`,
-      params
-    );
+  ): Promise<PaginatedResponse<CustomerProperty>> {
+    return this.get<PaginatedResponse<CustomerProperty>>(`/workspaces/${workspaceSlug}/customer-properties/`, params);
   }
 
   /**
@@ -41,22 +40,14 @@ export class Properties extends BaseResource {
     workspaceSlug: string,
     createProperty: CreateCustomerPropertyRequest
   ): Promise<CustomerProperty> {
-    return this.post<CustomerProperty>(
-      `/workspaces/${workspaceSlug}/customer-properties/`,
-      createProperty
-    );
+    return this.post<CustomerProperty>(`/workspaces/${workspaceSlug}/customer-properties/`, createProperty);
   }
 
   /**
    * Retrieve customer property
    */
-  async retrievePropertyDefinition(
-    workspaceSlug: string,
-    propertyId: string
-  ): Promise<CustomerProperty> {
-    return this.get<CustomerProperty>(
-      `/workspaces/${workspaceSlug}/customer-properties/${propertyId}/`
-    );
+  async retrievePropertyDefinition(workspaceSlug: string, propertyId: string): Promise<CustomerProperty> {
+    return this.get<CustomerProperty>(`/workspaces/${workspaceSlug}/customer-properties/${propertyId}/`);
   }
 
   /**
@@ -76,13 +67,8 @@ export class Properties extends BaseResource {
   /**
    * Delete customer property
    */
-  async deletePropertyDefinition(
-    workspaceSlug: string,
-    propertyId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/customer-properties/${propertyId}/`
-    );
+  async deletePropertyDefinition(workspaceSlug: string, propertyId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/customer-properties/${propertyId}/`);
   }
 
   // ===== CUSTOMER PROPERTY VALUES API METHODS =====
@@ -94,8 +80,8 @@ export class Properties extends BaseResource {
     workspaceSlug: string,
     customerId: string,
     params?: ListCustomerPropertyValuesParams
-  ): Promise<CustomerPropertyValue[]> {
-    return this.get<CustomerPropertyValue[]>(
+  ): Promise<CustomPropertyValueResponse> {
+    return this.get<CustomPropertyValueResponse>(
       `/workspaces/${workspaceSlug}/customers/${customerId}/property-values/`,
       params
     );
@@ -104,11 +90,7 @@ export class Properties extends BaseResource {
   /**
    * Get single property value
    */
-  async retrieveValue(
-    workspaceSlug: string,
-    customerId: string,
-    propertyId: string
-  ): Promise<CustomerPropertyValue> {
+  async retrieveValue(workspaceSlug: string, customerId: string, propertyId: string): Promise<CustomerPropertyValue> {
     return this.get<CustomerPropertyValue>(
       `/workspaces/${workspaceSlug}/customers/${customerId}/property-values/${propertyId}/`
     );

@@ -153,6 +153,8 @@ export abstract class BaseResource {
    * Centralized error handling
    */
   protected handleError(error: any): never {
+    console.error("❌ [ERROR]", error);
+
     if (error instanceof HttpError) {
       throw error;
     }

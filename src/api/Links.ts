@@ -1,6 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { Link, CreateLink, UpdateLink, ListLinksParams } from "../models/Link";
+import { PaginatedResponse } from "../models/common";
 
 /**
  * Links API resource
@@ -54,7 +55,15 @@ export class Links extends BaseResource {
   /**
    * List links for a work item with optional filtering
    */
-  async list(workspaceSlug: string, projectId: string, issueId: string, params?: ListLinksParams): Promise<Link[]> {
-    return this.get<Link[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/`, params);
+  async list(
+    workspaceSlug: string,
+    projectId: string,
+    issueId: string,
+    params?: ListLinksParams
+  ): Promise<PaginatedResponse<Link>> {
+    return this.get<PaginatedResponse<Link>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${issueId}/links/`,
+      params
+    );
   }
 }

@@ -5,9 +5,11 @@ import {
   CreateCustomer,
   UpdateCustomer,
   ListCustomersParams,
+  LinkIssuesToCustomerResponse,
 } from "../../models/Customer";
 import { Properties } from "./Properties";
 import { Requests } from "./Requests";
+import { PaginatedResponse } from "../../models/common";
 
 /**
  * Customers API resource
@@ -27,59 +29,36 @@ export class Customers extends BaseResource {
   /**
    * Create a new customer
    */
-  async create(
-    workspaceSlug: string,
-    createCustomer: CreateCustomer
-  ): Promise<Customer> {
-    return this.post<Customer>(
-      `/workspaces/${workspaceSlug}/customers/`,
-      createCustomer
-    );
+  async create(workspaceSlug: string, createCustomer: CreateCustomer): Promise<Customer> {
+    return this.post<Customer>(`/workspaces/${workspaceSlug}/customers/`, createCustomer);
   }
 
   /**
    * Retrieve a customer by ID
    */
   async retrieve(workspaceSlug: string, customerId: string): Promise<Customer> {
-    return this.get<Customer>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/`
-    );
+    return this.get<Customer>(`/workspaces/${workspaceSlug}/customers/${customerId}/`);
   }
 
   /**
    * Update a customer
    */
-  async update(
-    workspaceSlug: string,
-    customerId: string,
-    updateCustomer: UpdateCustomer
-  ): Promise<Customer> {
-    return this.patch<Customer>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/`,
-      updateCustomer
-    );
+  async update(workspaceSlug: string, customerId: string, updateCustomer: UpdateCustomer): Promise<Customer> {
+    return this.patch<Customer>(`/workspaces/${workspaceSlug}/customers/${customerId}/`, updateCustomer);
   }
 
   /**
    * Delete a customer
    */
   async delete(workspaceSlug: string, customerId: string): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/`
-    );
+    return this.httpDelete(`/workspaces/${workspaceSlug}/customers/${customerId}/`);
   }
 
   /**
    * List customers with optional filtering
    */
-  async list(
-    workspaceSlug: string,
-    params?: ListCustomersParams
-  ): Promise<Customer[]> {
-    return this.get<Customer[]>(
-      `/workspaces/${workspaceSlug}/customers/`,
-      params
-    );
+  async list(workspaceSlug: string, params?: ListCustomersParams): Promise<PaginatedResponse<Customer>> {
+    return this.get<PaginatedResponse<Customer>>(`/workspaces/${workspaceSlug}/customers/`, params);
   }
 
   // ===== CUSTOMER ISSUES API METHODS =====
@@ -87,13 +66,8 @@ export class Customers extends BaseResource {
   /**
    * List customer issues
    */
-  async listCustomerIssues(
-    workspaceSlug: string,
-    customerId: string
-  ): Promise<any[]> {
-    return this.get<any[]>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/issues/`
-    );
+  async listCustomerIssues(workspaceSlug: string, customerId: string): Promise<any[]> {
+    return this.get<any[]>(`/workspaces/${workspaceSlug}/customers/${customerId}/issues/`);
   }
 
   /**
@@ -103,23 +77,16 @@ export class Customers extends BaseResource {
     workspaceSlug: string,
     customerId: string,
     issueIds: string[]
-  ): Promise<any> {
-    return this.post<any>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/issues/`,
-      { issue_ids: issueIds }
-    );
+  ): Promise<LinkIssuesToCustomerResponse> {
+    return this.post<LinkIssuesToCustomerResponse>(`/workspaces/${workspaceSlug}/customers/${customerId}/issues/`, {
+      issue_ids: issueIds,
+    });
   }
 
   /**
    * Unlink issue from customer
    */
-  async unlinkIssueFromCustomer(
-    workspaceSlug: string,
-    customerId: string,
-    issueId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/issues/${issueId}/`
-    );
+  async unlinkIssueFromCustomer(workspaceSlug: string, customerId: string, issueId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/customers/${customerId}/issues/${issueId}/`);
   }
 }

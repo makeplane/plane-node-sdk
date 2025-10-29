@@ -6,6 +6,7 @@ import {
   UpdateCustomerRequest,
   ListCustomerRequestsParams,
 } from "../../models/Customer";
+import { PaginatedResponse } from "../../models/common";
 
 /**
  * Customer Requests API resource
@@ -23,8 +24,8 @@ export class Requests extends BaseResource {
     workspaceSlug: string,
     customerId: string,
     params?: ListCustomerRequestsParams
-  ): Promise<CustomerRequest[]> {
-    return this.get<CustomerRequest[]>(
+  ): Promise<PaginatedResponse<CustomerRequest>> {
+    return this.get<PaginatedResponse<CustomerRequest>>(
       `/workspaces/${workspaceSlug}/customers/${customerId}/requests/`,
       params
     );
@@ -38,23 +39,14 @@ export class Requests extends BaseResource {
     customerId: string,
     createRequest: CreateCustomerRequest
   ): Promise<CustomerRequest> {
-    return this.post<CustomerRequest>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/requests/`,
-      createRequest
-    );
+    return this.post<CustomerRequest>(`/workspaces/${workspaceSlug}/customers/${customerId}/requests/`, createRequest);
   }
 
   /**
    * Retrieve customer request
    */
-  async retrieve(
-    workspaceSlug: string,
-    customerId: string,
-    requestId: string
-  ): Promise<CustomerRequest> {
-    return this.get<CustomerRequest>(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/requests/${requestId}/`
-    );
+  async retrieve(workspaceSlug: string, customerId: string, requestId: string): Promise<CustomerRequest> {
+    return this.get<CustomerRequest>(`/workspaces/${workspaceSlug}/customers/${customerId}/requests/${requestId}/`);
   }
 
   /**
@@ -75,13 +67,7 @@ export class Requests extends BaseResource {
   /**
    * Delete customer request
    */
-  async delete(
-    workspaceSlug: string,
-    customerId: string,
-    requestId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/customers/${customerId}/requests/${requestId}/`
-    );
+  async delete(workspaceSlug: string, customerId: string, requestId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/customers/${customerId}/requests/${requestId}/`);
   }
 }

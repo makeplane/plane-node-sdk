@@ -48,11 +48,7 @@ export class Relations extends BaseResource {
   /**
    * List relations for a work item
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string
-  ): Promise<WorkItemRelationResponse> {
+  async list(workspaceSlug: string, projectId: string, workItemId: string): Promise<WorkItemRelationResponse> {
     return this.get<WorkItemRelationResponse>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/relations/`
     );

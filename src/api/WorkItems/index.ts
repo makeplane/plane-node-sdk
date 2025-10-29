@@ -42,23 +42,12 @@ export class WorkItems extends BaseResource {
   /**
    * Create a new work item
    */
-  async create(
-    workspaceSlug: string,
-    projectId: string,
-    createWorkItem: CreateWorkItem
-  ): Promise<WorkItem> {
-    return this.post<WorkItem>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`,
-      createWorkItem
-    );
+  async create(workspaceSlug: string, projectId: string, createWorkItem: CreateWorkItem): Promise<WorkItem> {
+    return this.post<WorkItem>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`, createWorkItem);
   }
 
   // method overloads
-  async retrieve(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string
-  ): Promise<WorkItemBase>;
+  async retrieve(workspaceSlug: string, projectId: string, workItemId: string): Promise<WorkItemBase>;
 
   async retrieve<E extends WorkItemExpandableFieldName>(
     workspaceSlug: string,
@@ -76,10 +65,9 @@ export class WorkItems extends BaseResource {
     workItemId: string,
     expand?: E[]
   ): Promise<WorkItem<E>> {
-    return this.get<WorkItem<E>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`,
-      { expand: expand?.join(",") }
-    );
+    return this.get<WorkItem<E>>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`, {
+      expand: expand?.join(","),
+    });
   }
 
   /**
@@ -100,14 +88,8 @@ export class WorkItems extends BaseResource {
   /**
    * Delete a work item
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string
-  ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`
-    );
+  async delete(workspaceSlug: string, projectId: string, workItemId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/`);
   }
 
   /**
@@ -125,10 +107,7 @@ export class WorkItems extends BaseResource {
   }
 
   // method overloads
-  async retrieveByIdentifier(
-    workspaceSlug: string,
-    identifier: string
-  ): Promise<WorkItemBase>;
+  async retrieveByIdentifier(workspaceSlug: string, identifier: string): Promise<WorkItemBase>;
 
   async retrieveByIdentifier<E extends WorkItemExpandableFieldName>(
     workspaceSlug: string,
@@ -142,24 +121,19 @@ export class WorkItems extends BaseResource {
     identifier: string,
     expand?: E[]
   ): Promise<WorkItem<E> | WorkItemBase> {
-    return this.get<WorkItem<E>>(
-      `/workspaces/${workspaceSlug}/work-items/${identifier}/`,
-      { expand: expand?.join(",") }
-    );
+    return this.get<WorkItem<E>>(`/workspaces/${workspaceSlug}/work-items/${identifier}/`, {
+      expand: expand?.join(","),
+    });
   }
 
   /**
    * Search work items
    */
-  async search(
-    workspaceSlug: string,
-    projectId: string,
-    query: string,
-    params?: any
-  ): Promise<WorkItemSearch> {
-    return this.get<WorkItemSearch>(
-      `/workspaces/${workspaceSlug}/work-items/search/`,
-      { ...params, search: query, project: projectId }
-    );
+  async search(workspaceSlug: string, query: string, projectId?: string, params?: any): Promise<WorkItemSearch> {
+    return this.get<WorkItemSearch>(`/workspaces/${workspaceSlug}/work-items/search/`, {
+      ...params,
+      search: query,
+      project: projectId,
+    });
   }
 }

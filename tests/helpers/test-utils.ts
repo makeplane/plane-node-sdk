@@ -1,4 +1,4 @@
-import { PlaneClient } from "../src/client/plane-client";
+import { PlaneClient } from "../../src/client/plane-client";
 
 /**
  * Creates a configured PlaneClient instance for testing
@@ -8,7 +8,6 @@ export function createTestClient(): PlaneClient {
   return new PlaneClient({
     apiKey: process.env.PLANE_API_KEY!,
     baseUrl: process.env.PLANE_BASE_URL!,
-    enableLogging: true,
   });
 }
 
@@ -19,4 +18,14 @@ export function createTestClient(): PlaneClient {
  */
 export function wait(seconds = 60): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
+
+/**
+ * Randomizes a name by appending a random string to the end
+ * @param name - The name to randomize
+ * @param length - The length of the random string to append
+ * @returns The randomized name
+ */
+export function randomizeName(prefix: string = ""): string {
+  return prefix + Math.random().toString(36).substring(2, 10);
 }

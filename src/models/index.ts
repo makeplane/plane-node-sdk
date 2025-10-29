@@ -6,3 +6,5 @@ export * from "./Attachment";
 export * from "./Link";
 export * from "./Customer";
 export * from "./Page";
+export * from "./Cycle";
+export * from "./Module";
