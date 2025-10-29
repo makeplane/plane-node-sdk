@@ -1,56 +1,59 @@
-import { PlaneClient } from "../../src/client/plane-client";
 import { OAuthClient } from "../../src/client/oauth-client";
-import { Configuration } from "../../src/Configuration";
+import { describeIf as describe } from "../helpers/conditional-tests";
 
-/**
- * Test OAuth functionality with both standalone and integrated approaches
- */
-export async function testOAuth() {
-  console.log("🧪 Testing OAuth functionality...");
+const hasOAuthEnv = !!(
+  process.env.PLANE_BASE_URL &&
+  process.env.PLANE_CLIENT_ID &&
+  process.env.PLANE_CLIENT_SECRET &&
+  process.env.PLANE_REDIRECT_URI &&
+  process.env.PLANE_APP_INSTALLATION_ID
+);
 
-  try {
-    // Test 1: Standalone OAuth Client (for app development)
-    console.log("  📋 Testing standalone OAuth client...");
+describe(hasOAuthEnv, "OAuth API Tests", () => {
+  let oauthClient: OAuthClient;
+  let baseUrl: string;
+  let clientId: string;
+  let clientSecret: string;
+  let redirectUri: string;
+  let appInstallationId: string;
 
-    if (
-      !process.env.PLANE_BASE_URL ||
-      !process.env.PLANE_CLIENT_ID ||
-      !process.env.PLANE_CLIENT_SECRET ||
-      !process.env.PLANE_REDIRECT_URI ||
-      !process.env.PLANE_APP_INSTALLATION_ID
-    ) {
-      console.error("❌ Skipping oauth tests, missing environment variables");
-      return;
-    }
+  beforeAll(() => {
+    baseUrl = process.env.PLANE_BASE_URL!;
+    clientId = process.env.PLANE_CLIENT_ID!;
+    clientSecret = process.env.PLANE_CLIENT_SECRET!;
+    redirectUri = process.env.PLANE_REDIRECT_URI!;
+    appInstallationId = process.env.PLANE_APP_INSTALLATION_ID!;
 
-    const oauthClient = new OAuthClient({
-      baseUrl: process.env.PLANE_BASE_URL,
-      clientId: process.env.PLANE_CLIENT_ID!,
-      clientSecret: process.env.PLANE_CLIENT_SECRET!,
-      redirectUri: process.env.PLANE_REDIRECT_URI!,
+    oauthClient = new OAuthClient({
+      baseUrl,
+      clientId,
+      clientSecret,
+      redirectUri,
     });
+  });
 
+  it("should generate authorization URL", () => {
     const authUrl = oauthClient.getAuthorizationUrl();
-    console.log("  ✅ Authorization URL generated:", authUrl);
 
-    const botToken = await oauthClient.getBotToken(process.env.PLANE_APP_INSTALLATION_ID!);
+    expect(authUrl).toBeDefined();
+    expect(typeof authUrl).toBe("string");
+    expect(authUrl).toContain(baseUrl);
+    expect(authUrl).toContain(clientId);
+  });
 
-    console.log("  ✅ Bot token generated:", botToken);
+  it("should get bot token", async () => {
+    const botToken = await oauthClient.getBotToken(appInstallationId);
 
+    expect(botToken).toBeDefined();
+    expect(botToken.access_token).toBeDefined();
+    expect(typeof botToken.access_token).toBe("string");
+  });
+
+  it("should get app installations", async () => {
+    const botToken = await oauthClient.getBotToken(appInstallationId);
     const installations = await oauthClient.getAppInstallations(botToken.access_token);
 
-    console.log("  ✅ App installations generated:", installations);
-
-    // Test authorization URL generation
-  } catch (error) {
-    console.error("❌ OAuth test failed:", error);
-    throw error;
-  }
-}
-
-if (require.main === module) {
-  testOAuth().catch((error) => {
-    console.error("❌ OAuth test failed:", error);
-    process.exit(1);
+    expect(installations).toBeDefined();
+    expect(Array.isArray(installations)).toBe(true);
   });
-}
+});

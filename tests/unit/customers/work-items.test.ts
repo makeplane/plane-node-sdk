@@ -1,53 +1,38 @@
 import { PlaneClient } from "../../../src/client/plane-client";
 import { config } from "../constants";
 import { createTestClient } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testCustomersWorkItems() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.customerId && config.workItemId), "Customer Work Items API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let customerId: string;
+  let workItemId: string;
 
-  const workspaceSlug = config.workspaceSlug;
-  const customerId = config.customerId;
-  const workItemId = config.workItemId;
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    customerId = config.customerId;
+    workItemId = config.workItemId;
+  });
 
-  if (!workspaceSlug || !customerId || !workItemId) {
-    console.error("workspaceSlug, customerId and workItemId are required");
-    return;
-  }
+  it("should link work items to customer", async () => {
+    const linkedIssues = await client.customers.linkIssuesToCustomer(workspaceSlug, customerId, [workItemId]);
 
-  const customer = await linkWorkItemsToCustomer(client, workspaceSlug, customerId, [workItemId]);
-  console.log("Linked work items to customer: ", customer);
+    expect(linkedIssues).toBeDefined();
+    expect(linkedIssues.linked_issues.length).toBe(1);
+  });
 
-  const retrievedCustomerWorkItems = await listCustomerWorkItems(client, workspaceSlug, customerId);
-  console.log("Retrieved customer work items: ", retrievedCustomerWorkItems);
+  it("should list customer work items", async () => {
+    const customerWorkItems = await client.customers.listCustomerIssues(workspaceSlug, customerId);
 
-  const updatedCustomer = await unlinkWorkItemFromCustomer(client, workspaceSlug, customerId, workItemId);
-  console.log("Unlinked work item from customer: ", updatedCustomer);
-}
+    expect(customerWorkItems.length).toBeGreaterThan(0);
 
-async function linkWorkItemsToCustomer(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string,
-  issueIds: string[]
-) {
-  const customer = await client.customers.linkIssuesToCustomer(workspaceSlug, customerId, issueIds);
-  return customer;
-}
+    const foundWorkItem = customerWorkItems.find((wi) => wi.id === workItemId);
+    expect(foundWorkItem).toBeDefined();
+  });
 
-async function listCustomerWorkItems(client: PlaneClient, workspaceSlug: string, customerId: string) {
-  const customer = await client.customers.listCustomerIssues(workspaceSlug, customerId);
-  return customer;
-}
-
-async function unlinkWorkItemFromCustomer(
-  client: PlaneClient,
-  workspaceSlug: string,
-  customerId: string,
-  issueId: string
-) {
-  return await client.customers.unlinkIssueFromCustomer(workspaceSlug, customerId, issueId);
-}
-
-if (require.main === module) {
-  testCustomersWorkItems().catch(console.error);
-}
+  it("should unlink work item from customer", async () => {
+    await client.customers.unlinkIssueFromCustomer(workspaceSlug, customerId, workItemId);
+  });
+});

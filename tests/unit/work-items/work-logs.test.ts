@@ -1,73 +1,69 @@
 import { PlaneClient } from "../../../src/client/plane-client";
+import { WorkLog } from "../../../src/models/WorkLog";
 import { config } from "../constants";
 import { createTestClient } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testWorkLogs() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Work Logs API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workItemId: string;
+  let workLog: WorkLog;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemId = config.workItemId;
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
+    workItemId = config.workItemId;
 
-  if (!workspaceSlug || !projectId || !workItemId) {
-    console.error("workspaceSlug, projectId and workItemId are required");
-    return;
-  }
-
-  await client.projects.update(workspaceSlug, projectId, {
-    is_time_tracking_enabled: true,
+    // Enable time tracking
+    await client.projects.update(workspaceSlug, projectId, {
+      is_time_tracking_enabled: true,
+    });
   });
 
-  const project = await client.projects.retrieve(workspaceSlug, projectId);
-
-  console.log("Time tracking enabled: ", project.is_time_tracking_enabled);
-
-  const workLog = await createWorkLog(client, workspaceSlug, projectId, workItemId);
-  console.log("Created work log: ", workLog);
-
-  const workLogs = await listWorkLogs(client, workspaceSlug, projectId, workItemId);
-  console.log("Listed work logs: ", workLogs);
-
-  const updatedWorkLog = await updateWorkLog(client, workspaceSlug, projectId, workItemId, workLog.id);
-  console.log("Updated work log: ", updatedWorkLog);
-
-  await deleteWorkLog(client, workspaceSlug, projectId, workItemId, workLog.id);
-  console.log("Deleted work log: ", workLog.id);
-}
-
-async function createWorkLog(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  return client.workItems.workLogs.create(workspaceSlug, projectId, workItemId, {
-    duration: 30,
-    description: "Test work log",
+  afterAll(async () => {
+    // Clean up created work log
+    if (workLog?.id) {
+      try {
+        await client.workItems.workLogs.delete(workspaceSlug, projectId, workItemId, workLog.id);
+      } catch (error) {
+        console.warn("Failed to delete work log:", error);
+      }
+    }
   });
-}
 
-async function listWorkLogs(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  return client.workItems.workLogs.list(workspaceSlug, projectId, workItemId);
-}
+  it("should create a work log", async () => {
+    workLog = await client.workItems.workLogs.create(workspaceSlug, projectId, workItemId, {
+      duration: 30,
+      description: "Test work log",
+    });
 
-async function updateWorkLog(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  workLogId: string
-) {
-  return client.workItems.workLogs.update(workspaceSlug, projectId, workItemId, workLogId, {
-    description: "Updated test work log",
+    expect(workLog).toBeDefined();
+    expect(workLog.id).toBeDefined();
+    expect(workLog.duration).toBe(30);
+    expect(workLog.description).toBe("Test work log");
   });
-}
 
-async function deleteWorkLog(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  workLogId: string
-) {
-  return client.workItems.workLogs.delete(workspaceSlug, projectId, workItemId, workLogId);
-}
+  it("should list work logs", async () => {
+    const workLogs = await client.workItems.workLogs.list(workspaceSlug, projectId, workItemId);
 
-if (require.main === module) {
-  testWorkLogs().catch(console.error);
-}
+    expect(workLogs).toBeDefined();
+    expect(Array.isArray(workLogs)).toBe(true);
+    expect(workLogs.length).toBeGreaterThan(0);
+
+    const foundWorkLog = workLogs.find((wl) => wl.id === workLog.id);
+    expect(foundWorkLog).toBeDefined();
+  });
+
+  it("should update a work log", async () => {
+    const updatedWorkLog = await client.workItems.workLogs.update(workspaceSlug, projectId, workItemId, workLog.id!, {
+      description: "Updated test work log",
+    });
+
+    expect(updatedWorkLog).toBeDefined();
+    expect(updatedWorkLog.id).toBe(workLog.id);
+    expect(updatedWorkLog.description).toBe("Updated test work log");
+  });
+});

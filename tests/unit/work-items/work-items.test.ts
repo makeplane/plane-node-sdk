@@ -1,109 +1,106 @@
 import { PlaneClient } from "../../../src/client/plane-client";
+import { WorkItem } from "../../../src/models/WorkItem";
 import { config } from "../constants";
-import { createTestClient } from "../../helpers/test-utils";
+import { createTestClient, randomizeName } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testWorkItems() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work Items API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let userId: string;
+  let workItem: WorkItem;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-
-  if (!workspaceSlug || !projectId) {
-    console.error("workspaceSlug and projectId are required");
-    return;
-  }
-
-  const workItem = await createWorkItem(client, workspaceSlug, projectId);
-  console.log("Created work item: ", workItem);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const retrievedWorkItem = await retrieveWorkItem(client, workspaceSlug, projectId, workItem.id);
-  console.log("Retrieved work item: ", retrievedWorkItem);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const updatedWorkItem = await updateWorkItem(client, workspaceSlug, projectId, workItem.id);
-  console.log("Updated work item: ", updatedWorkItem);
-
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  const workItems = await listWorkItems(client, workspaceSlug, projectId);
-  console.log("Listed work items: ", workItems);
-
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  const workItemByIdentifier = await retrieveWorkItemByIdentifier(
-    client,
-    workspaceSlug,
-    projectId,
-    workItem.sequence_id!
-  );
-  console.log("Retrieved work item by identifier: ", workItemByIdentifier);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const searchedWorkItems = await searchWorkItems(client, workspaceSlug, projectId, workItemByIdentifier.name);
-  console.log("Searched work items: ", searchedWorkItems);
-
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  await deleteWorkItem(client, workspaceSlug, projectId, workItem.id);
-  console.log("Work item deleted: ", workItem.id);
-}
-
-async function createWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const workItem = await client.workItems.create(workspaceSlug, projectId, {
-    name: "Test Work Item",
-    description_html: "<p>A work item created via the Plane SDK</p>",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
+    userId = config.userId;
   });
-  return workItem;
-}
 
-async function retrieveWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const workItem = await client.workItems.retrieve(workspaceSlug, projectId, workItemId);
-  return workItem;
-}
-
-async function updateWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const states = await client.states.list(workspaceSlug, projectId);
-  const labels = await client.labels.list(workspaceSlug, projectId);
-
-  const label = labels.results[0];
-  const state = states.results[0];
-
-  const updatedWorkItem = await client.workItems.update(workspaceSlug, projectId, workItemId, {
-    name: "Updated Test Work Item",
-    description_html: "<p>Updated Test Work Item Description</p>",
-    state: state ? state.id : undefined,
-    assignees: [config.userId],
-    labels: label ? [label.id] : undefined,
+  afterAll(async () => {
+    // Clean up created work item
+    if (workItem?.id) {
+      try {
+        await client.workItems.delete(workspaceSlug, projectId, workItem.id);
+      } catch (error) {
+        console.warn("Failed to delete work item:", error);
+      }
+    }
   });
-  return updatedWorkItem;
-}
 
-async function listWorkItems(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const workItems = await client.workItems.list(workspaceSlug, projectId);
-  return workItems;
-}
+  it("should create a work item", async () => {
+    const name = randomizeName();
+    workItem = await client.workItems.create(workspaceSlug, projectId, {
+      name,
+      description_html: "<p>A work item created via the Plane SDK</p>",
+    });
 
-async function deleteWorkItem(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  await client.workItems.delete(workspaceSlug, projectId, workItemId);
-}
+    expect(workItem).toBeDefined();
+    expect(workItem.id).toBeDefined();
+    expect(workItem.name).toContain(name);
+    expect(workItem.description_html).toBe("<p>A work item created via the Plane SDK</p>");
+  });
 
-async function retrieveWorkItemByIdentifier(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  identifier: number
-) {
-  const project = await client.projects.retrieve(workspaceSlug, projectId);
-  const workItem = await client.workItems.retrieveByIdentifier(workspaceSlug, `${project.identifier}-${identifier}`, [
-    "project",
-  ]);
-  return workItem;
-}
+  it("should retrieve a work item", async () => {
+    const retrievedWorkItem = await client.workItems.retrieve(workspaceSlug, projectId, workItem.id!);
 
-async function searchWorkItems(client: PlaneClient, workspaceSlug: string, projectId: string, query: string) {
-  const workItems = await client.workItems.search(workspaceSlug, projectId, query);
-  return workItems;
-}
+    expect(retrievedWorkItem).toBeDefined();
+    expect(retrievedWorkItem.id).toBe(workItem.id);
+    expect(retrievedWorkItem.name).toBe(workItem.name);
+  });
 
-if (require.main === module) {
-  testWorkItems().catch(console.error);
-}
+  it("should update a work item", async () => {
+    const states = await client.states.list(workspaceSlug, projectId);
+    const labels = await client.labels.list(workspaceSlug, projectId);
+
+    const label = labels.results[0];
+    const state = states.results[0];
+
+    const updatedWorkItem = await client.workItems.update(workspaceSlug, projectId, workItem.id!, {
+      name: `${workItem.name} - Updated`,
+      description_html: "<p>Updated Test Work Item Description</p>",
+      state: state ? state.id : undefined,
+      assignees: [userId],
+      labels: label ? [label.id] : undefined,
+    });
+
+    expect(updatedWorkItem).toBeDefined();
+    expect(updatedWorkItem.id).toBe(workItem.id);
+    expect(updatedWorkItem.name).toBe(`${workItem.name} - Updated`);
+    expect(updatedWorkItem.description_html).toBe("<p>Updated Test Work Item Description</p>");
+  });
+
+  it("should list work items", async () => {
+    const workItems = await client.workItems.list(workspaceSlug, projectId);
+
+    expect(workItems).toBeDefined();
+    expect(Array.isArray(workItems.results)).toBe(true);
+    expect(workItems.results.length).toBeGreaterThan(0);
+
+    const foundWorkItem = workItems.results.find((wi) => wi.id === workItem.id);
+    expect(foundWorkItem).toBeDefined();
+  });
+
+  it("should retrieve work item by identifier", async () => {
+    const project = await client.projects.retrieve(workspaceSlug, projectId);
+    const workItemByIdentifier = await client.workItems.retrieveByIdentifier(
+      workspaceSlug,
+      `${project.identifier}-${workItem.sequence_id}`,
+      ["project"]
+    );
+
+    expect(workItemByIdentifier).toBeDefined();
+    expect(workItemByIdentifier.id).toBe(workItem.id);
+  });
+
+  it("should search work items", async () => {
+    const searchedWorkItemsResponse = await client.workItems.search(workspaceSlug, workItem.name);
+
+    expect(searchedWorkItemsResponse.issues).toBeDefined();
+    expect(Array.isArray(searchedWorkItemsResponse.issues)).toBe(true);
+    expect(searchedWorkItemsResponse.issues.length).toBeGreaterThan(0);
+    const foundWorkItem = searchedWorkItemsResponse.issues.find((wi) => wi.id === workItem.id);
+    expect(foundWorkItem).toBeDefined();
+  });
+});

@@ -1,83 +1,75 @@
 import { PlaneClient } from "../../../src/client/plane-client";
 import { Link } from "../../../src/models/Link";
 import { config } from "../constants";
-import { createTestClient } from "../../helpers/test-utils";
+import { createTestClient, randomizeName } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testLinks() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Work Item Links API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workItemId: string;
+  let link: Link;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemId = config.workItemId;
-
-  if (!workspaceSlug || !projectId || !workItemId) {
-    console.error("workspaceSlug, projectId and workItemId are required");
-    return;
-  }
-
-  const link = await createLink(client, workspaceSlug, projectId, workItemId);
-  console.log("Created link: ", link);
-
-  const retrievedLink = await retrieveLink(client, workspaceSlug, projectId, workItemId, link.id);
-  console.log("Retrieved link: ", retrievedLink);
-
-  const updatedLink = await updateLink(client, workspaceSlug, projectId, workItemId, link.id);
-  console.log("Updated link: ", updatedLink);
-
-  const links = await listLinks(client, workspaceSlug, projectId, workItemId);
-  console.log("Listed links: ", links);
-
-  await deleteLink(client, workspaceSlug, projectId, workItemId, link.id);
-  console.log("Deleted link: ", link.id);
-}
-
-async function createLink(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const link = await client.workItems.links.create(workspaceSlug, projectId, workItemId, {
-    title: "Test Link",
-    url: "https://test.com",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
+    workItemId = config.workItemId;
   });
-  return link;
-}
 
-async function retrieveLink(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  linkId: string
-) {
-  const link = await client.workItems.links.retrieve(workspaceSlug, projectId, workItemId, linkId);
-  return link;
-}
-
-async function updateLink(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  linkId: string
-) {
-  return await client.workItems.links.update(workspaceSlug, projectId, workItemId, linkId, {
-    title: "Updated Test Link",
-    url: "https://updated.com",
+  afterAll(async () => {
+    // Clean up created link
+    if (link?.id) {
+      try {
+        await client.workItems.links.delete(workspaceSlug, projectId, workItemId, link.id);
+      } catch (error) {
+        console.warn("Failed to delete link:", error);
+      }
+    }
   });
-}
 
-async function listLinks(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const links = await client.workItems.links.list(workspaceSlug, projectId, workItemId);
-  return links;
-}
+  it("should create a link", async () => {
+    link = await client.workItems.links.create(workspaceSlug, projectId, workItemId, {
+      title: randomizeName("Test Link"),
+      url: "https://test.com",
+    });
 
-async function deleteLink(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  linkId: string
-) {
-  await client.workItems.links.delete(workspaceSlug, projectId, workItemId, linkId);
-}
+    expect(link).toBeDefined();
+    expect(link.id).toBeDefined();
+    expect(link.title).toContain("Test Link");
+    expect(link.url).toBe("https://test.com");
+  });
 
-if (require.main === module) {
-  testLinks().catch(console.error);
-}
+  it("should retrieve a link", async () => {
+    const retrievedLink = await client.workItems.links.retrieve(workspaceSlug, projectId, workItemId, link.id!);
+
+    expect(retrievedLink).toBeDefined();
+    expect(retrievedLink.id).toBe(link.id);
+    expect(retrievedLink.title).toBe(link.title);
+  });
+
+  it("should update a link", async () => {
+    const updatedLink = await client.workItems.links.update(workspaceSlug, projectId, workItemId, link.id!, {
+      title: randomizeName("Updated Test Link"),
+      url: "https://updated.com",
+    });
+
+    expect(updatedLink).toBeDefined();
+    expect(updatedLink.id).toBe(link.id);
+    expect(updatedLink.title).toContain("Updated Test Link");
+    expect(updatedLink.url).toBe("https://updated.com");
+  });
+
+  it("should list links", async () => {
+    const linksResponse = await client.workItems.links.list(workspaceSlug, projectId, workItemId);
+
+    expect(linksResponse).toBeDefined();
+    expect(linksResponse.results).toBeDefined();
+    expect(Array.isArray(linksResponse.results)).toBe(true);
+    expect(linksResponse.results.length).toBeGreaterThan(0);
+
+    const foundLink = linksResponse.results.find((l) => l.id === link.id);
+    expect(foundLink).toBeDefined();
+  });
+});

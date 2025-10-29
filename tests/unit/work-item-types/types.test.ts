@@ -1,95 +1,73 @@
 import { PlaneClient } from "../../../src/client/plane-client";
-import { PaginatedResponse } from "../../../src/models/common";
 import { WorkItemType } from "../../../src/models/WorkItemType";
 import { config } from "../constants";
-import { createTestClient } from "../../helpers/test-utils";
+import { createTestClient, randomizeName } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testWorkItemTypes() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId), "Work Item Types API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workItemType: WorkItemType;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
 
-  if (!workspaceSlug || !projectId) {
-    console.error("workspaceSlug and projectId are required");
-    return;
-  }
-
-  // enable work item types if didn't already
-  await client.projects.update(workspaceSlug, projectId, {
-    is_issue_type_enabled: true,
+    // Enable work item types if not already enabled
+    await client.projects.update(workspaceSlug, projectId, {
+      is_issue_type_enabled: true,
+    });
   });
 
-  const workItemType = await createWorkItemType(client, workspaceSlug, projectId);
-  console.log("Created work item type: ", workItemType);
-
-  const retrievedWorkItemType = await retrieveWorkItemType(client, workspaceSlug, projectId, workItemType.id);
-  console.log("Retrieved work item type: ", retrievedWorkItemType);
-
-  const updatedWorkItemType = await updateWorkItemType(client, workspaceSlug, projectId, workItemType.id);
-  console.log("Updated work item type: ", updatedWorkItemType);
-
-  const workItemTypes = await listWorkItemTypes(client, workspaceSlug, projectId);
-  console.log("Listed work item types: ", workItemTypes);
-
-  await deleteWorkItemType(client, workspaceSlug, projectId, workItemType.id);
-  console.log("Work item type deleted: ", workItemType.id);
-}
-
-async function createWorkItemType(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-): Promise<WorkItemType> {
-  const workItemType = await client.workItemTypes.create(workspaceSlug, projectId, {
-    name: `Test WI Type ${new Date().getTime()}`,
+  afterAll(async () => {
+    // Clean up created work item type
+    if (workItemType?.id) {
+      try {
+        await client.workItemTypes.delete(workspaceSlug, projectId, workItemType.id);
+      } catch (error) {
+        console.warn("Failed to delete work item type:", error);
+      }
+    }
   });
-  return workItemType;
-}
 
-async function retrieveWorkItemType(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string
-): Promise<WorkItemType> {
-  const workItemType = await client.workItemTypes.retrieve(workspaceSlug, projectId, workItemTypeId);
-  return workItemType;
-}
+  it("should create a work item type", async () => {
+    workItemType = await client.workItemTypes.create(workspaceSlug, projectId, {
+      name: randomizeName("Test WI Type"),
+    });
 
-async function listWorkItemTypes(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-): Promise<PaginatedResponse<WorkItemType>> {
-  const workItemTypes = await client.workItemTypes.list(workspaceSlug, projectId, {
-    limit: 10,
-    offset: 0,
+    expect(workItemType).toBeDefined();
+    expect(workItemType.id).toBeDefined();
+    expect(workItemType.name).toContain("Test WI Type");
   });
-  return workItemTypes;
-}
 
-async function updateWorkItemType(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string
-): Promise<WorkItemType> {
-  const updatedWorkItemType = await client.workItemTypes.update(workspaceSlug, projectId, workItemTypeId, {
-    name: `Updated Test WI Type ${new Date().getTime()}`,
+  it("should retrieve a work item type", async () => {
+    const retrievedWorkItemType = await client.workItemTypes.retrieve(workspaceSlug, projectId, workItemType.id!);
+
+    expect(retrievedWorkItemType).toBeDefined();
+    expect(retrievedWorkItemType.id).toBe(workItemType.id);
+    expect(retrievedWorkItemType.name).toBe(workItemType.name);
   });
-  return updatedWorkItemType;
-}
 
-async function deleteWorkItemType(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string
-): Promise<void> {
-  await client.workItemTypes.delete(workspaceSlug, projectId, workItemTypeId);
-}
+  it("should update a work item type", async () => {
+    const updatedWorkItemType = await client.workItemTypes.update(workspaceSlug, projectId, workItemType.id!, {
+      name: randomizeName("Updated Test WI Type"),
+    });
 
-if (require.main === module) {
-  testWorkItemTypes().catch(console.error);
-}
+    expect(updatedWorkItemType).toBeDefined();
+    expect(updatedWorkItemType.id).toBe(workItemType.id);
+    expect(updatedWorkItemType.name).toContain("Updated Test WI Type");
+  });
+
+  it("should list work item types", async () => {
+    const workItemTypes = await client.workItemTypes.list(workspaceSlug, projectId);
+
+    expect(workItemTypes).toBeDefined();
+    expect(Array.isArray(workItemTypes)).toBe(true);
+    expect(workItemTypes.length).toBeGreaterThan(0);
+
+    const foundType = workItemTypes.find((t) => t.id === workItemType.id);
+    expect(foundType).toBeDefined();
+  });
+});

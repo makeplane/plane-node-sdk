@@ -39,6 +39,10 @@ export interface CustomerPropertyValue extends BaseModel {
   [key: string]: any;
 }
 
+export interface CustomPropertyValueResponse {
+  [propertyId: string]: any[];
+}
+
 export type UpdateCustomerPropertyValue = {
   values: any[];
 };
@@ -139,4 +143,17 @@ export interface UpdateCustomerPropertyRequest {
   external_id?: string;
   created_by?: string;
   updated_by?: string;
+}
+
+export interface LinkIssuesToCustomerResponse {
+  message: string;
+  linked_issues: LinkedIssue[];
+}
+
+export interface LinkedIssue {
+  id: string;
+  name: string;
+  sequence_id: number;
+  project_id: string;
+  project__identifier: string;
 }

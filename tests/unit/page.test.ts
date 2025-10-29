@@ -1,77 +1,59 @@
-import fs from "fs";
 import { PlaneClient } from "../../src/client/plane-client";
+import { Page } from "../../src/models/Page";
 import { config } from "./constants";
-import { createTestClient } from "../helpers/test-utils";
+import { createTestClient, randomizeName } from "../helpers/test-utils";
+import { describeIf as describe } from "../helpers/conditional-tests";
 
-export async function testPage() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId), "Page API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workspacePage: Page;
+  let projectPage: Page;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-
-  if (!workspaceSlug) {
-    console.error("workspaceSlug is required");
-    return;
-  }
-
-  if (!projectId) {
-    console.error("projectId is required");
-    return;
-  }
-
-  const page = await createPage(client, workspaceSlug);
-  console.log("Created page: ", page);
-
-  const retrievedPage = await retrievePage(client, workspaceSlug, page.id);
-  console.log("Retrieved page: ", retrievedPage);
-
-  const projectPage = await createProjectPage(client, workspaceSlug, projectId);
-  console.log("Created project page: ", projectPage);
-
-  const retrievedProjectPage = await retrieveProjectPage(client, workspaceSlug, projectId, projectPage.id);
-  console.log("Retrieved project page: ", retrievedProjectPage);
-}
-
-async function createPage(client: PlaneClient, workspaceSlug: string) {
-  const content = "<p> Blank Space </p>";
-  return client.pages.createWorkspacePage(workspaceSlug, {
-    name: "Test Page Crashable 3",
-    description_html: content,
-  });
-}
-
-async function retrievePage(client: PlaneClient, workspaceSlug: string, pageId: string) {
-  return client.pages.retrieveWorkspacePage(workspaceSlug, pageId);
-}
-
-async function createProjectPage(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const content = "<p> Blank Space </p>";
-  return client.pages.createProjectPage(workspaceSlug, projectId, {
-    name: "Test Page Crashable 3",
-    description_html: content,
-  });
-}
-
-async function retrieveProjectPage(client: PlaneClient, workspaceSlug: string, projectId: string, pageId: string) {
-  return client.pages.retrieveProjectPage(workspaceSlug, projectId, pageId);
-}
-
-async function testCreatePageFromFile() {
-  const client = new PlaneClient({
-    apiKey: "plane_api_fae8f19b1e884400831413ef3adfb68b",
-    baseUrl: "https://test-leak.feat.plane.town",
-    enableLogging: true,
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
   });
 
-  const file = fs.readFileSync("/Users/prashantsurya/Projects/sdks/plane-node-sdk/CrashablePage.html", "utf8");
+  it("should create a workspace page", async () => {
+    const content = "<p>Test Page Content</p>";
+    workspacePage = await client.pages.createWorkspacePage(workspaceSlug, {
+      name: randomizeName("Test Workspace Page"),
+      description_html: content,
+    });
 
-  const page = await client.pages.createWorkspacePage("testt", {
-    name: "Test Page Crashable 3",
-    description_html: file,
+    expect(workspacePage).toBeDefined();
+    expect(workspacePage.id).toBeDefined();
+    expect(workspacePage.name).toContain("Test Workspace Page");
   });
-  console.log("Created page: ", page);
-}
 
-if (require.main === module) {
-  testCreatePageFromFile().catch(console.error);
-}
+  it("should retrieve a workspace page", async () => {
+    const retrievedPage = await client.pages.retrieveWorkspacePage(workspaceSlug, workspacePage.id!);
+
+    expect(retrievedPage).toBeDefined();
+    expect(retrievedPage.id).toBe(workspacePage.id);
+    expect(retrievedPage.name).toBe(workspacePage.name);
+  });
+
+  it("should create a project page", async () => {
+    const content = "<p>Test Project Page Content</p>";
+    projectPage = await client.pages.createProjectPage(workspaceSlug, projectId, {
+      name: randomizeName("Test Project Page"),
+      description_html: content,
+    });
+
+    expect(projectPage).toBeDefined();
+    expect(projectPage.id).toBeDefined();
+    expect(projectPage.name).toContain("Test Project Page");
+  });
+
+  it("should retrieve a project page", async () => {
+    const retrievedProjectPage = await client.pages.retrieveProjectPage(workspaceSlug, projectId, projectPage.id!);
+
+    expect(retrievedProjectPage).toBeDefined();
+    expect(retrievedProjectPage.id).toBe(projectPage.id);
+    expect(retrievedProjectPage.name).toBe(projectPage.name);
+  });
+});

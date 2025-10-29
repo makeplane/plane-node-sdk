@@ -66,14 +66,7 @@ export class WorkItemTypes extends BaseResource {
   /**
    * List work item types with optional filtering
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    params?: ListWorkItemTypesParams
-  ): Promise<PaginatedResponse<WorkItemType>> {
-    return this.get<PaginatedResponse<WorkItemType>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/`,
-      params
-    );
+  async list(workspaceSlug: string, projectId: string, params?: ListWorkItemTypesParams): Promise<WorkItemType[]> {
+    return this.get<WorkItemType[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/`, params);
   }
 }

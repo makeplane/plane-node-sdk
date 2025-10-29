@@ -1,10 +1,12 @@
 import { BaseResource } from "../BaseResource";
 import { Configuration } from "../../Configuration";
 import {
+  ListCommentsParams,
   WorkItemComment,
   WorkItemCommentCreateRequest,
   WorkItemCommentUpdateRequest,
 } from "../../models/Comment";
+import { PaginatedResponse } from "../../models/common";
 
 /**
  * WorkItemComments API resource
@@ -36,9 +38,9 @@ export class Comments extends BaseResource {
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
-    params?: any
-  ): Promise<WorkItemComment[]> {
-    return this.get<WorkItemComment[]>(
+    params?: ListCommentsParams
+  ): Promise<PaginatedResponse<WorkItemComment>> {
+    return this.get<PaginatedResponse<WorkItemComment>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/comments/`,
       params
     );
@@ -78,12 +80,7 @@ export class Comments extends BaseResource {
   /**
    * Delete a comment
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string,
-    commentId: string
-  ): Promise<void> {
+  async delete(workspaceSlug: string, projectId: string, workItemId: string, commentId: string): Promise<void> {
     return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/comments/${commentId}/`
     );

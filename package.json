@@ -8,7 +8,11 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "jest",
-    "test:unit": "ts-node tests/unit/run-all.test.ts",
+    "test:unit": "jest --testPathPattern=tests/unit",
+    "test:e2e": "jest --testPathPattern=tests/e2e",
+    "test:all": "pnpm test:unit && pnpm test:e2e",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "clean": "rm -rf dist"

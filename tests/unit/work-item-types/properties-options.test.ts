@@ -1,266 +1,145 @@
 import { PlaneClient } from "../../../src/client/plane-client";
-import { PropertyType } from "../../../src/models/common";
-import {
-  WorkItemProperty,
-  WorkItemPropertyOption,
-  WorkItemPropertySettings,
-} from "../../../src/models/WorkItemProperty";
+import { WorkItemProperty, WorkItemPropertyOption } from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
-import { createTestClient } from "../../helpers/test-utils";
+import { createTestClient, randomizeName } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testWorkItemTypesPropertiesAndOptions() {
-  const client = createTestClient();
+describe(
+  !!(config.workspaceSlug && config.projectId && config.workItemTypeId),
+  "Work Item Type Properties and Options API Tests",
+  () => {
+    let client: PlaneClient;
+    let workspaceSlug: string;
+    let projectId: string;
+    let workItemTypeId: string;
+    let textProperty: WorkItemProperty;
+    let optionProperty: WorkItemProperty;
+    let propertyOption: WorkItemPropertyOption;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemTypeId = config.workItemTypeId;
+    beforeAll(async () => {
+      client = createTestClient();
+      workspaceSlug = config.workspaceSlug;
+      projectId = config.projectId;
+      workItemTypeId = config.workItemTypeId;
 
-  if (!workspaceSlug || !projectId || !workItemTypeId) {
-    console.error("workspaceSlug, projectId and workItemTypeId are required");
-    return;
+      // Enable work item types if not already enabled
+      await client.projects.update(workspaceSlug, projectId, {
+        is_issue_type_enabled: true,
+      });
+    });
+
+    it("should test complete work item type properties and options workflow", async () => {
+      // ===== TEST TEXT PROPERTY =====
+      // Create a TEXT property
+      const textPropertyName = randomizeName("Test WI Type Property");
+      textProperty = await client.workItemProperties.create(workspaceSlug, projectId, workItemTypeId, {
+        name: textPropertyName,
+        display_name: textPropertyName,
+        property_type: "TEXT",
+        settings: {
+          display_format: "single-line",
+        },
+        is_required: false,
+      });
+
+      expect(textProperty).toBeDefined();
+      expect(textProperty.id).toBeDefined();
+      expect(textProperty.property_type).toBe("TEXT");
+
+      // Retrieve the property
+      const retrievedTextProperty = await client.workItemProperties.retrieve(
+        workspaceSlug,
+        projectId,
+        workItemTypeId,
+        textProperty.id!
+      );
+
+      expect(retrievedTextProperty).toBeDefined();
+      expect(retrievedTextProperty.id).toBe(textProperty.id);
+
+      // Update the property
+      const updatedTextPropertyName = randomizeName("Updated Test WI Type Property");
+      const updatedTextProperty = await client.workItemProperties.update(
+        workspaceSlug,
+        projectId,
+        workItemTypeId,
+        textProperty.id!,
+        {
+          name: updatedTextPropertyName,
+        }
+      );
+
+      expect(updatedTextProperty).toBeDefined();
+      expect(updatedTextProperty.id).toBe(textProperty.id);
+
+      // List properties
+      const properties = await client.workItemProperties.list(workspaceSlug, projectId, workItemTypeId, {
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(properties).toBeDefined();
+      expect(Array.isArray(properties)).toBe(true);
+      const foundProperty = properties.find((p) => p.id === textProperty.id);
+      expect(foundProperty).toBeDefined();
+
+      // Delete the TEXT property
+      await client.workItemProperties.delete(workspaceSlug, projectId, workItemTypeId, textProperty.id!);
+
+      // ===== TEST OPTION PROPERTY AND OPTIONS =====
+      // Create an OPTION property
+      const optionPropertyName = randomizeName("Test Option Property");
+      optionProperty = await client.workItemProperties.create(workspaceSlug, projectId, workItemTypeId, {
+        name: optionPropertyName,
+        display_name: optionPropertyName,
+        property_type: "OPTION",
+        is_required: false,
+      });
+
+      expect(optionProperty).toBeDefined();
+      expect(optionProperty.id).toBeDefined();
+      expect(optionProperty.property_type).toBe("OPTION");
+
+      // Create a property option
+      const optionName = randomizeName("Test Property Option");
+      propertyOption = await client.workItemProperties.options.create(workspaceSlug, projectId, optionProperty.id!, {
+        name: optionName,
+      });
+
+      expect(propertyOption).toBeDefined();
+      expect(propertyOption.id).toBeDefined();
+
+      // Retrieve the property option
+      const retrievedOption = await client.workItemProperties.options.retrieve(
+        workspaceSlug,
+        projectId,
+        optionProperty.id!,
+        propertyOption.id!
+      );
+
+      expect(retrievedOption).toBeDefined();
+      expect(retrievedOption.id).toBe(propertyOption.id);
+
+      // Update the property option
+      const updatedOptionName = randomizeName("Updated Property Option");
+      const updatedOption = await client.workItemProperties.options.update(
+        workspaceSlug,
+        projectId,
+        optionProperty.id!,
+        propertyOption.id!,
+        {
+          name: updatedOptionName,
+        }
+      );
+
+      expect(updatedOption).toBeDefined();
+      expect(updatedOption.id).toBe(propertyOption.id);
+
+      // Delete the property option
+      await client.workItemProperties.options.delete(workspaceSlug, projectId, optionProperty.id!, propertyOption.id!);
+
+      // Delete the OPTION property
+      await client.workItemProperties.delete(workspaceSlug, projectId, workItemTypeId, optionProperty.id!);
+    });
   }
-
-  // enable work item types if didn't already
-  await client.projects.update(workspaceSlug, projectId, {
-    is_issue_type_enabled: true,
-  });
-
-  // test the work item type properties
-  const workItemTypeProperty = await createWorkItemTypeProperty(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    "TEXT",
-    {
-      display_format: "single-line",
-    }
-  );
-  console.log("Created work item type property: ", workItemTypeProperty);
-
-  const retrievedWorkItemTypeProperty = await retrieveWorkItemTypeProperty(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    workItemTypeProperty.id
-  );
-  console.log("Retrieved work item type property: ", retrievedWorkItemTypeProperty);
-
-  const updatedWorkItemTypeProperty = await updateWorkItemTypeProperty(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    workItemTypeProperty.id
-  );
-  console.log("Updated work item type property: ", updatedWorkItemTypeProperty);
-
-  const workItemTypeProperties = await listWorkItemTypeProperties(client, workspaceSlug, projectId, workItemTypeId);
-  console.log("Listed work item type properties: ", workItemTypeProperties);
-
-  await deleteWorkItemTypeProperty(client, workspaceSlug, projectId, workItemTypeId, workItemTypeProperty.id);
-  console.log("Work item type property deleted: ", workItemTypeProperty.id);
-
-  // test the work item type property options
-  // create a work item type property with property type OPTION
-  // use the work item type property id to create a work item property option
-
-  const optionWorkItemTypeProperty = await createWorkItemTypeProperty(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    "OPTION"
-  );
-  console.log("Created option work item type property: ", optionWorkItemTypeProperty);
-
-  if (!optionWorkItemTypeProperty.id) {
-    throw new Error("optionWorkItemTypeProperty ID is required to test work item property options");
-  }
-
-  const createdWorkItemPropertyOption = await createWorkItemPropertyOption(
-    client,
-    workspaceSlug,
-    projectId,
-    optionWorkItemTypeProperty.id
-  );
-  console.log("Created work item property option: ", createdWorkItemPropertyOption);
-
-  const retrievedWorkItemPropertyOption = await retrieveWorkItemPropertyOption(
-    client,
-    workspaceSlug,
-    projectId,
-    optionWorkItemTypeProperty.id,
-    createdWorkItemPropertyOption.id
-  );
-  console.log("Retrieved work item property option: ", retrievedWorkItemPropertyOption);
-
-  const updatedWorkItemPropertyOption = await updateWorkItemPropertyOption(
-    client,
-    workspaceSlug,
-    projectId,
-    optionWorkItemTypeProperty.id,
-    createdWorkItemPropertyOption.id
-  );
-  console.log("Updated work item property option: ", updatedWorkItemPropertyOption);
-
-  await deleteWorkItemPropertyOption(
-    client,
-    workspaceSlug,
-    projectId,
-    optionWorkItemTypeProperty.id,
-    createdWorkItemPropertyOption.id
-  );
-  console.log("Work item property option deleted: ", createdWorkItemPropertyOption.id);
-
-  await deleteWorkItemTypeProperty(client, workspaceSlug, projectId, workItemTypeId, optionWorkItemTypeProperty.id);
-  console.log("Option work item type property deleted: ", optionWorkItemTypeProperty.id);
-}
-
-async function createWorkItemTypeProperty(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string,
-  propertyType: PropertyType,
-  settings?: WorkItemPropertySettings
-): Promise<WorkItemProperty> {
-  const workItemTypeProperty = await client.workItemProperties.create(workspaceSlug, projectId, workItemTypeId, {
-    name: `Test WI Type Property ${new Date().getTime()}`,
-    display_name: `Test WI Type Property ${new Date().getTime()}`,
-    property_type: propertyType,
-    settings,
-    is_required: false,
-  });
-  return workItemTypeProperty;
-}
-
-async function retrieveWorkItemTypeProperty(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string,
-  workItemPropertyId: string
-): Promise<WorkItemProperty> {
-  const workItemTypeProperty = await client.workItemProperties.retrieve(
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    workItemPropertyId
-  );
-  return workItemTypeProperty;
-}
-
-async function listWorkItemTypeProperties(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string
-): Promise<WorkItemProperty[]> {
-  const workItemTypeProperties = await client.workItemProperties.list(workspaceSlug, projectId, workItemTypeId, {
-    limit: 10,
-    offset: 0,
-  });
-  return workItemTypeProperties;
-}
-
-async function updateWorkItemTypeProperty(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string,
-  workItemPropertyId: string
-): Promise<WorkItemProperty> {
-  const updatedWorkItemTypeProperty = await client.workItemProperties.update(
-    workspaceSlug,
-    projectId,
-    workItemTypeId,
-    workItemPropertyId,
-    {
-      name: `Updated Test WI Type Property ${new Date().getTime()}`,
-    }
-  );
-  return updatedWorkItemTypeProperty;
-}
-
-async function deleteWorkItemTypeProperty(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemTypeId: string,
-  workItemPropertyId: string
-): Promise<void> {
-  await client.workItemProperties.delete(workspaceSlug, projectId, workItemTypeId, workItemPropertyId);
-}
-
-async function createWorkItemPropertyOption(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemPropertyId: string
-): Promise<WorkItemPropertyOption> {
-  const workItemTypePropertyOption = await client.workItemProperties.options.create(
-    workspaceSlug,
-    projectId,
-    workItemPropertyId,
-    {
-      name: `Test Property Option ${new Date().getTime()}`,
-    }
-  );
-  return workItemTypePropertyOption;
-}
-
-async function retrieveWorkItemPropertyOption(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemPropertyId: string,
-  workItemPropertyOptionId: string
-): Promise<WorkItemPropertyOption> {
-  const workItemTypePropertyOption = await client.workItemProperties.options.retrieve(
-    workspaceSlug,
-    projectId,
-    workItemPropertyId,
-    workItemPropertyOptionId
-  );
-  return workItemTypePropertyOption;
-}
-
-async function updateWorkItemPropertyOption(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemPropertyId: string,
-  workItemPropertyOptionId: string
-): Promise<WorkItemPropertyOption> {
-  const workItemTypePropertyOption = await client.workItemProperties.options.update(
-    workspaceSlug,
-    projectId,
-    workItemPropertyId,
-    workItemPropertyOptionId,
-    {
-      name: `Updated Property Option ${new Date().getTime()}`,
-    }
-  );
-  return workItemTypePropertyOption;
-}
-
-async function deleteWorkItemPropertyOption(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemPropertyId: string,
-  workItemPropertyOptionId: string
-): Promise<void> {
-  await client.workItemProperties.options.delete(
-    workspaceSlug,
-    projectId,
-    workItemPropertyId,
-    workItemPropertyOptionId
-  );
-}
-
-if (require.main === module) {
-  testWorkItemTypesPropertiesAndOptions().catch(console.error);
-}
+);

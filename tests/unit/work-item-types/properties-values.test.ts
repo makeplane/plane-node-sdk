@@ -1,96 +1,63 @@
 import { PlaneClient } from "../../../src/client/plane-client";
-import { WorkItemPropertyValues } from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
-import { createTestClient } from "../../helpers/test-utils";
+import { createTestClient, randomizeName } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testWorkItemPropertiesValues() {
-  const client = createTestClient();
+describe(
+  !!(config.workspaceSlug && config.projectId && config.workItemId && config.customTextPropertyId),
+  "Work Item Property Values API Tests",
+  () => {
+    let client: PlaneClient;
+    let workspaceSlug: string;
+    let projectId: string;
+    let workItemId: string;
+    let propertyId: string;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemId = config.workItemId;
-  const propertyId = config.customTextPropertyId;
+    beforeAll(async () => {
+      client = createTestClient();
+      workspaceSlug = config.workspaceSlug;
+      projectId = config.projectId;
+      workItemId = config.workItemId;
+      propertyId = config.customTextPropertyId;
 
-  // enable work item types if didn't already
-  await client.projects.update(workspaceSlug, projectId, {
-    is_issue_type_enabled: true,
-  });
+      // Enable work item types if not already enabled
+      await client.projects.update(workspaceSlug, projectId, {
+        is_issue_type_enabled: true,
+      });
+    });
 
-  if (!workspaceSlug || !projectId || !workItemId || !propertyId) {
-    console.error("workItemId and propertyId are required to test work item properties and values");
-    return;
+    it("should test complete work item property values workflow", async () => {
+      // Create/update a work item property value
+      const testValue = randomizeName("Test WI Property Value");
+      const workItemPropertyValue = await client.workItemProperties.values.create(
+        workspaceSlug,
+        projectId,
+        workItemId,
+        propertyId,
+        {
+          values: [{ value: testValue }],
+        }
+      );
+
+      expect(workItemPropertyValue).toBeDefined();
+
+      // Retrieve the work item property value
+      const retrievedWorkItemPropertyValue = await client.workItemProperties.values.retrieve(
+        workspaceSlug,
+        projectId,
+        workItemId,
+        propertyId
+      );
+
+      expect(retrievedWorkItemPropertyValue).toBeDefined();
+
+      // List all work item property values for the work item
+      const workItemPropertyValues = await client.workItemProperties.values.list(workspaceSlug, projectId, workItemId, {
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(workItemPropertyValues).toBeDefined();
+    });
   }
-
-  const workItemPropertyValue = await updateWorkItemPropertyValue(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemId,
-    propertyId
-  );
-  console.log("Created work item property value: ", workItemPropertyValue);
-
-  const retrievedWorkItemPropertyValue = await retrieveWorkItemPropertyValue(
-    client,
-    workspaceSlug,
-    projectId,
-    workItemId,
-    propertyId
-  );
-  console.log("Retrieved work item property value: ", retrievedWorkItemPropertyValue);
-
-  const workItemPropertyValues = await listWorkItemPropertyValues(client, workspaceSlug, projectId, workItemId);
-  console.log("Listed work item property values: ", workItemPropertyValues);
-}
-
-async function updateWorkItemPropertyValue(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  propertyId: string
-): Promise<WorkItemPropertyValues> {
-  const workItemPropertyValue = await client.workItemProperties.values.create(
-    workspaceSlug,
-    projectId,
-    workItemId,
-    propertyId,
-    {
-      values: [{ value: `Test WI Property Value ${new Date().getTime()}` }],
-    }
-  );
-  return workItemPropertyValue;
-}
-
-async function retrieveWorkItemPropertyValue(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  propertyId: string
-): Promise<WorkItemPropertyValues> {
-  const workItemPropertyValue = await client.workItemProperties.values.retrieve(
-    workspaceSlug,
-    projectId,
-    workItemId,
-    propertyId
-  );
-  return workItemPropertyValue;
-}
-
-async function listWorkItemPropertyValues(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string
-): Promise<WorkItemPropertyValues> {
-  const workItemPropertyValues = await client.workItemProperties.values.list(workspaceSlug, projectId, workItemId, {
-    limit: 10,
-    offset: 0,
-  });
-  return workItemPropertyValues;
-}
-
-if (require.main === module) {
-  testWorkItemPropertiesValues().catch(console.error);
-}
+);

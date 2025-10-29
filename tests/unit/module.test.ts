@@ -1,104 +1,99 @@
 import { PlaneClient } from "../../src/client/plane-client";
-import { UpdateModuleRequest } from "../../src/models/Module";
+import { Module } from "../../src/models/Module";
 import { config } from "./constants";
-import { createTestClient } from "../helpers/test-utils";
+import { createTestClient, randomizeName } from "../helpers/test-utils";
+import { describeIf as describe } from "../helpers/conditional-tests";
 
-export async function testModules() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Module API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workItemId: string;
+  let module: Module;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemId = config.workItemId;
-
-  if (!workspaceSlug || !projectId || !workItemId) {
-    console.error("workspaceSlug, projectId and workItemId are required");
-    return;
-  }
-
-  const module = await createModule(client, workspaceSlug, projectId);
-  console.log("Created module: ", module);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const retrievedModule = await retrieveModule(client, workspaceSlug, projectId, module.id);
-  console.log("Retrieved module: ", retrievedModule);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const updatedModule = await updateModule(client, workspaceSlug, projectId, module.id, module);
-  console.log("Updated module: ", updatedModule);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const modules = await listModules(client, workspaceSlug, projectId);
-  console.log("Listed modules: ", modules);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  await addWorkItemToModule(client, workspaceSlug, projectId, module.id, workItemId);
-  console.log("Added work item to module: ", workItemId);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const itemsInModule = await listWorkItemsInModule(client, workspaceSlug, projectId, module.id);
-  console.log("Listed work items in module: ", itemsInModule);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  const removedItem = await removeWorkItemFromModule(client, workspaceSlug, projectId, module.id, workItemId);
-  console.log("Removed work item from module: ", removedItem);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  await deleteModule(client, workspaceSlug, projectId, module.id);
-  console.log("Deleted module: ", module.id);
-}
-
-async function createModule(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  return await client.modules.create(workspaceSlug, projectId, {
-    name: "Test Module",
-    description: "Test Description",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
+    workItemId = config.workItemId;
   });
-}
 
-async function retrieveModule(client: PlaneClient, workspaceSlug: string, projectId: string, moduleId: string) {
-  return await client.modules.retrieve(workspaceSlug, projectId, moduleId);
-}
+  afterAll(async () => {
+    // Clean up created module
+    if (module?.id) {
+      try {
+        await client.modules.delete(workspaceSlug, projectId, module.id);
+      } catch (error) {
+        console.warn("Failed to delete module:", error);
+      }
+    }
+  });
 
-async function updateModule(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  moduleId: string,
-  module: UpdateModuleRequest
-) {
-  return await client.modules.update(workspaceSlug, projectId, moduleId, module);
-}
+  it("should create a module", async () => {
+    module = await client.modules.create(workspaceSlug, projectId, {
+      name: randomizeName("Test Module"),
+      description: "Test Description",
+    });
 
-async function listModules(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  return await client.modules.list(workspaceSlug, projectId);
-}
+    expect(module).toBeDefined();
+    expect(module.id).toBeDefined();
+    expect(module.name).toContain("Test Module");
+    expect(module.description).toBe("Test Description");
+  });
 
-async function deleteModule(client: PlaneClient, workspaceSlug: string, projectId: string, moduleId: string) {
-  return await client.modules.delete(workspaceSlug, projectId, moduleId);
-}
+  it("should retrieve a module", async () => {
+    const retrievedModule = await client.modules.retrieve(workspaceSlug, projectId, module.id!);
 
-async function addWorkItemToModule(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  moduleId: string,
-  workItemId: string
-) {
-  return await client.modules.addWorkItemsToModule(workspaceSlug, projectId, moduleId, [workItemId]);
-}
-async function listWorkItemsInModule(client: PlaneClient, workspaceSlug: string, projectId: string, moduleId: string) {
-  return await client.modules.listWorkItemsInModule(workspaceSlug, projectId, moduleId);
-}
+    expect(retrievedModule).toBeDefined();
+    expect(retrievedModule.id).toBe(module.id);
+    expect(retrievedModule.name).toBe(module.name);
+    expect(retrievedModule.description).toBe(module.description);
+  });
 
-async function removeWorkItemFromModule(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  moduleId: string,
-  workItemId: string
-) {
-  return await client.modules.removeWorkItemFromModule(workspaceSlug, projectId, moduleId, workItemId);
-}
+  it("should update a module", async () => {
+    const updatedModule = await client.modules.update(workspaceSlug, projectId, module.id!, {
+      description: "Updated Test Description",
+    });
 
-if (require.main === module) {
-  testModules();
-}
+    expect(updatedModule).toBeDefined();
+    expect(updatedModule.id).toBe(module.id);
+    expect(updatedModule.description).toBe("Updated Test Description");
+  });
+
+  it("should list modules", async () => {
+    const modules = await client.modules.list(workspaceSlug, projectId);
+
+    expect(modules).toBeDefined();
+    expect(Array.isArray(modules.results)).toBe(true);
+    expect(modules.results.length).toBeGreaterThan(0);
+
+    const foundModule = modules.results.find((m) => m.id === module.id);
+    expect(foundModule).toBeDefined();
+    expect(foundModule?.description).toBe("Updated Test Description");
+  });
+
+  it("should add work items to module", async () => {
+    await client.modules.addWorkItemsToModule(workspaceSlug, projectId, module.id!, [workItemId]);
+
+    const itemsInModule = await client.modules.listWorkItemsInModule(workspaceSlug, projectId, module.id!);
+
+    expect(itemsInModule).toBeDefined();
+    expect(Array.isArray(itemsInModule.results)).toBe(true);
+    expect(itemsInModule.results.length).toBeGreaterThan(0);
+
+    const foundWorkItem = itemsInModule.results.find((item) => item.id === workItemId);
+    expect(foundWorkItem).toBeDefined();
+  });
+
+  it("should remove work item from module", async () => {
+    await client.modules.removeWorkItemFromModule(workspaceSlug, projectId, module.id!, workItemId);
+
+    const itemsInModule = await client.modules.listWorkItemsInModule(workspaceSlug, projectId, module.id!);
+
+    expect(itemsInModule).toBeDefined();
+    expect(Array.isArray(itemsInModule.results)).toBe(true);
+
+    const foundWorkItem = itemsInModule.results.find((item) => item.id === workItemId);
+    expect(foundWorkItem).toBeUndefined();
+  });
+});

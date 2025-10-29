@@ -1,72 +1,83 @@
 import { PlaneClient } from "../../src/client/plane-client";
-import { UpdateProject } from "../../src/models/Project";
+import { UpdateProject, Project } from "../../src/models/Project";
 import { config } from "./constants";
-import { createTestClient } from "../helpers/test-utils";
+import { createTestClient, randomizeName } from "../helpers/test-utils";
+import { describeIf as describe } from "../helpers/conditional-tests";
 
-export async function testProjects() {
-  const client = createTestClient();
+describe(!!config.workspaceSlug, "Project API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let project: Project;
 
-  const workspaceSlug = config.workspaceSlug;
-
-  if (!workspaceSlug) {
-    console.error("workspaceSlug is required");
-    return;
-  }
-
-  const project = await createProject(client, workspaceSlug);
-  console.log("created project", project);
-
-  const retrievedProject = await retrieveProject(client, workspaceSlug, project.id);
-  console.log("retrieved project", retrievedProject);
-
-  const updatedProject = await updateProject(client, workspaceSlug, project.id, {
-    name: "Updated Test Project",
-    description: "Updated Test Project Description",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
   });
-  console.log("updated project", updatedProject);
 
-  const projects = await listProjects(client, workspaceSlug);
-  console.log("listed projects", projects);
-
-  const members = await getMembers(client, workspaceSlug, project.id);
-  console.log("project members", members);
-
-  await deleteProject(client, workspaceSlug, project.id);
-  console.log("project deleted", project.id);
-}
-
-async function createProject(client: PlaneClient, workspaceSlug: string) {
-  const project = await client.projects.create(workspaceSlug, {
-    name: "Test Project",
-    description: "Test Project Description",
+  afterAll(async () => {
+    // Clean up created project
+    if (project?.id) {
+      try {
+        await client.projects.delete(workspaceSlug, project.id);
+      } catch (error) {
+        console.warn("Failed to delete project:", error);
+      }
+    }
   });
-  return project;
-}
 
-async function retrieveProject(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const project = await client.projects.retrieve(workspaceSlug, projectId);
-  return project;
-}
+  it("should create a project", async () => {
+    const name = randomizeName();
+    project = await client.projects.create(workspaceSlug, {
+      name: name,
+      identifier: name.slice(0, 5).toUpperCase(),
+      description: "Test Project Description",
+    });
 
-async function updateProject(client: PlaneClient, workspaceSlug: string, projectId: string, project: UpdateProject) {
-  const updatedProject = await client.projects.update(workspaceSlug, projectId, project);
-  return updatedProject;
-}
+    expect(project).toBeDefined();
+    expect(project.id).toBeDefined();
+    expect(project.name).toBe(name);
+    expect(project.description).toBe("Test Project Description");
+  });
 
-async function listProjects(client: PlaneClient, workspaceSlug: string) {
-  const projects = await client.projects.list(workspaceSlug);
-  return projects;
-}
+  it("should retrieve a project", async () => {
+    const retrievedProject = await client.projects.retrieve(workspaceSlug, project.id);
 
-async function getMembers(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const members = await client.projects.getMembers(workspaceSlug, projectId);
-  return members;
-}
+    expect(retrievedProject).toBeDefined();
+    expect(retrievedProject.id).toBe(project.id);
+    expect(retrievedProject.name).toBe(project.name);
+    expect(retrievedProject.description).toBe(project.description);
+  });
 
-async function deleteProject(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  await client.projects.delete(workspaceSlug, projectId);
-}
+  it("should update a project", async () => {
+    const updateData: UpdateProject = {
+      name: "Updated Test Project",
+      description: "Updated Test Project Description",
+    };
 
-if (require.main === module) {
-  testProjects().catch(console.error);
-}
+    const updatedProject = await client.projects.update(workspaceSlug, project.id, updateData);
+
+    expect(updatedProject).toBeDefined();
+    expect(updatedProject.id).toBe(project.id);
+    expect(updatedProject.name).toBe("Updated Test Project");
+    expect(updatedProject.description).toBe("Updated Test Project Description");
+  });
+
+  it("should list projects", async () => {
+    const projects = await client.projects.list(workspaceSlug);
+
+    expect(projects).toBeDefined();
+    expect(Array.isArray(projects.results)).toBe(true);
+    expect(projects.results.length).toBeGreaterThan(0);
+
+    const foundProject = projects.results.find((p) => p.id === project.id);
+    expect(foundProject).toBeDefined();
+    expect(foundProject?.name).toBe("Updated Test Project");
+  });
+
+  it("should get project members", async () => {
+    const members = await client.projects.getMembers(workspaceSlug, project.id);
+
+    expect(members).toBeDefined();
+    expect(Array.isArray(members)).toBe(true);
+  });
+});

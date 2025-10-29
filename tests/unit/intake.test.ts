@@ -1,95 +1,78 @@
 import { PlaneClient } from "../../src/client/plane-client";
-import { PaginatedResponse } from "../../src/models/common";
 import { IntakeWorkItem } from "../../src/models/Intake";
 import { config } from "./constants";
-import { createTestClient } from "../helpers/test-utils";
+import { createTestClient, randomizeName } from "../helpers/test-utils";
+import { describeIf as describe } from "../helpers/conditional-tests";
 
-export async function testIntake() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId), "Intake API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let intakeWorkItem: IntakeWorkItem;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
 
-  if (!workspaceSlug || !projectId) {
-    console.error("workspaceSlug and projectId are required");
-    return;
-  }
-
-  // enable intake if didn't already
-  const updatedProject = await client.projects.update(workspaceSlug, projectId, {
-    intake_view: true,
+    // Enable intake view if not already enabled
+    await client.projects.update(workspaceSlug, projectId, {
+      intake_view: true,
+    });
   });
 
-  const intakeWorkItem = await createIntake(client, workspaceSlug, projectId);
-  console.log("Created intake: ", intakeWorkItem);
-
-  const retrievedIntake = await retrieveIntake(client, workspaceSlug, projectId, intakeWorkItem.issue!);
-  console.log("Retrieved intake: ", retrievedIntake);
-
-  const updatedIntake = await updateIntake(client, workspaceSlug, projectId, intakeWorkItem.issue!, intakeWorkItem);
-  console.log("Updated intake: ", updatedIntake);
-
-  const intakes = await listIntake(client, workspaceSlug, projectId);
-  console.log("Listed intakes: ", intakes);
-
-  await deleteIntake(client, workspaceSlug, projectId, intakeWorkItem.issue!);
-  console.log("Intake deleted: ", intakeWorkItem.id);
-}
-
-async function createIntake(client: PlaneClient, workspaceSlug: string, projectId: string): Promise<IntakeWorkItem> {
-  const intake = await client.intake.create(workspaceSlug, projectId, {
-    issue: {
-      name: "Test Intake",
-      description_html: "<p>Test Intake Description</p>",
-    },
+  afterAll(async () => {
+    // Clean up created intake work item
+    if (intakeWorkItem?.issue) {
+      try {
+        await client.intake.delete(workspaceSlug, projectId, intakeWorkItem.issue);
+      } catch (error) {
+        console.warn("Failed to delete intake work item:", error);
+      }
+    }
   });
-  return intake;
-}
 
-async function retrieveIntake(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  intakeWorkItemId: string
-): Promise<IntakeWorkItem> {
-  const intake = await client.intake.retrieve(workspaceSlug, projectId, intakeWorkItemId);
-  return intake;
-}
+  it("should create an intake work item", async () => {
+    intakeWorkItem = await client.intake.create(workspaceSlug, projectId, {
+      issue: {
+        name: randomizeName("Test Intake"),
+        description_html: "<p>Test Intake Description</p>",
+      },
+    });
 
-async function listIntake(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string
-): Promise<PaginatedResponse<IntakeWorkItem>> {
-  const intakes = await client.intake.list(workspaceSlug, projectId);
-  return intakes;
-}
-
-async function updateIntake(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  intakeWorkItemId: string,
-  intake: IntakeWorkItem
-): Promise<IntakeWorkItem> {
-  const updatedIntake = await client.intake.update(workspaceSlug, projectId, intakeWorkItemId, {
-    issue: {
-      name: "Updated Test Intake",
-      description_html: "<p>Updated Test Intake Description</p>",
-    },
+    expect(intakeWorkItem).toBeDefined();
+    expect(intakeWorkItem.id).toBeDefined();
+    expect(intakeWorkItem.issue).toBeDefined();
   });
-  return updatedIntake;
-}
 
-async function deleteIntake(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  intakeWorkItemId: string
-): Promise<void> {
-  await client.intake.delete(workspaceSlug, projectId, intakeWorkItemId);
-}
+  it("should retrieve an intake work item", async () => {
+    const retrievedIntake = await client.intake.retrieve(workspaceSlug, projectId, intakeWorkItem.issue!);
 
-if (require.main === module) {
-  testIntake().catch(console.error);
-}
+    expect(retrievedIntake).toBeDefined();
+    expect(retrievedIntake.id).toBe(intakeWorkItem.id);
+    expect(retrievedIntake.issue).toBe(intakeWorkItem.issue);
+  });
+
+  it("should update an intake work item", async () => {
+    const updatedIntake = await client.intake.update(workspaceSlug, projectId, intakeWorkItem.issue!, {
+      issue: {
+        name: "Updated Test Intake",
+        description_html: "<p>Updated Test Intake Description</p>",
+      },
+    });
+
+    expect(updatedIntake).toBeDefined();
+    expect(updatedIntake.id).toBe(intakeWorkItem.id);
+  });
+
+  it("should list intake work items", async () => {
+    const intakes = await client.intake.list(workspaceSlug, projectId);
+
+    expect(intakes).toBeDefined();
+    expect(Array.isArray(intakes.results)).toBe(true);
+    expect(intakes.results.length).toBeGreaterThan(0);
+
+    const foundIntake = intakes.results.find((i) => i.id === intakeWorkItem.id);
+    expect(foundIntake).toBeDefined();
+  });
+});

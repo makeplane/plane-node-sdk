@@ -1,42 +1,41 @@
 import { PlaneClient } from "../../../src/client/plane-client";
 import { config } from "../constants";
 import { createTestClient } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testActivities() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Work Item Activities API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workItemId: string;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemId = config.workItemId;
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
+    workItemId = config.workItemId;
+  });
 
-  if (!workspaceSlug || !projectId || !workItemId) {
-    console.error("workspaceSlug, projectId and workItemId are required");
-    return;
-  }
+  it("should list activities", async () => {
+    const activityResponse = await client.workItems.activities.list(workspaceSlug, projectId, workItemId);
 
-  const activityResponse = await listActivities(client, workspaceSlug, projectId, workItemId);
-  console.log("activities list", activityResponse);
+    expect(activityResponse).toBeDefined();
+    expect(Array.isArray(activityResponse.results)).toBe(true);
+  });
 
-  const activity = await retrieveActivity(client, workspaceSlug, projectId, workItemId, activityResponse.results[0].id);
-  console.log("activity retrieve", activity);
-}
+  it("should retrieve an activity", async () => {
+    const activityResponse = await client.workItems.activities.list(workspaceSlug, projectId, workItemId);
 
-async function listActivities(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const activities = await client.workItems.activities.list(workspaceSlug, projectId, workItemId);
-  return activities;
-}
+    if (activityResponse.results.length > 0) {
+      const activity = await client.workItems.activities.retrieve(
+        workspaceSlug,
+        projectId,
+        workItemId,
+        activityResponse.results[0]!.id!
+      );
 
-async function retrieveActivity(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  activityId: string
-) {
-  const activity = await client.workItems.activities.retrieve(workspaceSlug, projectId, workItemId, activityId);
-  return activity;
-}
-
-if (require.main === module) {
-  testActivities().catch(console.error);
-}
+      expect(activity).toBeDefined();
+      expect(activity.id).toBe(activityResponse.results[0]!.id);
+    }
+  });
+});

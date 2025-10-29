@@ -1,65 +1,74 @@
 import { PlaneClient } from "../../../src/client/plane-client";
+import { Customer } from "../../../src/models/Customer";
 import { config } from "../constants";
-import { createTestClient } from "../../helpers/test-utils";
+import { createTestClient, randomizeName } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testCustomers() {
-  const client = createTestClient();
+describe(!!config.workspaceSlug, "Customer API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let customer: Customer;
 
-  const workspaceSlug = config.workspaceSlug;
-
-  if (!workspaceSlug) {
-    console.error("workspaceSlug is required");
-    return;
-  }
-
-  const customer = await createCustomer(client, workspaceSlug);
-  console.log("Created customer: ", customer);
-
-  const retrievedCustomer = await retrieveCustomer(client, workspaceSlug, customer.id);
-  console.log("Retrieved customer: ", retrievedCustomer);
-
-  const updatedCustomer = await updateCustomer(client, workspaceSlug, customer.id);
-  console.log("Updated customer: ", updatedCustomer);
-
-  const customers = await listCustomers(client, workspaceSlug);
-  console.log("Listed customers: ", customers);
-
-  await deleteCustomer(client, workspaceSlug, customer.id);
-  console.log("Deleted customer: ", customer.id);
-}
-
-async function createCustomer(client: PlaneClient, workspaceSlug: string) {
-  const customer = await client.customers.create(workspaceSlug, {
-    name: `Test Customer ${new Date().getTime()}`,
-    description: "Test Customer Description",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
   });
-  return customer;
-}
 
-async function retrieveCustomer(client: PlaneClient, workspaceSlug: string, customerId: string) {
-  const customer = await client.customers.retrieve(workspaceSlug, customerId);
-  return customer;
-}
-
-async function updateCustomer(client: PlaneClient, workspaceSlug: string, customerId: string) {
-  return await client.customers.update(workspaceSlug, customerId, {
-    name: `Updated Test Customer ${new Date().getTime()}`,
-    description: "Updated Test Customer Description",
+  afterAll(async () => {
+    // Clean up created customer
+    if (customer?.id) {
+      try {
+        await client.customers.delete(workspaceSlug, customer.id);
+      } catch (error) {
+        console.warn("Failed to delete customer:", error);
+      }
+    }
   });
-}
 
-async function listCustomers(client: PlaneClient, workspaceSlug: string) {
-  const customers = await client.customers.list(workspaceSlug, {
-    limit: 10,
-    offset: 0,
+  it("should create a customer", async () => {
+    customer = await client.customers.create(workspaceSlug, {
+      name: randomizeName("Test Customer"),
+      description: "Test Customer Description",
+    });
+
+    expect(customer).toBeDefined();
+    expect(customer.id).toBeDefined();
+    expect(customer.name).toContain("Test Customer");
+    expect(customer.description).toBe("Test Customer Description");
   });
-  return customers;
-}
 
-async function deleteCustomer(client: PlaneClient, workspaceSlug: string, customerId: string) {
-  await client.customers.delete(workspaceSlug, customerId);
-}
+  it("should retrieve a customer", async () => {
+    const retrievedCustomer = await client.customers.retrieve(workspaceSlug, customer.id!);
 
-if (require.main === module) {
-  testCustomers().catch(console.error);
-}
+    expect(retrievedCustomer).toBeDefined();
+    expect(retrievedCustomer.id).toBe(customer.id);
+    expect(retrievedCustomer.name).toBe(customer.name);
+    expect(retrievedCustomer.description).toBe(customer.description);
+  });
+
+  it("should update a customer", async () => {
+    const updatedCustomer = await client.customers.update(workspaceSlug, customer.id!, {
+      name: randomizeName("Updated Test Customer"),
+      description: "Updated Test Customer Description",
+    });
+
+    expect(updatedCustomer).toBeDefined();
+    expect(updatedCustomer.id).toBe(customer.id);
+    expect(updatedCustomer.name).toContain("Updated Test Customer");
+    expect(updatedCustomer.description).toBe("Updated Test Customer Description");
+  });
+
+  it("should list customers", async () => {
+    const customers = await client.customers.list(workspaceSlug, {
+      limit: 10,
+      offset: 0,
+    });
+
+    expect(customers).toBeDefined();
+    expect(Array.isArray(customers.results)).toBe(true);
+    expect(customers.results.length).toBeGreaterThan(0);
+
+    const foundCustomer = customers.results.find((c) => c.id === customer.id);
+    expect(foundCustomer).toBeDefined();
+  });
+});

@@ -1,70 +1,72 @@
 import { PlaneClient } from "../../src/client/plane-client";
 import { Label } from "../../src/models/Label";
 import { config } from "./constants";
-import { createTestClient } from "../helpers/test-utils";
+import { createTestClient, randomizeName } from "../helpers/test-utils";
+import { describeIf as describe } from "../helpers/conditional-tests";
 
-export async function testLabels() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId), "Label API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let label: Label;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-
-  if (!workspaceSlug || !projectId) {
-    console.error("workspaceSlug and projectId are required");
-    return;
-  }
-
-  const labelObj = await createLabel(client, workspaceSlug, projectId);
-  console.log("Created label: ", labelObj);
-
-  const retrievedLabel = await retrieveLabel(client, workspaceSlug, projectId, labelObj.id);
-  console.log("Retrieved label: ", retrievedLabel);
-
-  const updatedLabel = await updateLabel(client, workspaceSlug, projectId, labelObj.id, labelObj);
-  console.log("Updated label: ", updatedLabel);
-
-  const labels = await listLabels(client, workspaceSlug, projectId);
-  console.log("Listed labels: ", labels);
-
-  await deleteLabel(client, workspaceSlug, projectId, labelObj.id);
-  console.log("Label deleted: ", labelObj.id);
-}
-
-async function createLabel(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const label = await client.labels.create(workspaceSlug, projectId, {
-    name: "Test Label " + new Date().getTime(),
-    description: "Test Label Description",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
   });
-  return label;
-}
 
-async function retrieveLabel(client: PlaneClient, workspaceSlug: string, projectId: string, labelId: string) {
-  const label = await client.labels.retrieve(workspaceSlug, projectId, labelId);
-  return label;
-}
-
-async function updateLabel(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  labelId: string,
-  label: Label
-) {
-  const updatedLabel = await client.labels.update(workspaceSlug, projectId, labelId, {
-    description: "Updated Test Label Description" + new Date().toISOString(),
+  afterAll(async () => {
+    // Clean up created label
+    if (label?.id) {
+      try {
+        await client.labels.delete(workspaceSlug, projectId, label.id);
+      } catch (error) {
+        console.warn("Failed to delete label:", error);
+      }
+    }
   });
-  return updatedLabel;
-}
 
-async function deleteLabel(client: PlaneClient, workspaceSlug: string, projectId: string, labelId: string) {
-  await client.labels.delete(workspaceSlug, projectId, labelId);
-}
+  it("should create a label", async () => {
+    label = await client.labels.create(workspaceSlug, projectId, {
+      name: randomizeName("Test Label"),
+      description: "Test Label Description",
+    });
 
-async function listLabels(client: PlaneClient, workspaceSlug: string, projectId: string) {
-  const labels = await client.labels.list(workspaceSlug, projectId);
-  return labels;
-}
+    expect(label).toBeDefined();
+    expect(label.id).toBeDefined();
+    expect(label.name).toContain("Test Label");
+    expect(label.description).toBe("Test Label Description");
+  });
 
-if (require.main === module) {
-  testLabels().catch(console.error);
-}
+  it("should retrieve a label", async () => {
+    const retrievedLabel = await client.labels.retrieve(workspaceSlug, projectId, label.id!);
+
+    expect(retrievedLabel).toBeDefined();
+    expect(retrievedLabel.id).toBe(label.id);
+    expect(retrievedLabel.name).toBe(label.name);
+    expect(retrievedLabel.description).toBe(label.description);
+  });
+
+  it("should update a label", async () => {
+    const updatedLabel = await client.labels.update(workspaceSlug, projectId, label.id!, {
+      description: "Updated Test Label Description",
+    });
+
+    expect(updatedLabel).toBeDefined();
+    expect(updatedLabel.id).toBe(label.id);
+    expect(updatedLabel.description).toBe("Updated Test Label Description");
+  });
+
+  it("should list labels", async () => {
+    const labels = await client.labels.list(workspaceSlug, projectId);
+
+    expect(labels).toBeDefined();
+    expect(Array.isArray(labels.results)).toBe(true);
+    expect(labels.results.length).toBeGreaterThan(0);
+
+    const foundLabel = labels.results.find((l) => l.id === label.id);
+    expect(foundLabel).toBeDefined();
+    expect(foundLabel?.description).toBe("Updated Test Label Description");
+  });
+});

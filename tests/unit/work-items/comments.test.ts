@@ -1,81 +1,75 @@
 import { PlaneClient } from "../../../src/client/plane-client";
-import { WorkItemCommentUpdateRequest } from "../../../src/models/Comment";
+import { WorkItemComment } from "../../../src/models/Comment";
 import { config } from "../constants";
 import { createTestClient } from "../../helpers/test-utils";
+import { describeIf as describe } from "../../helpers/conditional-tests";
 
-export async function testComments() {
-  const client = createTestClient();
+describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Work Item Comments API Tests", () => {
+  let client: PlaneClient;
+  let workspaceSlug: string;
+  let projectId: string;
+  let workItemId: string;
+  let comment: WorkItemComment;
 
-  const workspaceSlug = config.workspaceSlug;
-  const projectId = config.projectId;
-  const workItemId = config.workItemId;
-
-  if (!workspaceSlug || !projectId || !workItemId) {
-    console.error("workspaceSlug, projectId and workItemId are required");
-    return;
-  }
-
-  const comment = await createComment(client, workspaceSlug, projectId, workItemId);
-  console.log("Created comment: ", comment);
-
-  const retrievedComment = await retrieveComment(client, workspaceSlug, projectId, workItemId, comment.id);
-  console.log("Retrieved comment: ", retrievedComment);
-
-  const updatedComment = await updateComment(client, workspaceSlug, projectId, workItemId, comment.id);
-  console.log("Updated comment: ", updatedComment);
-
-  const comments = await listComments(client, workspaceSlug, projectId, workItemId);
-  console.log("Listed comments: ", comments);
-
-  await deleteComment(client, workspaceSlug, projectId, workItemId, comment.id);
-  console.log("Deleted comment: ", comment.id);
-}
-
-async function createComment(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const comment = await client.workItems.comments.create(workspaceSlug, projectId, workItemId, {
-    comment_html: "<p>Test Comment</p>",
+  beforeAll(async () => {
+    client = createTestClient();
+    workspaceSlug = config.workspaceSlug;
+    projectId = config.projectId;
+    workItemId = config.workItemId;
   });
-  return comment;
-}
 
-async function retrieveComment(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  commentId: string
-) {
-  const comment = await client.workItems.comments.retrieve(workspaceSlug, projectId, workItemId, commentId);
-  return comment;
-}
-
-async function updateComment(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  commentId: string
-) {
-  return await client.workItems.comments.update(workspaceSlug, projectId, workItemId, commentId, {
-    comment_html: "<p>Updated Test Comment</p>",
+  afterAll(async () => {
+    // Clean up created comment
+    if (comment?.id) {
+      try {
+        await client.workItems.comments.delete(workspaceSlug, projectId, workItemId, comment.id);
+      } catch (error) {
+        console.warn("Failed to delete comment:", error);
+      }
+    }
   });
-}
 
-async function listComments(client: PlaneClient, workspaceSlug: string, projectId: string, workItemId: string) {
-  const comments = await client.workItems.comments.list(workspaceSlug, projectId, workItemId);
-  return comments;
-}
+  it("should create a comment", async () => {
+    comment = await client.workItems.comments.create(workspaceSlug, projectId, workItemId, {
+      comment_html: "<p>Test Comment</p>",
+    });
 
-async function deleteComment(
-  client: PlaneClient,
-  workspaceSlug: string,
-  projectId: string,
-  workItemId: string,
-  commentId: string
-) {
-  await client.workItems.comments.delete(workspaceSlug, projectId, workItemId, commentId);
-}
+    expect(comment).toBeDefined();
+    expect(comment.id).toBeDefined();
+    expect(comment.comment_html).toBe("<p>Test Comment</p>");
+  });
 
-if (require.main === module) {
-  testComments().catch(console.error);
-}
+  it("should retrieve a comment", async () => {
+    const retrievedComment = await client.workItems.comments.retrieve(
+      workspaceSlug,
+      projectId,
+      workItemId,
+      comment.id!
+    );
+
+    expect(retrievedComment).toBeDefined();
+    expect(retrievedComment.id).toBe(comment.id);
+    expect(retrievedComment.comment_html).toBe(comment.comment_html);
+  });
+
+  it("should update a comment", async () => {
+    const updatedComment = await client.workItems.comments.update(workspaceSlug, projectId, workItemId, comment.id!, {
+      comment_html: "<p>Updated Test Comment</p>",
+    });
+
+    expect(updatedComment).toBeDefined();
+    expect(updatedComment.id).toBe(comment.id);
+    expect(updatedComment.comment_html).toBe("<p>Updated Test Comment</p>");
+  });
+
+  it("should list comments", async () => {
+    const comments = await client.workItems.comments.list(workspaceSlug, projectId, workItemId);
+
+    expect(comments).toBeDefined();
+    expect(Array.isArray(comments.results)).toBe(true);
+    expect(comments.results.length).toBeGreaterThan(0);
+
+    const foundComment = comments.results.find((c) => c.id === comment.id);
+    expect(foundComment).toBeDefined();
+  });
+});
