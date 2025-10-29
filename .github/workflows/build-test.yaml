@@ -41,4 +41,4 @@ jobs:
               env:
                   PLANE_API_KEY: ${{ secrets.PLANE_API_KEY }}
                   PLANE_BASE_URL: ${{ secrets.PLANE_BASE_URL }}
-                  TEST_WORKSPACE_SLUG: ${{ env.TEST_WORKSPACE_SLUG }}
+                  TEST_WORKSPACE_SLUG: ${{ vars.TEST_WORKSPACE_SLUG }}
