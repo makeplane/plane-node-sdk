@@ -1,4 +1,4 @@
-name: Publish Node SDK to npm
+name: Build and Test Node SDK
 
 on:
     pull_request:

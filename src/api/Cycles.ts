@@ -68,9 +68,7 @@ export class Cycles extends BaseResource {
    * Unarchive a cycle
    */
   async unArchive(workspaceSlug: string, projectId: string, cycleId: string): Promise<void> {
-    return this.httpDelete<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/unarchive/`
-    );
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/unarchive/`);
   }
 
   /**
