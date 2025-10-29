@@ -4,11 +4,7 @@ on:
     pull_request:
         branches:
             - main
-
-    push:
-        branches:
-            - fix-eslint
-
+        types: ["opened", "synchronize", "reopened"]
 jobs:
     build-lint:
         runs-on: ubuntu-latest
