@@ -1,6 +1,3 @@
-import { WorkItemAttachments } from "..";
-import { BaseModel } from "./common";
-
 /**
  * Attachment model interfaces
  *

@@ -1,4 +1,3 @@
-import { CreateEntity, UpdateEntity } from "./common";
 /**
  * State model interfaces
  */

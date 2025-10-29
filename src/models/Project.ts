@@ -1,4 +1,4 @@
-import { LogoProps, BaseModel } from "./common";
+import { BaseModel } from "./common";
 
 /**
  * Project model interfaces

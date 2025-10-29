@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
 import { Configuration } from "../Configuration";
 import { HttpError } from "../errors";
 
@@ -111,7 +111,7 @@ export abstract class BaseResource {
   /**
    * DELETE request
    */
-  protected async httpDelete<T>(endpoint: string): Promise<void> {
+  protected async httpDelete(endpoint: string): Promise<void> {
     try {
       await axios.delete(this.buildUrl(endpoint), {
         headers: this.getHeaders(),
