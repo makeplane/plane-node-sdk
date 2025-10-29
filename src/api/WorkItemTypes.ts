@@ -1,6 +1,5 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { PaginatedResponse } from "../models/common";
 import { WorkItemType, CreateWorkItemType, UpdateWorkItemType } from "../models/WorkItemType";
 
 export interface ListWorkItemTypesParams {
