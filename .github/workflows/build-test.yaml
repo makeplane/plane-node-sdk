@@ -5,6 +5,10 @@ on:
         branches:
             - main
 
+    push:
+        branches:
+            - fix-eslint
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -12,3 +16,12 @@ jobs:
             - uses: actions/checkout@v4
             - name: Install dependencies
               run: pnpm install
+
+            - name: Run lint
+              run: pnpm check:lint
+
+            - name: Run format
+              run: pnpm check:format
+
+            - name: Run tests
+              run: pnpm test
