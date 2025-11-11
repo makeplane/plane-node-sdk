@@ -17,9 +17,7 @@ export interface Sticky extends BaseModel {
   sort_order: number;
 }
 
-export type CreateSticky = Omit<Sticky, "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace" | "owner"> & {
-  sort_order?: number;
-};
+export type CreateSticky = Omit<Sticky, "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace" | "owner" | "sort_order">;
 
 export type UpdateSticky = Partial<CreateSticky>;
 
