@@ -1,4 +1,6 @@
 export * from "./Project";
+export * from "./ProjectFeatures";
+export * from "./WorkspaceFeatures";
 export * from "./WorkItem";
 export * from "./WorkItemProperty";
 export * from "./Comment";
@@ -8,3 +10,7 @@ export * from "./Customer";
 export * from "./Page";
 export * from "./Cycle";
 export * from "./Module";
+export * from "./Sticky";
+export * from "./Teamspace";
+export * from "./InitiativeLabel";
+export * from "./Initiative";

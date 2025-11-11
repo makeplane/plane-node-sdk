@@ -3,6 +3,7 @@ import { Configuration } from "../Configuration";
 import { Project, CreateProject, UpdateProject, ListProjectsParams } from "../models/Project";
 import { PaginatedResponse } from "../models/common";
 import { User } from "../models/User";
+import { ProjectFeatures, UpdateProjectFeatures } from "../models/ProjectFeatures";
 
 /**
  * Project API resource
@@ -64,5 +65,19 @@ export class Projects extends BaseResource {
    */
   async getTotalWorkLogs(workspaceSlug: string, projectId: string): Promise<any> {
     return this.get<any>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-logs/total/`);
+  }
+
+  /**
+   * Retrieve project features
+   */
+  async retrieveFeatures(workspaceSlug: string, projectId: string): Promise<ProjectFeatures> {
+    return this.get<ProjectFeatures>(`/workspaces/${workspaceSlug}/projects/${projectId}/features/`);
+  }
+
+  /**
+   * Update project features
+   */
+  async updateFeatures(workspaceSlug: string, projectId: string, updateFeatures: UpdateProjectFeatures): Promise<ProjectFeatures> {
+    return this.patch<ProjectFeatures>(`/workspaces/${workspaceSlug}/projects/${projectId}/features/`, updateFeatures);
   }
 }

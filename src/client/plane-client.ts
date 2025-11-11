@@ -15,6 +15,9 @@ import { Users } from "../api/Users";
 import { Workspace } from "../api/Workspace";
 import { Epics } from "../api/Epics";
 import { Intake } from "../api/Intake";
+import { Stickies } from "../api/Stickies";
+import { Teamspaces } from "../api/Teamspaces";
+import { Initiatives } from "../api/Initiatives";
 
 /**
  * Main Plane Client class
@@ -38,6 +41,9 @@ export class PlaneClient {
   public workspace: Workspace;
   public epics: Epics;
   public intake: Intake;
+  public stickies: Stickies;
+  public teamspaces: Teamspaces;
+  public initiatives: Initiatives;
 
   constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
     this.config = new Configuration({
@@ -67,5 +73,8 @@ export class PlaneClient {
     this.workspace = new Workspace(this.config);
     this.epics = new Epics(this.config);
     this.intake = new Intake(this.config);
+    this.stickies = new Stickies(this.config);
+    this.teamspaces = new Teamspaces(this.config);
+    this.initiatives = new Initiatives(this.config);
   }
 }

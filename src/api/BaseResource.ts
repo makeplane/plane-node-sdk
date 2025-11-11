@@ -111,10 +111,11 @@ export abstract class BaseResource {
   /**
    * DELETE request
    */
-  protected async httpDelete(endpoint: string): Promise<void> {
+  protected async httpDelete(endpoint: string, data?: any): Promise<void> {
     try {
       await axios.delete(this.buildUrl(endpoint), {
         headers: this.getHeaders(),
+        data,
       });
     } catch (error) {
       throw this.handleError(error);
