@@ -12,4 +12,3 @@ export interface ProjectFeatures {
 }
 
 export type UpdateProjectFeatures = Partial<ProjectFeatures>;
-

@@ -11,4 +11,3 @@ export interface WorkspaceFeatures {
 }
 
 export type UpdateWorkspaceFeatures = Partial<WorkspaceFeatures>;
-

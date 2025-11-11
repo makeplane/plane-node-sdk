@@ -14,7 +14,10 @@ export interface Teamspace extends BaseModel {
   workspace: string;
 }
 
-export type CreateTeamspace = Omit<Teamspace, "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace">;
+export type CreateTeamspace = Omit<
+  Teamspace,
+  "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace"
+>;
 
 export type UpdateTeamspace = Partial<CreateTeamspace>;
 
@@ -39,4 +42,3 @@ export interface AddTeamspaceMembersRequest {
 export interface RemoveTeamspaceMembersRequest {
   member_ids: string[];
 }
-

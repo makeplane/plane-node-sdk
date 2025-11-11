@@ -17,7 +17,10 @@ export interface Initiative extends BaseModel {
   workspace: string;
 }
 
-export type CreateInitiative = Omit<Initiative, "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace">;
+export type CreateInitiative = Omit<
+  Initiative,
+  "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace"
+>;
 
 export type UpdateInitiative = Partial<CreateInitiative>;
 
@@ -50,4 +53,3 @@ export interface AddInitiativeEpicsRequest {
 export interface RemoveInitiativeEpicsRequest {
   epic_ids: string[];
 }
-

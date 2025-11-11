@@ -11,7 +11,10 @@ export interface InitiativeLabel extends BaseModel {
   workspace: string;
 }
 
-export type CreateInitiativeLabel = Omit<InitiativeLabel, "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace"> & {
+export type CreateInitiativeLabel = Omit<
+  InitiativeLabel,
+  "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace"
+> & {
   sort_order?: number;
 };
 
@@ -22,4 +25,3 @@ export interface ListInitiativeLabelsParams {
   offset?: number;
   [key: string]: any;
 }
-

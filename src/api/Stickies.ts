@@ -47,4 +47,3 @@ export class Stickies extends BaseResource {
     return this.get<PaginatedResponse<Sticky>>(`/workspaces/${workspaceSlug}/stickies/`, params);
   }
 }
-

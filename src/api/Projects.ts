@@ -77,7 +77,11 @@ export class Projects extends BaseResource {
   /**
    * Update project features
    */
-  async updateFeatures(workspaceSlug: string, projectId: string, updateFeatures: UpdateProjectFeatures): Promise<ProjectFeatures> {
+  async updateFeatures(
+    workspaceSlug: string,
+    projectId: string,
+    updateFeatures: UpdateProjectFeatures
+  ): Promise<ProjectFeatures> {
     return this.patch<ProjectFeatures>(`/workspaces/${workspaceSlug}/projects/${projectId}/features/`, updateFeatures);
   }
 }
