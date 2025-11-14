@@ -1,5 +1,12 @@
 import { BaseModel, LogoProps } from "./common";
 
+export enum InitiativeState {
+  DRAFT = "DRAFT",
+  PLANNED = "PLANNED",
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+  CLOSED = "CLOSED",
+}
 /**
  * Initiative model interfaces
  */
@@ -13,7 +20,7 @@ export interface Initiative extends BaseModel {
   start_date?: string;
   end_date?: string;
   logo_props?: LogoProps;
-  state: string; // StateChoices: DRAFT, etc.
+  state?: InitiativeState;
   workspace: string;
 }
 

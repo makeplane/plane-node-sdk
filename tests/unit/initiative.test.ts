@@ -1,5 +1,5 @@
 import { PlaneClient } from "../../src/client/plane-client";
-import { Initiative, UpdateInitiative } from "../../src/models/Initiative";
+import { Initiative, InitiativeState, UpdateInitiative } from "../../src/models/Initiative";
 import { InitiativeLabel } from "../../src/models/InitiativeLabel";
 import { Project } from "../../src/models/Project";
 import { Epic } from "../../src/models/Epic";
@@ -74,14 +74,14 @@ describeIf(!!(config.workspaceSlug && config.projectId), "Initiative API Tests",
     initiative = await client.initiatives.create(workspaceSlug, {
       name: randomizeName("Test Initiative"),
       description: "Test Initiative Description",
-      state: "DRAFT",
+      state: InitiativeState.ACTIVE,
     });
 
     expect(initiative).toBeDefined();
     expect(initiative.id).toBeDefined();
     expect(initiative.name).toContain("Test Initiative");
     expect(initiative.description).toBe("Test Initiative Description");
-    expect(initiative.state).toBe("DRAFT");
+    expect(initiative.state).toBe(InitiativeState.ACTIVE);
   });
 
   it("should retrieve an initiative", async () => {
@@ -90,12 +90,14 @@ describeIf(!!(config.workspaceSlug && config.projectId), "Initiative API Tests",
     expect(retrievedInitiative).toBeDefined();
     expect(retrievedInitiative.id).toBe(initiative.id);
     expect(retrievedInitiative.name).toBe(initiative.name);
+    expect(retrievedInitiative.state).toBe(initiative.state);
   });
 
   it("should update an initiative", async () => {
     const updateData: UpdateInitiative = {
       name: randomizeName("Updated Test Initiative"),
       description: "Updated Test Initiative Description",
+      state: InitiativeState.PLANNED,
     };
 
     const updatedInitiative = await client.initiatives.update(workspaceSlug, initiative.id, updateData);
@@ -103,6 +105,7 @@ describeIf(!!(config.workspaceSlug && config.projectId), "Initiative API Tests",
     expect(updatedInitiative).toBeDefined();
     expect(updatedInitiative.id).toBe(initiative.id);
     expect(updatedInitiative.name).toContain("Updated Test Initiative");
+    expect(updatedInitiative.state).toBe(InitiativeState.PLANNED);
   });
 
   it("should list initiatives", async () => {
