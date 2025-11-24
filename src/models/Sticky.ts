@@ -19,7 +19,18 @@ export interface Sticky extends BaseModel {
 
 export type CreateSticky = Omit<
   Sticky,
-  "id" | "created_at" | "updated_at" | "deleted_at" | "created_by" | "updated_by" | "workspace" | "owner" | "sort_order"
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "deleted_at"
+  | "created_by"
+  | "updated_by"
+  | "workspace"
+  | "owner"
+  | "sort_order"
+  | "description_binary"
+  | "description_stripped"
+  | "description"
 >;
 
 export type UpdateSticky = Partial<CreateSticky>;
