@@ -58,5 +58,8 @@
   "packageManager": "pnpm@10.20.0",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "resolutions": {
+    "js-yaml": "4.1.1"
   }
 }
