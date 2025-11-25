@@ -24,6 +24,9 @@ export { Users } from "./api/Users";
 export { Workspace } from "./api/Workspace";
 export { Epics } from "./api/Epics";
 export { Intake } from "./api/Intake";
+export { Stickies } from "./api/Stickies";
+export { Teamspaces } from "./api/Teamspaces";
+export { Initiatives } from "./api/Initiatives";
 
 // Sub-resources
 export { Relations as WorkItemRelations } from "./api/WorkItems/Relations";
@@ -35,6 +38,11 @@ export { Options as WorkItemPropertyOptions } from "./api/WorkItemProperties/Opt
 export { Values as WorkItemPropertyValues } from "./api/WorkItemProperties/Values";
 export { Properties as CustomerProperties } from "./api/Customers/Properties";
 export { Requests as CustomerRequests } from "./api/Customers/Requests";
+export { Projects as TeamspaceProjects } from "./api/Teamspaces/Projects";
+export { Members as TeamspaceMembers } from "./api/Teamspaces/Members";
+export { Labels as InitiativeLabels } from "./api/Initiatives/Labels";
+export { Projects as InitiativeProjects } from "./api/Initiatives/Projects";
+export { Epics as InitiativeEpics } from "./api/Initiatives/Epics";
 
 // Models
 export * from "./models";

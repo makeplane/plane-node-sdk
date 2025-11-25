@@ -72,6 +72,10 @@ const project = await client.projects.create("workspace-slug", {
 - **Workspace**: Workspace-level operations
 - **Epics**: Epic management and organization
 - **Intake**: Intake form and request management
+- **Stickies**: Stickies management
+- **Teamspaces**: Teamspace management
+- **Initiatives**: Initiative management
+- **Features**: Workspace and project features management
 
 ## Development
 
@@ -129,6 +133,8 @@ pnpm test
 
 # Run specific test files
 pnpx ts-node tests/page.test.ts
+# or
+pnpm test page.test.ts
 ```
 
 ## License

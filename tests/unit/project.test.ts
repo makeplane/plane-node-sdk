@@ -80,4 +80,38 @@ describe(!!config.workspaceSlug, "Project API Tests", () => {
     expect(members).toBeDefined();
     expect(Array.isArray(members)).toBe(true);
   });
+
+  describe(!!config.workspaceSlug, "Project Features", () => {
+    it("should retrieve project features", async () => {
+      const features = await client.projects.retrieveFeatures(workspaceSlug, project.id);
+
+      expect(features).toBeDefined();
+      expect(typeof features.epics).toBe("boolean");
+      expect(typeof features.modules).toBe("boolean");
+      expect(typeof features.cycles).toBe("boolean");
+      expect(typeof features.views).toBe("boolean");
+      expect(typeof features.pages).toBe("boolean");
+      expect(typeof features.intakes).toBe("boolean");
+      expect(typeof features.work_item_types).toBe("boolean");
+    });
+
+    it("should update project features", async () => {
+      const originalFeatures = await client.projects.retrieveFeatures(workspaceSlug, project.id);
+
+      const updatedFeatures = await client.projects.updateFeatures(workspaceSlug, project.id, {
+        epics: !originalFeatures.epics,
+        modules: !originalFeatures.modules,
+      });
+
+      expect(updatedFeatures).toBeDefined();
+      expect(updatedFeatures.epics).toBe(!originalFeatures.epics);
+      expect(updatedFeatures.modules).toBe(!originalFeatures.modules);
+
+      // Restore original values
+      await client.projects.updateFeatures(workspaceSlug, project.id, {
+        epics: originalFeatures.epics,
+        modules: originalFeatures.modules,
+      });
+    });
+  });
 });
