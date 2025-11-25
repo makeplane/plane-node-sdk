@@ -16,6 +16,12 @@ describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Mod
     workspaceSlug = config.workspaceSlug;
     projectId = config.projectId;
     workItemId = config.workItemId;
+    const project = await client.projects.retrieve(workspaceSlug, projectId);
+    if (!project.module_view) {
+      await client.projects.update(workspaceSlug, projectId, {
+        module_view: true,
+      });
+    }
   });
 
   afterAll(async () => {
