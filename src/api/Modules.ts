@@ -125,6 +125,8 @@ export class Modules extends BaseResource {
    * Unarchive a module
    */
   async unArchiveModule(workspaceSlug: string, projectId: string, moduleId: string): Promise<void> {
-    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/unarchive/`);
+    return this.httpDelete(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-modules/${moduleId}/unarchive/`
+    );
   }
 }
