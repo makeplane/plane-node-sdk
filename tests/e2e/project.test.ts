@@ -27,6 +27,11 @@ describe("End to End Project Test", () => {
       name: projectName,
       id: projectName.slice(0, 5).toUpperCase(),
     });
+
+    await client.projects.updateFeatures(e2eConfig.workspaceSlug, project.id, {
+      cycles: true,
+      modules: true,
+    });
   });
 
   it("should create and list cycles", async () => {
