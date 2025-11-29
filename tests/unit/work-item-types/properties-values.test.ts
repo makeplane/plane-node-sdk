@@ -35,7 +35,7 @@ describe(
         workItemId,
         propertyId,
         {
-          values: [{ value: testValue }],
+          value: testValue,
         }
       );
 

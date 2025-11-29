@@ -102,6 +102,7 @@ export type TextSettings = {
  */
 export interface WorkItemPropertyOption extends BaseModel {
   name: string;
+  description?: string;
   property: string;
   is_active?: boolean;
   sort_order?: number;
@@ -137,8 +138,30 @@ export type WorkItemPropertyValues = {
   values: any[];
 }[];
 
+/**
+ * UpdateWorkItemPropertyValue model interface
+ * Request model for creating/updating a work item property value.
+ *
+ * The value type depends on the property type:
+ * - TEXT/URL/EMAIL/FILE: string
+ * - DATETIME: string (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+ * - DECIMAL: number (int or float)
+ * - BOOLEAN: boolean (true/false)
+ * - OPTION/RELATION (single): string (UUID)
+ * - OPTION/RELATION (multi, when is_multi=True): list of strings (UUIDs) or single string
+ *
+ * For multi-value properties (is_multi=True):
+ * - Accept either a single UUID string or a list of UUID strings
+ * - Multiple IssuePropertyValue records are created
+ * - Response will be a list of values
+ *
+ * For single-value properties:
+ * - Only one value is allowed per work item/property combination
+ */
 export type UpdateWorkItemPropertyValue = {
-  values: [{ value: any }];
+  value: string | boolean | number | string[];
+  external_id?: string;
+  external_source?: string;
 };
 
 export interface ListWorkItemPropertyValuesParams {
