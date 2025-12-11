@@ -27,6 +27,7 @@ export { Intake } from "./api/Intake";
 export { Stickies } from "./api/Stickies";
 export { Teamspaces } from "./api/Teamspaces";
 export { Initiatives } from "./api/Initiatives";
+export { AgentRuns } from "./api/AgentRuns";
 
 // Sub-resources
 export { Relations as WorkItemRelations } from "./api/WorkItems/Relations";
@@ -43,6 +44,7 @@ export { Members as TeamspaceMembers } from "./api/Teamspaces/Members";
 export { Labels as InitiativeLabels } from "./api/Initiatives/Labels";
 export { Projects as InitiativeProjects } from "./api/Initiatives/Projects";
 export { Epics as InitiativeEpics } from "./api/Initiatives/Epics";
+export { Activities as AgentRunActivities } from "./api/AgentRuns/Activities";
 
 // Models
 export * from "./models";
