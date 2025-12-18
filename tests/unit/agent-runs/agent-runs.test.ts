@@ -1,5 +1,5 @@
 import { PlaneClient } from "../../../src/client/plane-client";
-import { AgentRun } from "../../../src/models";
+import { AgentRun, WorkItem, WorkItemComment } from "../../../src/models";
 import { config } from "../constants";
 import { createTestClient } from "../../helpers/test-utils";
 import { describeIf as describe } from "../../helpers/conditional-tests";
@@ -10,18 +10,28 @@ describe(!!(config.workspaceSlug && config.agentSlug), "Agent Runs API Tests", (
   let agentSlug: string;
   let projectId: string;
   let agentRun: AgentRun;
+  let workItem: WorkItem;
+  let comment: WorkItemComment;
 
   beforeAll(async () => {
     client = createTestClient();
     workspaceSlug = config.workspaceSlug;
     agentSlug = config.agentSlug;
     projectId = config.projectId;
+    workItem = await client.workItems.create(workspaceSlug, projectId, {
+      name: "Test Work Item",
+      description_html: "<p>Test Description</p>",
+    });
+    comment = await client.workItems.comments.create(workspaceSlug, projectId, workItem.id, {
+      comment_html: "<p>Test Comment</p>",
+    });
   });
 
   it("should create an agent run", async () => {
     agentRun = await client.agentRuns.create(workspaceSlug, {
       agent_slug: agentSlug,
       project: projectId,
+      comment: comment.id,
     });
 
     expect(agentRun).toBeDefined();
@@ -36,13 +46,6 @@ describe(!!(config.workspaceSlug && config.agentSlug), "Agent Runs API Tests", (
     expect(retrievedRun).toBeDefined();
     expect(retrievedRun.id).toBe(agentRun.id);
     expect(retrievedRun.status).toBeDefined();
-  });
-
-  it("should resume an agent run", async () => {
-    const resumedRun = await client.agentRuns.resume(workspaceSlug, agentRun.id);
-
-    expect(resumedRun).toBeDefined();
-    expect(resumedRun.id).toBe(agentRun.id);
   });
 });
 

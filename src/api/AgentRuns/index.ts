@@ -34,15 +34,5 @@ export class AgentRuns extends BaseResource {
   async retrieve(workspaceSlug: string, runId: string): Promise<AgentRun> {
     return this.get<AgentRun>(`/workspaces/${workspaceSlug}/runs/${runId}/`);
   }
-
-  /**
-   * Resume an agent run
-   * @param workspaceSlug - The workspace slug
-   * @param runId - The agent run ID
-   * @returns The resumed agent run
-   */
-  async resume(workspaceSlug: string, runId: string): Promise<AgentRun> {
-    return this.post<AgentRun>(`/workspaces/${workspaceSlug}/runs/${runId}/`);
-  }
 }
 
