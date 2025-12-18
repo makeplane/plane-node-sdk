@@ -7,4 +7,5 @@ export const config = {
   customerId: process.env.TEST_CUSTOMER_ID!,
   workItemTypeId: process.env.TEST_WORK_ITEM_TYPE_ID!,
   customTextPropertyId: process.env.TEST_CUSTOM_TEXT_PROPERTY_ID!,
+  agentSlug: process.env.TEST_AGENT_SLUG!,
 };
