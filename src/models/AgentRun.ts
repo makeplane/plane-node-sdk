@@ -112,4 +112,3 @@ export interface CreateAgentRunActivityRequest {
   type: Exclude<AgentRunActivityType, "prompt">;
   project?: string;
 }
-
