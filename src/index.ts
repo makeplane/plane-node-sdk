@@ -1,6 +1,9 @@
 // Main client
 export { PlaneClient } from "./client/plane-client";
 
+// OAuth client
+export { OAuthClient } from "./client/oauth-client";
+
 // Configuration
 export { Configuration } from "./Configuration";
 
