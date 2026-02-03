@@ -103,4 +103,66 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
     const foundWorkItem = searchedWorkItemsResponse.issues.find((wi) => wi.id === workItem.id);
     expect(foundWorkItem).toBeDefined();
   });
+
+  it("should advanced search work items with query only", async () => {
+    const results = await client.workItems.advancedSearch(workspaceSlug, {
+      query: workItem.name,
+      limit: 10,
+    });
+
+    expect(Array.isArray(results)).toBe(true);
+    for (const item of results) {
+      expect(item.id).toBeDefined();
+      expect(item.name).toBeDefined();
+      expect(item.sequence_id).toBeDefined();
+      expect(item.project_id).toBeDefined();
+      expect(item.workspace_id).toBeDefined();
+    }
+  });
+
+  it("should advanced search work items with filters", async () => {
+    const results = await client.workItems.advancedSearch(workspaceSlug, {
+      filters: {
+        and: [
+          { priority: workItem.priority },
+        ],
+      },
+      limit: 10,
+    });
+
+    expect(Array.isArray(results)).toBe(true);
+    for (const item of results) {
+      expect(item.id).toBeDefined();
+      expect(item.name).toBeDefined();
+    }
+  });
+
+  it("should advanced search work items with nested AND/OR filters", async () => {
+    const states = await client.states.list(workspaceSlug, projectId);
+    const stateId = states.results[0]?.id;
+
+    const results = await client.workItems.advancedSearch(workspaceSlug, {
+      filters: {
+        and: [
+          ...(stateId ? [{ state_id: stateId }] : []),
+          {
+            or: [
+              { priority: "high" },
+              { priority: "urgent" },
+            ],
+          },
+        ],
+      },
+      limit: 10,
+    });
+
+    expect(Array.isArray(results)).toBe(true);
+    for (const item of results) {
+      expect(item.id).toBeDefined();
+      expect(item.name).toBeDefined();
+      expect(item.sequence_id).toBeDefined();
+      expect(item.project_id).toBeDefined();
+      expect(item.workspace_id).toBeDefined();
+    }
+  });
 });

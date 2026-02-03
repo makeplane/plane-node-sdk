@@ -122,3 +122,39 @@ export interface WorkItemSearchItem {
   project_id: string; // Project ID
   workspace__slug: string; // Workspace slug
 }
+
+/**
+ * Filter condition for advanced search.
+ * Either a leaf condition (e.g. { state_id: "..." }) or a group with "and"/"or" keys.
+ */
+export type AdvancedSearchFilter = {
+  and?: AdvancedSearchFilter[];
+  or?: AdvancedSearchFilter[];
+  [key: string]: unknown;
+};
+
+/**
+ * Request body for advanced work item search.
+ */
+export interface AdvancedSearchWorkItem {
+  query?: string;
+  filters?: AdvancedSearchFilter;
+  limit?: number;
+}
+
+/**
+ * Result item from advanced work item search.
+ */
+export interface AdvancedSearchResult {
+  id: string;
+  name: string;
+  sequence_id: number;
+  project_identifier: string;
+  project_id: string;
+  workspace_id: string;
+  type_id?: string | null;
+  state_id?: string | null;
+  priority?: string | null;
+  target_date?: string | null;
+  start_date?: string | null;
+}
