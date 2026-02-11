@@ -10,6 +10,7 @@ export * from "./InitiativeLabel";
 export * from "./Intake";
 export * from "./Label";
 export * from "./Link";
+export * from "./Milestone";
 export * from "./Module";
 export * from "./OAuth";
 export * from "./Page";

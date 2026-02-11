@@ -29,6 +29,7 @@ export { Epics } from "./api/Epics";
 export { Intake } from "./api/Intake";
 export { Stickies } from "./api/Stickies";
 export { Teamspaces } from "./api/Teamspaces";
+export { Milestones } from "./api/Milestones";
 export { Initiatives } from "./api/Initiatives";
 export { AgentRuns } from "./api/AgentRuns";
 
