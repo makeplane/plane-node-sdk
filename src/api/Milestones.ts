@@ -2,12 +2,7 @@ import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
 
-import {
-  Milestone,
-  CreateMilestoneRequest,
-  UpdateMilestoneRequest,
-  MilestoneWorkItem,
-} from "../models/Milestone";
+import { Milestone, CreateMilestoneRequest, UpdateMilestoneRequest, MilestoneWorkItem } from "../models/Milestone";
 
 /**
  * Milestones API resource
@@ -21,24 +16,15 @@ export class Milestones extends BaseResource {
   /**
    * Create a new milestone
    */
-  async create(
-    workspaceSlug: string,
-    projectId: string,
-    createMilestone: CreateMilestoneRequest
-  ): Promise<Milestone> {
-    return this.post<Milestone>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/milestones/`,
-      createMilestone
-    );
+  async create(workspaceSlug: string, projectId: string, createMilestone: CreateMilestoneRequest): Promise<Milestone> {
+    return this.post<Milestone>(`/workspaces/${workspaceSlug}/projects/${projectId}/milestones/`, createMilestone);
   }
 
   /**
    * Retrieve a milestone by ID
    */
   async retrieve(workspaceSlug: string, projectId: string, milestoneId: string): Promise<Milestone> {
-    return this.get<Milestone>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/`
-    );
+    return this.get<Milestone>(`/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/`);
   }
 
   /**
@@ -60,19 +46,13 @@ export class Milestones extends BaseResource {
    * Delete a milestone
    */
   async delete(workspaceSlug: string, projectId: string, milestoneId: string): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/`
-    );
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/`);
   }
 
   /**
    * List milestones with optional filtering
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    params?: any
-  ): Promise<PaginatedResponse<Milestone>> {
+  async list(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<Milestone>> {
     return this.get<PaginatedResponse<Milestone>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/milestones/`,
       params
@@ -82,16 +62,10 @@ export class Milestones extends BaseResource {
   /**
    * Add work items to a milestone
    */
-  async addWorkItems(
-    workspaceSlug: string,
-    projectId: string,
-    milestoneId: string,
-    issueIds: string[]
-  ): Promise<void> {
-    return this.post<void>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/work-items/`,
-      { issues: issueIds }
-    );
+  async addWorkItems(workspaceSlug: string, projectId: string, milestoneId: string, issueIds: string[]): Promise<void> {
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/work-items/`, {
+      issues: issueIds,
+    });
   }
 
   /**
@@ -103,10 +77,9 @@ export class Milestones extends BaseResource {
     milestoneId: string,
     issueIds: string[]
   ): Promise<void> {
-    return this.httpDelete(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/work-items/`,
-      { issues: issueIds }
-    );
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/milestones/${milestoneId}/work-items/`, {
+      issues: issueIds,
+    });
   }
 
   /**
