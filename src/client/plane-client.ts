@@ -18,6 +18,7 @@ import { Intake } from "../api/Intake";
 import { Stickies } from "../api/Stickies";
 import { Teamspaces } from "../api/Teamspaces";
 import { Initiatives } from "../api/Initiatives";
+import { Milestones } from "../api/Milestones";
 import { AgentRuns } from "../api/AgentRuns";
 
 /**
@@ -44,6 +45,7 @@ export class PlaneClient {
   public intake: Intake;
   public stickies: Stickies;
   public teamspaces: Teamspaces;
+  public milestones: Milestones;
   public initiatives: Initiatives;
   public agentRuns: AgentRuns;
 
@@ -77,6 +79,7 @@ export class PlaneClient {
     this.intake = new Intake(this.config);
     this.stickies = new Stickies(this.config);
     this.teamspaces = new Teamspaces(this.config);
+    this.milestones = new Milestones(this.config);
     this.initiatives = new Initiatives(this.config);
     this.agentRuns = new AgentRuns(this.config);
   }
