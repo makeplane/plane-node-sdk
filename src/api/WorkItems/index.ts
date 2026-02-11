@@ -8,6 +8,8 @@ import {
   WorkItemExpandableFieldName,
   WorkItemBase,
   WorkItemSearch,
+  AdvancedSearchWorkItem,
+  AdvancedSearchResult,
 } from "../../models/WorkItem";
 import { PaginatedResponse } from "../../models/common";
 import { Links } from "../Links";
@@ -135,5 +137,15 @@ export class WorkItems extends BaseResource {
       search: query,
       project: projectId,
     });
+  }
+
+  /**
+   * Perform advanced search on work items with filters.
+   *
+   * Supports text-based search via `query` and/or structured filters
+   * using recursive AND/OR groups.
+   */
+  async advancedSearch(workspaceSlug: string, data: AdvancedSearchWorkItem): Promise<AdvancedSearchResult[]> {
+    return this.post<AdvancedSearchResult[]>(`/workspaces/${workspaceSlug}/work-items/advanced-search/`, data);
   }
 }

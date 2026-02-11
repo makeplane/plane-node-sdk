@@ -97,6 +97,55 @@ describe("End to End Project Test", () => {
     expect(workItems.results.length).toBeGreaterThan(0);
   });
 
+  it("should advanced search work items with query", async () => {
+    // Wait for search index to update after work item creation
+    await wait(5);
+
+    const results = await client.workItems.advancedSearch(e2eConfig.workspaceSlug, {
+      query: workItem1.name,
+      limit: 10,
+    });
+
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBeGreaterThan(0);
+
+    const found = results.find((r) => r.id === workItem1.id);
+    expect(found).toBeDefined();
+    expect(found!.name).toBe(workItem1.name);
+    expect(found!.sequence_id).toBeDefined();
+    expect(found!.project_id).toBe(project.id);
+    expect(found!.workspace_id).toBeDefined();
+  });
+
+  it("should advanced search work items with nested filters", async () => {
+    const states = await client.states.list(e2eConfig.workspaceSlug, project.id);
+    const stateId = states.results[0]?.id;
+
+    const results = await client.workItems.advancedSearch(e2eConfig.workspaceSlug, {
+      filters: {
+        and: [
+          ...(stateId ? [{ state_id: stateId }] : []),
+          {
+            or: [
+              { priority: "none" },
+              { priority: "high" },
+            ],
+          },
+        ],
+      },
+      limit: 10,
+    });
+
+    expect(Array.isArray(results)).toBe(true);
+    for (const item of results) {
+      expect(item.id).toBeDefined();
+      expect(item.name).toBeDefined();
+      expect(item.sequence_id).toBeDefined();
+      expect(item.project_id).toBeDefined();
+      expect(item.workspace_id).toBeDefined();
+    }
+  });
+
   it("should create work item relations", async () => {
     await client.workItems.relations.create(e2eConfig.workspaceSlug, project.id, workItem1.id, {
       relation_type: "relates_to",

@@ -18,7 +18,7 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 30000, // 30 seconds timeout for API tests
+  testTimeout: 60000, // 60 seconds timeout for API tests
   verbose: true,
   // Allow tests to run in parallel but with some control
   maxWorkers: 1, // Run tests sequentially to avoid API rate limits
