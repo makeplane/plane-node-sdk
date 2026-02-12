@@ -18,3 +18,8 @@ export interface Page extends BaseModel {
 }
 
 export type CreatePage = Partial<Page>;
+
+export interface ListPagesParams {
+  limit?: number;
+  offset?: number;
+}
