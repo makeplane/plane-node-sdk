@@ -1,6 +1,6 @@
 {
   "name": "@makeplane/plane-node-sdk",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Node SDK for Plane",
   "author": "Plane <engineering@plane.so>",
   "repository": {
