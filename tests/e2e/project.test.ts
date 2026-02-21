@@ -1,6 +1,6 @@
 import { createTestClient, randomizeName, wait } from "../helpers/test-utils";
 import { e2eConfig } from "./config";
-import { Project, Cycle, Module, WorkItem } from "../../src/models";
+import { Project, Cycle, Module, WorkItem, Page } from "../../src/models";
 
 describe("End to End Project Test", () => {
   // Shared state across tests
@@ -9,6 +9,7 @@ describe("End to End Project Test", () => {
   let project: Project;
   let cycle: Cycle;
   let module: Module;
+  let page: Page;
   let workItem1: WorkItem;
   let workItem2: WorkItem;
   let workItem3: WorkItem;
@@ -31,6 +32,7 @@ describe("End to End Project Test", () => {
     await client.projects.updateFeatures(e2eConfig.workspaceSlug, project.id, {
       cycles: true,
       modules: true,
+      pages: true,
     });
   });
 
@@ -70,6 +72,22 @@ describe("End to End Project Test", () => {
     const modules = await client.modules.list(e2eConfig.workspaceSlug, project.id);
     expect(modules.results.length).toBeGreaterThan(0);
     expect(modules.results.find((m) => m.name === module.name)).toBeDefined();
+  });
+
+  it("should create and list pages", async () => {
+    const pageName = randomizeName("Test Page");
+    page = await client.pages.createProjectPage(e2eConfig.workspaceSlug, project.id, {
+      name: pageName,
+      description_html: "<p>Test Page Description</p>",
+    });
+
+    expect(page).toBeDefined();
+    expect(page.id).toBeDefined();
+    expect(page.name).toBe(pageName);
+
+    const pages = await client.pages.listProjectPages(e2eConfig.workspaceSlug, project.id);
+    expect(pages.results.length).toBeGreaterThan(0);
+    expect(pages.results.find((p) => p.name === page.name)).toBeDefined();
   });
 
   it("should create work items with assignees", async () => {
@@ -126,10 +144,7 @@ describe("End to End Project Test", () => {
         and: [
           ...(stateId ? [{ state_id: stateId }] : []),
           {
-            or: [
-              { priority: "none" },
-              { priority: "high" },
-            ],
+            or: [{ priority: "none" }, { priority: "high" }],
           },
         ],
       },
