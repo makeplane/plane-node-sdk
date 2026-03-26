@@ -74,6 +74,20 @@ describe(!!config.workspaceSlug, "Project API Tests", () => {
     expect(foundProject?.name).toBe("Updated Test Project");
   });
 
+  it("should archive and unarchive a project", async () => {
+    await client.projects.archive(workspaceSlug, project.id);
+
+    const archivedProject = await client.projects.retrieve(workspaceSlug, project.id);
+    expect(archivedProject).toBeDefined();
+    expect(archivedProject.archived_at).toBeTruthy();
+
+    await client.projects.unArchive(workspaceSlug, project.id);
+
+    const unarchivedProject = await client.projects.retrieve(workspaceSlug, project.id);
+    expect(unarchivedProject).toBeDefined();
+    expect(unarchivedProject.archived_at).toBeFalsy();
+  });
+
   it("should get project members", async () => {
     const members = await client.projects.getMembers(workspaceSlug, project.id);
 
@@ -99,17 +113,17 @@ describe(!!config.workspaceSlug, "Project API Tests", () => {
       const originalFeatures = await client.projects.retrieveFeatures(workspaceSlug, project.id);
 
       const updatedFeatures = await client.projects.updateFeatures(workspaceSlug, project.id, {
-        epics: !originalFeatures.epics,
+        pages: !originalFeatures.pages,
         modules: !originalFeatures.modules,
       });
 
       expect(updatedFeatures).toBeDefined();
-      expect(updatedFeatures.epics).toBe(!originalFeatures.epics);
+      expect(updatedFeatures.pages).toBe(!originalFeatures.pages);
       expect(updatedFeatures.modules).toBe(!originalFeatures.modules);
 
       // Restore original values
       await client.projects.updateFeatures(workspaceSlug, project.id, {
-        epics: originalFeatures.epics,
+        pages: originalFeatures.pages,
         modules: originalFeatures.modules,
       });
     });
