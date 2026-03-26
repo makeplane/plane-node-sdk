@@ -84,4 +84,18 @@ export class Projects extends BaseResource {
   ): Promise<ProjectFeatures> {
     return this.patch<ProjectFeatures>(`/workspaces/${workspaceSlug}/projects/${projectId}/features/`, updateFeatures);
   }
+
+  /**
+   * Archive a project
+   */
+  async archive(workspaceSlug: string, projectId: string): Promise<void> {
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/archive/`);
+  }
+
+  /**
+   * Unarchive a project
+   */
+  async unArchive(workspaceSlug: string, projectId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/archive/`);
+  }
 }
