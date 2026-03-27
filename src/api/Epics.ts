@@ -71,9 +71,6 @@ export class Epics extends BaseResource {
     epicId: string,
     data: AddEpicWorkItems
   ): Promise<EpicIssue[]> {
-    return this.post<EpicIssue[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/epics/${epicId}/issues/`,
-      data
-    );
+    return this.post<EpicIssue[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/epics/${epicId}/issues/`, data);
   }
 }
