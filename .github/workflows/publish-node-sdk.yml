@@ -3,6 +3,10 @@ name: Publish Node SDK to npm
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -27,9 +31,7 @@ jobs:
         run: pnpm build
 
       - name: Publish to npm
-        run: pnpm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --access public --provenance
 
       - name: Get version from package.json
         id: package-version
