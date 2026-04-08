@@ -84,24 +84,34 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
 
   it("should list work items with pql filter", async () => {
     const name = randomizeName();
-    const pqlWorkItem = await client.workItems.create(workspaceSlug, projectId, {
-      name,
-      priority: "high",
-    });
+    let pqlWorkItem: WorkItem | undefined;
 
-    const filtered = await client.workItems.list(workspaceSlug, projectId, {
-      pql: 'priority IN ("high")',
-    });
+    try {
+      pqlWorkItem = await client.workItems.create(workspaceSlug, projectId, {
+        name,
+        priority: "high",
+      });
 
-    expect(filtered).toBeDefined();
-    expect(Array.isArray(filtered.results)).toBe(true);
-    expect(filtered.results.length).toBeGreaterThan(0);
-    expect(filtered.results.find((wi) => wi.id === pqlWorkItem.id)).toBeDefined();
-    for (const wi of filtered.results) {
-      expect(wi.priority).toBe("high");
+      const filtered = await client.workItems.list(workspaceSlug, projectId, {
+        pql: 'priority IN ("high")',
+      });
+
+      expect(filtered).toBeDefined();
+      expect(Array.isArray(filtered.results)).toBe(true);
+      expect(filtered.results.length).toBeGreaterThan(0);
+      expect(filtered.results.find((wi) => wi.id === pqlWorkItem.id)).toBeDefined();
+      for (const wi of filtered.results) {
+        expect(wi.priority).toBe("high");
+      }
+    } finally {
+      if (pqlWorkItem?.id) {
+        try {
+          await client.workItems.delete(workspaceSlug, projectId, pqlWorkItem.id);
+        } catch {
+          // Best-effort cleanup to avoid polluting subsequent test runs.
+        }
+      }
     }
-
-    await client.workItems.delete(workspaceSlug, projectId, pqlWorkItem.id!);
   });
 
   it("should retrieve work item by identifier", async () => {
