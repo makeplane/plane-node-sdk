@@ -82,6 +82,21 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
     expect(foundWorkItem).toBeDefined();
   });
 
+  it("should list work items with pql filter", async () => {
+    const allWorkItems = await client.workItems.list(workspaceSlug, projectId);
+    const priority = allWorkItems.results[0]?.priority ?? "none";
+
+    const filtered = await client.workItems.list(workspaceSlug, projectId, {
+      pql: `priority IN ("${priority}")`,
+    });
+
+    expect(filtered).toBeDefined();
+    expect(Array.isArray(filtered.results)).toBe(true);
+    for (const wi of filtered.results) {
+      expect(wi.priority).toBe(priority);
+    }
+  });
+
   it("should retrieve work item by identifier", async () => {
     const project = await client.projects.retrieve(workspaceSlug, projectId);
     const workItemByIdentifier = await client.workItems.retrieveByIdentifier(
