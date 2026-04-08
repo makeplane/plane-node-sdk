@@ -48,8 +48,8 @@ export type WorkItemExpandableFieldName = keyof WorkItemExpandableFields;
 export type WorkItem<Expanded extends WorkItemExpandableFieldName = never> = [Expanded] extends [never]
   ? WorkItemBase
   : Omit<WorkItemBase, Expanded> & {
-    [K in Expanded]: K extends keyof WorkItemExpandableFields ? WorkItemExpandableFields[K] : never;
-  };
+      [K in Expanded]: K extends keyof WorkItemExpandableFields ? WorkItemExpandableFields[K] : never;
+    };
 
 export interface CreateWorkItem {
   name: string;

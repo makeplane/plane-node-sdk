@@ -83,18 +83,25 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
   });
 
   it("should list work items with pql filter", async () => {
-    const allWorkItems = await client.workItems.list(workspaceSlug, projectId);
-    const priority = allWorkItems.results[0]?.priority ?? "none";
+    const name = randomizeName();
+    const pqlWorkItem = await client.workItems.create(workspaceSlug, projectId, {
+      name,
+      priority: "high",
+    });
 
     const filtered = await client.workItems.list(workspaceSlug, projectId, {
-      pql: `priority IN ("${priority}")`,
+      pql: 'priority IN ("high")',
     });
 
     expect(filtered).toBeDefined();
     expect(Array.isArray(filtered.results)).toBe(true);
+    expect(filtered.results.length).toBeGreaterThan(0);
+    expect(filtered.results.find((wi) => wi.id === pqlWorkItem.id)).toBeDefined();
     for (const wi of filtered.results) {
-      expect(wi.priority).toBe(priority);
+      expect(wi.priority).toBe("high");
     }
+
+    await client.workItems.delete(workspaceSlug, projectId, pqlWorkItem.id!);
   });
 
   it("should retrieve work item by identifier", async () => {
