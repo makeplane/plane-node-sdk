@@ -99,7 +99,7 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
       expect(filtered).toBeDefined();
       expect(Array.isArray(filtered.results)).toBe(true);
       expect(filtered.results.length).toBeGreaterThan(0);
-      expect(filtered.results.find((wi) => wi.id === pqlWorkItem.id)).toBeDefined();
+      expect(filtered.results.find((wi) => wi.id === pqlWorkItem!.id)).toBeDefined();
       for (const wi of filtered.results) {
         expect(wi.priority).toBe("high");
       }
