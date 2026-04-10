@@ -87,6 +87,7 @@ export interface ListWorkItemsParams {
   assignee?: string;
   limit?: number;
   offset?: number;
+  pql?: string;
 }
 
 export interface WorkItemActivity {
