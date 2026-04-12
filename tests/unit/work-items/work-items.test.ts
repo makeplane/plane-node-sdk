@@ -155,9 +155,7 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
   it("should advanced search work items with filters", async () => {
     const results = await client.workItems.advancedSearch(workspaceSlug, {
       filters: {
-        and: [
-          { priority: workItem.priority },
-        ],
+        and: [{ priority: workItem.priority }],
       },
       limit: 10,
     });
@@ -178,10 +176,7 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
         and: [
           ...(stateId ? [{ state_id: stateId }] : []),
           {
-            or: [
-              { priority: "high" },
-              { priority: "urgent" },
-            ],
+            or: [{ priority: "high" }, { priority: "urgent" }],
           },
         ],
       },

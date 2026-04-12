@@ -79,12 +79,7 @@ export class Options extends BaseResource {
   /**
    * Delete a property option
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    propertyId: string,
-    optionId: string
-  ): Promise<void> {
+  async delete(workspaceSlug: string, projectId: string, propertyId: string, optionId: string): Promise<void> {
     return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-properties/${propertyId}/options/${optionId}/`
     );

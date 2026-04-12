@@ -17,9 +17,9 @@ pnpm test:unit            # Unit tests only
 pnpm test:e2e             # E2E tests only
 pnpm test -- --testPathPattern=tests/unit/project  # Run a single test file
 pnpm test:coverage        # Run with coverage report
-pnpm check:lint           # Lint check (ESLint)
+pnpm check:lint           # Lint check (oxlint)
 pnpm fix:lint             # Auto-fix lint issues
-pnpm check:format         # Format check (Prettier, 120 char width)
+pnpm check:format         # Format check (oxfmt, 120 char width)
 pnpm fix:format           # Auto-format
 ```
 
@@ -34,6 +34,7 @@ Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (
 **BaseResource pattern** (`src/api/BaseResource.ts`): Abstract base class providing HTTP methods (get, post, patch, put, httpDelete) via axios. All API resource classes extend it. Handles both `apiKey` (X-Api-Key header) and `accessToken` (Bearer token) auth. Includes optional request/response logging with sensitive data sanitization.
 
 **API resources** (`src/api/`): Each resource class extends BaseResource. Some have sub-resources as separate classes composed by the parent:
+
 - `WorkItems/` → Comments, Attachments, Activities, Relations, WorkLogs
 - `Customers/` → Properties, Requests
 - `Teamspaces/` → Members, Projects

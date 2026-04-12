@@ -6,7 +6,7 @@ import { config } from "./constants";
 import { createTestClient, randomizeName } from "../helpers/test-utils";
 import { describeIf } from "../helpers/conditional-tests";
 
-describeIf(!!(config.workspaceSlug), "Teamspace API Tests", () => {
+describeIf(!!config.workspaceSlug, "Teamspace API Tests", () => {
   let client: PlaneClient;
   let workspaceSlug: string;
   let teamspace: Teamspace;
@@ -158,4 +158,3 @@ describeIf(!!(config.workspaceSlug), "Teamspace API Tests", () => {
     });
   });
 });
-

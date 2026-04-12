@@ -16,7 +16,11 @@ export class Members extends BaseResource {
   /**
    * Get members associated with a teamspace
    */
-  async list(workspaceSlug: string, teamspaceId: string, params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<User>> {
+  async list(
+    workspaceSlug: string,
+    teamspaceId: string,
+    params?: { limit?: number; offset?: number }
+  ): Promise<PaginatedResponse<User>> {
     return this.get<PaginatedResponse<User>>(`/workspaces/${workspaceSlug}/teamspaces/${teamspaceId}/members/`, params);
   }
 
@@ -30,8 +34,11 @@ export class Members extends BaseResource {
   /**
    * Remove members from a teamspace
    */
-  async remove(workspaceSlug: string, teamspaceId: string, removeMembers: RemoveTeamspaceMembersRequest): Promise<void> {
+  async remove(
+    workspaceSlug: string,
+    teamspaceId: string,
+    removeMembers: RemoveTeamspaceMembersRequest
+  ): Promise<void> {
     return this.httpDelete(`/workspaces/${workspaceSlug}/teamspaces/${teamspaceId}/members/`, removeMembers);
   }
 }
-

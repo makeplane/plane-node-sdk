@@ -35,4 +35,3 @@ export class AgentRuns extends BaseResource {
     return this.get<AgentRun>(`/workspaces/${workspaceSlug}/runs/${runId}/`);
   }
 }
-

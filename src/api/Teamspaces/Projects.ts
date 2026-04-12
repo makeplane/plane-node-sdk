@@ -16,8 +16,15 @@ export class Projects extends BaseResource {
   /**
    * Get projects associated with a teamspace
    */
-  async list(workspaceSlug: string, teamspaceId: string, params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<Project>> {
-    return this.get<PaginatedResponse<Project>>(`/workspaces/${workspaceSlug}/teamspaces/${teamspaceId}/projects/`, params);
+  async list(
+    workspaceSlug: string,
+    teamspaceId: string,
+    params?: { limit?: number; offset?: number }
+  ): Promise<PaginatedResponse<Project>> {
+    return this.get<PaginatedResponse<Project>>(
+      `/workspaces/${workspaceSlug}/teamspaces/${teamspaceId}/projects/`,
+      params
+    );
   }
 
   /**
@@ -30,8 +37,11 @@ export class Projects extends BaseResource {
   /**
    * Remove projects from a teamspace
    */
-  async remove(workspaceSlug: string, teamspaceId: string, removeProjects: RemoveTeamspaceProjectsRequest): Promise<void> {
+  async remove(
+    workspaceSlug: string,
+    teamspaceId: string,
+    removeProjects: RemoveTeamspaceProjectsRequest
+  ): Promise<void> {
     return this.httpDelete(`/workspaces/${workspaceSlug}/teamspaces/${teamspaceId}/projects/`, removeProjects);
   }
 }
-

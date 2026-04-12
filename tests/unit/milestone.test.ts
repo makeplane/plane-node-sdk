@@ -53,12 +53,7 @@ describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Mil
       target_date: "2026-12-31",
     };
 
-    const updatedMilestone = await client.milestones.update(
-      workspaceSlug,
-      projectId,
-      milestone.id,
-      updateData
-    );
+    const updatedMilestone = await client.milestones.update(workspaceSlug, projectId, milestone.id, updateData);
 
     expect(updatedMilestone).toBeDefined();
     expect(updatedMilestone.id).toBe(milestone.id);

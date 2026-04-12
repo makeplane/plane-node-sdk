@@ -52,4 +52,3 @@ export class Activities extends BaseResource {
     return this.post<AgentRunActivity>(`/workspaces/${workspaceSlug}/runs/${runId}/activities/`, data);
   }
 }
-

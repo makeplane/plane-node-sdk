@@ -5,11 +5,13 @@ This directory contains examples demonstrating how to use the Plane Node SDK.
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Set up environment variables:
+
    ```bash
    export PLANE_API_KEY="your-api-key"
    ```
@@ -32,6 +34,7 @@ const client = new PlaneClient({
 ```
 
 When enabled, you'll see detailed logs for:
+
 - 🚀 Request details (method, URL, headers, data)
 - ✅ Response details (status, data, headers)
 - ❌ Error details (status, error message, response data)
@@ -52,9 +55,9 @@ When adding new examples:
 4. Add documentation comments
 5. Update this README with a description
 
-
 ## Environment Variables
 
 Required environment variables:
+
 - `PLANE_API_KEY` - Your Plane API key
 - `PLANE_BASE_URL` - (Optional) Custom Plane instance URL

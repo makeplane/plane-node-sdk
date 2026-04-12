@@ -62,11 +62,7 @@ describe(!!(config.workspaceSlug && config.agentSlug), "Agent Run Activities API
   });
 
   it("should retrieve an agent run activity", async () => {
-    const retrievedActivity = await client.agentRuns.activities.retrieve(
-      workspaceSlug,
-      agentRun.id,
-      activity.id
-    );
+    const retrievedActivity = await client.agentRuns.activities.retrieve(workspaceSlug, agentRun.id, activity.id);
 
     expect(retrievedActivity).toBeDefined();
     expect(retrievedActivity.id).toBe(activity.id);
@@ -126,4 +122,3 @@ describe(!!(config.workspaceSlug && config.agentSlug), "Agent Run Activities API
     expect(elicitationActivity.signal).toBe("select");
   });
 });
-
