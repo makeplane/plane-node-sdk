@@ -57,4 +57,3 @@ export class Initiatives extends BaseResource {
     return this.get<PaginatedResponse<Initiative>>(`/workspaces/${workspaceSlug}/initiatives/`, params);
   }
 }
-

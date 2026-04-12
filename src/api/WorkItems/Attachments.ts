@@ -78,12 +78,7 @@ export class Attachments extends BaseResource {
   /**
    * Delete an attachment
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string,
-    attachmentId: string
-  ): Promise<void> {
+  async delete(workspaceSlug: string, projectId: string, workItemId: string, attachmentId: string): Promise<void> {
     return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/attachments/${attachmentId}/`
     );

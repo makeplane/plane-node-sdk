@@ -54,4 +54,3 @@ export class Teamspaces extends BaseResource {
     return this.get<PaginatedResponse<Teamspace>>(`/workspaces/${workspaceSlug}/teamspaces/`, params);
   }
 }
-

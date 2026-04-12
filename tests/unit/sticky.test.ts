@@ -76,4 +76,3 @@ describeIf(!!config.workspaceSlug, "Sticky API Tests", () => {
     expect(foundSticky?.name).toContain("Updated Test Sticky");
   });
 });
-

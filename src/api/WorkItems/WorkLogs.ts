@@ -1,10 +1,6 @@
 import { BaseResource } from "../BaseResource";
 import { Configuration } from "../../Configuration";
-import {
-  WorkLog,
-  CreateWorkLogRequest,
-  UpdateWorkLogRequest,
-} from "../../models/WorkLog";
+import { WorkLog, CreateWorkLogRequest, UpdateWorkLogRequest } from "../../models/WorkLog";
 
 /**
  * WorkLogs API resource
@@ -18,14 +14,8 @@ export class WorkLogs extends BaseResource {
   /**
    * List work logs for a work item
    */
-  async list(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string
-  ): Promise<WorkLog[]> {
-    return this.get<WorkLog[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/`
-    );
+  async list(workspaceSlug: string, projectId: string, workItemId: string): Promise<WorkLog[]> {
+    return this.get<WorkLog[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/`);
   }
 
   /**
@@ -62,12 +52,7 @@ export class WorkLogs extends BaseResource {
   /**
    * Delete a work log
    */
-  async delete(
-    workspaceSlug: string,
-    projectId: string,
-    workItemId: string,
-    workLogId: string
-  ): Promise<void> {
+  async delete(workspaceSlug: string, projectId: string, workItemId: string, workLogId: string): Promise<void> {
     return this.httpDelete(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/worklogs/${workLogId}/`
     );

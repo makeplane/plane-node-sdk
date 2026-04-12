@@ -48,4 +48,3 @@ describe(!!(config.workspaceSlug && config.agentSlug), "Agent Runs API Tests", (
     expect(retrievedRun.status).toBeDefined();
   });
 });
-

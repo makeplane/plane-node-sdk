@@ -126,10 +126,7 @@ describe("End to End Project Test", () => {
         and: [
           ...(stateId ? [{ state_id: stateId }] : []),
           {
-            or: [
-              { priority: "none" },
-              { priority: "high" },
-            ],
+            or: [{ priority: "none" }, { priority: "high" }],
           },
         ],
       },

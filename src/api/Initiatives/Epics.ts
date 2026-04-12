@@ -16,7 +16,11 @@ export class Epics extends BaseResource {
   /**
    * Get epics associated with an initiative
    */
-  async list(workspaceSlug: string, initiativeId: string, params?: { limit?: number; offset?: number }): Promise<PaginatedResponse<Epic>> {
+  async list(
+    workspaceSlug: string,
+    initiativeId: string,
+    params?: { limit?: number; offset?: number }
+  ): Promise<PaginatedResponse<Epic>> {
     return this.get<PaginatedResponse<Epic>>(`/workspaces/${workspaceSlug}/initiatives/${initiativeId}/epics/`, params);
   }
 
@@ -34,4 +38,3 @@ export class Epics extends BaseResource {
     return this.httpDelete(`/workspaces/${workspaceSlug}/initiatives/${initiativeId}/epics/`, removeEpics);
   }
 }
-
