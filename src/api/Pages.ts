@@ -1,6 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { Page, CreatePage } from "../models/Page";
+import { Page, CreatePage, ListPagesParams } from "../models/Page";
+import { PaginatedResponse } from "../models/common";
 
 /**
  * Pages API resource
@@ -55,5 +56,23 @@ export class Pages extends BaseResource {
    */
   async retrieveProjectPage(workspaceSlug: string, projectId: string, pageId: string): Promise<Page> {
     return this.getProjectPage(workspaceSlug, projectId, pageId);
+  }
+
+  /**
+   * List workspace pages with optional filtering
+   */
+  async listWorkspacePages(workspaceSlug: string, params?: ListPagesParams): Promise<PaginatedResponse<Page>> {
+    return this.get<PaginatedResponse<Page>>(`/workspaces/${workspaceSlug}/pages/`, params);
+  }
+
+  /**
+   * List project pages with optional filtering
+   */
+  async listProjectPages(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListPagesParams
+  ): Promise<PaginatedResponse<Page>> {
+    return this.get<PaginatedResponse<Page>>(`/workspaces/${workspaceSlug}/projects/${projectId}/pages/`, params);
   }
 }
