@@ -85,6 +85,14 @@ export interface AgentRunActivityTextContent {
 export type AgentRunActivityContent = AgentRunActivityActionContent | AgentRunActivityTextContent;
 
 /**
+ * Top-level action attached to an activity (e.g. a CTA button shown below the response body).
+ */
+export interface AgentRunActivityAction {
+  name: string;
+  redirect_url: string | null;
+}
+
+/**
  * Agent Run Activity interface
  */
 export interface AgentRunActivity extends BaseModel {
@@ -99,6 +107,7 @@ export interface AgentRunActivity extends BaseModel {
   type: AgentRunActivityType;
   project?: string;
   workspace: string;
+  actions?: AgentRunActivityAction[];
 }
 
 /**
@@ -111,4 +120,5 @@ export interface CreateAgentRunActivityRequest {
   signal_metadata?: Record<string, any>;
   type: Exclude<AgentRunActivityType, "prompt">;
   project?: string;
+  actions?: AgentRunActivityAction[];
 }
