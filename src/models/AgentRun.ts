@@ -63,6 +63,13 @@ export interface CreateAgentRunRequest {
 }
 
 /**
+ * Update agent run request interface
+ */
+export interface UpdateAgentRunRequest {
+  external_link?: string | null;
+}
+
+/**
  * Agent run activity content for action type
  */
 export interface AgentRunActivityActionContent {
