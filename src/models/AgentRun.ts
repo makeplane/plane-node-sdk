@@ -70,6 +70,14 @@ export interface UpdateAgentRunRequest {
 }
 
 /**
+ * Action button attached to an activity (e.g. a CTA shown below the response body).
+ */
+export interface AgentRunActivityAction {
+  name: string;
+  redirect_url: string | null;
+}
+
+/**
  * Agent run activity content for action type
  */
 export interface AgentRunActivityActionContent {
@@ -84,20 +92,13 @@ export interface AgentRunActivityActionContent {
 export interface AgentRunActivityTextContent {
   type: Exclude<AgentRunActivityType, "action">;
   body: string;
+  actions?: AgentRunActivityAction[];
 }
 
 /**
  * Agent run activity content
  */
 export type AgentRunActivityContent = AgentRunActivityActionContent | AgentRunActivityTextContent;
-
-/**
- * Top-level action attached to an activity (e.g. a CTA button shown below the response body).
- */
-export interface AgentRunActivityAction {
-  name: string;
-  redirect_url: string | null;
-}
 
 /**
  * Agent Run Activity interface
@@ -114,7 +115,6 @@ export interface AgentRunActivity extends BaseModel {
   type: AgentRunActivityType;
   project?: string;
   workspace: string;
-  actions?: AgentRunActivityAction[];
 }
 
 /**
@@ -127,5 +127,4 @@ export interface CreateAgentRunActivityRequest {
   signal_metadata?: Record<string, any>;
   type: Exclude<AgentRunActivityType, "prompt">;
   project?: string;
-  actions?: AgentRunActivityAction[];
 }
