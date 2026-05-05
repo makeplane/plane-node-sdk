@@ -63,6 +63,21 @@ export interface CreateAgentRunRequest {
 }
 
 /**
+ * Update agent run request interface
+ */
+export interface UpdateAgentRunRequest {
+  external_link?: string | null;
+}
+
+/**
+ * Action button attached to an activity (e.g. a CTA shown below the response body).
+ */
+export interface AgentRunActivityAction {
+  name: string;
+  redirect_url: string | null;
+}
+
+/**
  * Agent run activity content for action type
  */
 export interface AgentRunActivityActionContent {
@@ -77,6 +92,7 @@ export interface AgentRunActivityActionContent {
 export interface AgentRunActivityTextContent {
   type: Exclude<AgentRunActivityType, "action">;
   body: string;
+  actions?: AgentRunActivityAction[];
 }
 
 /**

@@ -1,6 +1,6 @@
 import { BaseResource } from "../BaseResource";
 import { Configuration } from "../../Configuration";
-import { AgentRun, CreateAgentRunRequest } from "../../models/AgentRun";
+import { AgentRun, CreateAgentRunRequest, UpdateAgentRunRequest } from "../../models/AgentRun";
 import { Activities } from "./Activities";
 
 /**
@@ -33,5 +33,16 @@ export class AgentRuns extends BaseResource {
    */
   async retrieve(workspaceSlug: string, runId: string): Promise<AgentRun> {
     return this.get<AgentRun>(`/workspaces/${workspaceSlug}/runs/${runId}/`);
+  }
+
+  /**
+   * Update an agent run
+   * @param workspaceSlug - The workspace slug
+   * @param runId - The agent run ID
+   * @param data - The fields to update
+   * @returns The updated agent run
+   */
+  async update(workspaceSlug: string, runId: string, data: UpdateAgentRunRequest): Promise<AgentRun> {
+    return this.patch<AgentRun>(`/workspaces/${workspaceSlug}/runs/${runId}/`, data);
   }
 }
