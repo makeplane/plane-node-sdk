@@ -93,7 +93,9 @@ export interface ListWorkItemsParams {
   fields?: string;
   expand?: string;
   /**
-   * Plane Query Language expression for structured filtering.
+   * Plane Query Language expression — a string-based alternative to the
+   * structured `filters` object below. The two have equivalent expressive
+   * power; pick whichever is more convenient for the caller.
    * Example: `priority = "urgent" AND assignee = currentUser()`.
    */
   pql?: string;
