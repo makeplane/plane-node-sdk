@@ -20,6 +20,24 @@ import { Activities } from "./Activities";
 import { WorkLogs } from "./WorkLogs";
 
 /**
+ * Prepare query params for work-item list endpoints.
+ *
+ * The backend's `filters=` query parameter expects a JSON-encoded string,
+ * not an exploded object — so we stringify it here before letting axios
+ * URL-encode the result into a single query value. Everything else passes
+ * through unchanged.
+ *
+ * Exported for reuse from sibling resources (Cycles, Modules) that list
+ * work items.
+ */
+export function prepareWorkItemParams(params?: ListWorkItemsParams): Record<string, unknown> | undefined {
+  if (!params) return undefined;
+  if (params.filters === undefined) return params as Record<string, unknown>;
+  const { filters, ...rest } = params;
+  return { ...rest, filters: JSON.stringify(filters) };
+}
+
+/**
  * WorkItems API resource
  * Handles all work item (issue) related operations
  */
@@ -95,7 +113,24 @@ export class WorkItems extends BaseResource {
   }
 
   /**
-   * List work items with optional filtering
+   * List work items in a project with optional filtering.
+   *
+   * Supports rich filtering via `filters` (structured) and `pql` (Plane
+   * Query Language). The `filters` object is JSON-encoded into a single
+   * `filters=` query parameter before sending.
+   *
+   * @example
+   * ```ts
+   * await client.workItems.list("my-workspace", "project-id", {
+   *   filters: { and: [{ priority: "urgent" }, { state_group__in: ["unstarted", "started"] }] },
+   *   order_by: "-created_at",
+   *   per_page: 50,
+   * });
+   *
+   * await client.workItems.list("my-workspace", "project-id", {
+   *   pql: 'priority = "urgent" AND assignee = currentUser()',
+   * });
+   * ```
    */
   async list(
     workspaceSlug: string,
@@ -104,7 +139,31 @@ export class WorkItems extends BaseResource {
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`,
-      params
+      prepareWorkItemParams(params)
+    );
+  }
+
+  /**
+   * List work items across an entire workspace.
+   *
+   * Returns a paginated envelope of work items the caller can view,
+   * spanning every project in the workspace (per-project authorization
+   * and conditional grants are honored server-side). Supports the same
+   * `filters` and `pql` query parameters as {@link WorkItems.list}.
+   *
+   * @example
+   * ```ts
+   * await client.workItems.listWorkspace("my-workspace", {
+   *   filters: { priority: "urgent" },
+   *   order_by: "-created_at",
+   *   per_page: 50,
+   * });
+   * ```
+   */
+  async listWorkspace(workspaceSlug: string, params?: ListWorkItemsParams): Promise<PaginatedResponse<WorkItem>> {
+    return this.get<PaginatedResponse<WorkItem>>(
+      `/workspaces/${workspaceSlug}/work-items/`,
+      prepareWorkItemParams(params)
     );
   }
 
