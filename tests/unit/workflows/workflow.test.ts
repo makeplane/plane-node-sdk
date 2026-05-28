@@ -103,7 +103,7 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
       client.workflows.states.attach(workspaceSlug, projectId, workflow.id!, {
         state_ids: [stateA.id!],
       })
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 
   it("should list transitions (initially empty for the workflow)", async () => {
@@ -156,12 +156,12 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
   it("should delete a workflow transition", async () => {
     await expect(
       client.workflows.transitions.del(workspaceSlug, projectId, workflow.id!, transition.id!)
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 
   it("should detach a state from a workflow", async () => {
     await expect(
       client.workflows.states.detach(workspaceSlug, projectId, workflow.id!, stateA.id!)
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
   });
 });

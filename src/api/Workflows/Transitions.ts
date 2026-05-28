@@ -39,7 +39,16 @@ export class Transitions extends BaseResource {
       );
     } catch (error) {
       if (error instanceof HttpError && error.statusCode === 400) {
-        const body = JSON.stringify(error.response ?? "").toLowerCase();
+        const response = error.response as unknown;
+        const body =
+          typeof response === "string"
+            ? response.toLowerCase()
+            : typeof response === "object" &&
+                response !== null &&
+                "detail" in response &&
+                typeof (response as { detail: unknown }).detail === "string"
+              ? (response as { detail: string }).detail.toLowerCase()
+              : "";
         if (body.includes("already exists")) {
           return null;
         }

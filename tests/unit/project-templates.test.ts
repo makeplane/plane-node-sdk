@@ -81,7 +81,7 @@ describe(!!(config.workspaceSlug && config.projectId), "ProjectTemplates API Tes
   it("should delete a work item template", async () => {
     await expect(
       client.projectTemplates.workItems.del(workspaceSlug, projectId, workItemTemplate.id!)
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
 
     // Mark as deleted so afterAll won't attempt again
     workItemTemplate = { ...workItemTemplate, id: undefined } as unknown as WorkItemTemplate;
@@ -127,7 +127,9 @@ describe(!!(config.workspaceSlug && config.projectId), "ProjectTemplates API Tes
   });
 
   it("should delete a page template", async () => {
-    await expect(client.projectTemplates.pages.del(workspaceSlug, projectId, pageTemplate.id!)).resolves.not.toThrow();
+    await expect(
+      client.projectTemplates.pages.del(workspaceSlug, projectId, pageTemplate.id!)
+    ).resolves.toBeUndefined();
 
     // Mark as deleted so afterAll won't attempt again
     pageTemplate = { ...pageTemplate, id: undefined } as unknown as PageTemplate;

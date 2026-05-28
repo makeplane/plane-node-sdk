@@ -12,17 +12,9 @@ export interface WorkItemTemplate extends BaseModel {
   workspace: string;
 }
 
-export interface CreateWorkItemTemplate {
-  name: string;
-  short_description?: string;
-  template_data?: Record<string, unknown>;
-}
+export type CreateWorkItemTemplate = Pick<WorkItemTemplate, "name" | "short_description" | "template_data">;
 
-export interface UpdateWorkItemTemplate {
-  name?: string;
-  short_description?: string;
-  template_data?: Record<string, unknown>;
-}
+export type UpdateWorkItemTemplate = Partial<CreateWorkItemTemplate>;
 
 export interface PageTemplate extends BaseModel {
   name: string;
@@ -33,14 +25,6 @@ export interface PageTemplate extends BaseModel {
   workspace: string;
 }
 
-export interface CreatePageTemplate {
-  name: string;
-  short_description?: string;
-  template_data?: Record<string, unknown>;
-}
+export type CreatePageTemplate = Pick<PageTemplate, "name" | "short_description" | "template_data">;
 
-export interface UpdatePageTemplate {
-  name?: string;
-  short_description?: string;
-  template_data?: Record<string, unknown>;
-}
+export type UpdatePageTemplate = Partial<CreatePageTemplate>;

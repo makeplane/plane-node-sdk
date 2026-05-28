@@ -13,19 +13,9 @@ export interface Workflow extends BaseModel {
   workspace: string;
 }
 
-export interface CreateWorkflow {
-  name: string;
-  description?: string;
-  is_active?: boolean;
-  work_item_type_ids?: string[];
-}
+export type CreateWorkflow = Pick<Workflow, "name" | "description" | "is_active" | "work_item_type_ids">;
 
-export interface UpdateWorkflow {
-  name?: string;
-  description?: string;
-  is_active?: boolean;
-  work_item_type_ids?: string[];
-}
+export type UpdateWorkflow = Partial<CreateWorkflow>;
 
 export interface AttachWorkflowStates {
   state_ids: string[];
@@ -41,16 +31,7 @@ export interface WorkflowTransition extends BaseModel {
   workflow_state_id?: string;
 }
 
-export interface CreateWorkflowTransition {
-  state_id: string;
-  transition_state_id: string;
-  type?: string;
-  member_ids?: string[];
-  pre_rules?: Record<string, unknown>[];
-  post_rules?: Record<string, unknown>[];
-}
+export type CreateWorkflowTransition = Required<Pick<WorkflowTransition, "state_id" | "transition_state_id">> &
+  Partial<Pick<WorkflowTransition, "type" | "member_ids" | "pre_rules" | "post_rules">>;
 
-export interface UpdateWorkflowTransition {
-  pre_rules?: Record<string, unknown>[];
-  post_rules?: Record<string, unknown>[];
-}
+export type UpdateWorkflowTransition = Partial<Pick<WorkflowTransition, "pre_rules" | "post_rules">>;
