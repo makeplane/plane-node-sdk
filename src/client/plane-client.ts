@@ -20,6 +20,8 @@ import { Teamspaces } from "../api/Teamspaces";
 import { Initiatives } from "../api/Initiatives";
 import { Milestones } from "../api/Milestones";
 import { AgentRuns } from "../api/AgentRuns";
+import { Workflows } from "../api/Workflows";
+import { ProjectTemplates } from "../api/ProjectTemplates";
 
 /**
  * Main Plane Client class
@@ -48,6 +50,8 @@ export class PlaneClient {
   public milestones: Milestones;
   public initiatives: Initiatives;
   public agentRuns: AgentRuns;
+  public workflows: Workflows;
+  public projectTemplates: ProjectTemplates;
 
   constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
     this.config = new Configuration({
@@ -82,5 +86,7 @@ export class PlaneClient {
     this.milestones = new Milestones(this.config);
     this.initiatives = new Initiatives(this.config);
     this.agentRuns = new AgentRuns(this.config);
+    this.workflows = new Workflows(this.config);
+    this.projectTemplates = new ProjectTemplates(this.config);
   }
 }

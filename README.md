@@ -74,7 +74,11 @@ const project = await client.projects.create("workspace-slug", {
 - **Intake**: Intake form and request management
 - **Stickies**: Stickies management
 - **Teamspaces**: Teamspace management
+- **Milestones**: Milestone tracking and management
 - **Initiatives**: Initiative management
+- **AgentRuns**: AI agent run orchestration and activity tracking
+- **Workflows**: Project workflow management with state attachments and transitions
+- **ProjectTemplates**: Work item and page template management per project
 - **Features**: Workspace and project features management
 
 ## Development

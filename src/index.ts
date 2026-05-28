@@ -32,6 +32,8 @@ export { Teamspaces } from "./api/Teamspaces";
 export { Milestones } from "./api/Milestones";
 export { Initiatives } from "./api/Initiatives";
 export { AgentRuns } from "./api/AgentRuns";
+export { Workflows } from "./api/Workflows";
+export { ProjectTemplates } from "./api/ProjectTemplates";
 
 // Sub-resources
 export { Relations as WorkItemRelations } from "./api/WorkItems/Relations";
@@ -49,6 +51,10 @@ export { Labels as InitiativeLabels } from "./api/Initiatives/Labels";
 export { Projects as InitiativeProjects } from "./api/Initiatives/Projects";
 export { Epics as InitiativeEpics } from "./api/Initiatives/Epics";
 export { Activities as AgentRunActivities } from "./api/AgentRuns/Activities";
+export { States as WorkflowStates } from "./api/Workflows/States";
+export { Transitions as WorkflowTransitions } from "./api/Workflows/Transitions";
+export { WorkItems as ProjectWorkItemTemplates } from "./api/ProjectTemplates/WorkItems";
+export { Pages as ProjectPageTemplates } from "./api/ProjectTemplates/Pages";
 
 // Models
 export * from "./models";
