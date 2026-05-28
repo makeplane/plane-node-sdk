@@ -18,3 +18,10 @@ export interface WorkItemType extends BaseModel {
 export type CreateWorkItemType = Partial<WorkItemType>;
 
 export type UpdateWorkItemType = Partial<WorkItemType>;
+
+/**
+ * DTO for linking a property to a workspace work item type
+ */
+export interface WorkspaceWorkItemTypePropertyLink {
+  property_id: string;
+}

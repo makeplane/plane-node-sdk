@@ -75,6 +75,13 @@ const project = await client.projects.create("workspace-slug", {
 - **Stickies**: Stickies management
 - **Teamspaces**: Teamspace management
 - **Initiatives**: Initiative management
+- **WorkspaceTemplates**: Workspace-level work item, project, and page templates
+- **WorkspaceWorkItemTypes**: Workspace-level work item type management with property links
+- **WorkspaceWorkItemProperties**: Workspace-level custom property management with options
+- **WorkspaceProjectLabels**: Workspace-level project label management
+- **WorkspaceProjectStates**: Workspace-level project state management
+- **WorkItemRelationDefinitions**: Custom work item relation type definitions
+- **Releases**: Release management with tags, labels, and item label assignment
 - **Features**: Workspace and project features management
 
 ## Development

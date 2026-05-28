@@ -26,3 +26,8 @@ export * from "./WorkItemRelation";
 export * from "./WorkItemType";
 export * from "./WorkLog";
 export * from "./WorkspaceFeatures";
+export * from "./WorkspaceTemplate";
+export * from "./WorkspaceProjectLabel";
+export * from "./WorkspaceProjectState";
+export * from "./WorkItemRelationDefinition";
+export * from "./Release";

@@ -20,6 +20,13 @@ import { Teamspaces } from "../api/Teamspaces";
 import { Initiatives } from "../api/Initiatives";
 import { Milestones } from "../api/Milestones";
 import { AgentRuns } from "../api/AgentRuns";
+import { WorkspaceTemplates } from "../api/WorkspaceTemplates";
+import { WorkspaceWorkItemTypes } from "../api/WorkspaceWorkItemTypes";
+import { WorkspaceWorkItemProperties } from "../api/WorkspaceWorkItemProperties";
+import { WorkspaceProjectLabels } from "../api/WorkspaceProjectLabels";
+import { WorkspaceProjectStates } from "../api/WorkspaceProjectStates";
+import { WorkItemRelationDefinitions } from "../api/WorkItemRelationDefinitions";
+import { Releases } from "../api/Releases";
 
 /**
  * Main Plane Client class
@@ -48,6 +55,13 @@ export class PlaneClient {
   public milestones: Milestones;
   public initiatives: Initiatives;
   public agentRuns: AgentRuns;
+  public workspaceTemplates: WorkspaceTemplates;
+  public workspaceWorkItemTypes: WorkspaceWorkItemTypes;
+  public workspaceWorkItemProperties: WorkspaceWorkItemProperties;
+  public workspaceProjectLabels: WorkspaceProjectLabels;
+  public workspaceProjectStates: WorkspaceProjectStates;
+  public workItemRelationDefinitions: WorkItemRelationDefinitions;
+  public releases: Releases;
 
   constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
     this.config = new Configuration({
@@ -82,5 +96,12 @@ export class PlaneClient {
     this.milestones = new Milestones(this.config);
     this.initiatives = new Initiatives(this.config);
     this.agentRuns = new AgentRuns(this.config);
+    this.workspaceTemplates = new WorkspaceTemplates(this.config);
+    this.workspaceWorkItemTypes = new WorkspaceWorkItemTypes(this.config);
+    this.workspaceWorkItemProperties = new WorkspaceWorkItemProperties(this.config);
+    this.workspaceProjectLabels = new WorkspaceProjectLabels(this.config);
+    this.workspaceProjectStates = new WorkspaceProjectStates(this.config);
+    this.workItemRelationDefinitions = new WorkItemRelationDefinitions(this.config);
+    this.releases = new Releases(this.config);
   }
 }
