@@ -36,7 +36,7 @@ Create a `.env` file in the project root with your configuration:
 
 ```bash
 # Copy the example and update with your values
-cp env.example .env
+cp .env.example .env
 ```
 
 Then update the values with your test environment details.

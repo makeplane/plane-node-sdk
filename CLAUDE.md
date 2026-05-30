@@ -25,7 +25,7 @@ pnpm fix:format           # Auto-format
 
 ## Testing
 
-Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (copy from `env.example`) with real workspace/project IDs. Tests run sequentially (`fileParallelism: false`) to avoid API rate limits. Vitest reads `vitest.config.ts` with `globals: true`; test-time TypeScript globals come from `tsconfig.vitest.json`. Building requires Node ≥22.18 (tsdown); the published SDK still supports Node ≥20 at runtime.
+Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (copy from `.env.example`) with real workspace/project IDs. Tests run sequentially (`fileParallelism: false`) to avoid API rate limits. Vitest reads `vitest.config.ts` with `globals: true`; test-time TypeScript globals come from `tsconfig.vitest.json`. Building requires Node ≥22.18 (tsdown); the published SDK still supports Node ≥20 at runtime.
 
 ## Architecture
 
