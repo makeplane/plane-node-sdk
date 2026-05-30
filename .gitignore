@@ -2,6 +2,7 @@ wwwroot/*.js
 node_modules
 typings
 dist
+coverage
 .openapi-generator
 .openapi-generator-ignore
 .env

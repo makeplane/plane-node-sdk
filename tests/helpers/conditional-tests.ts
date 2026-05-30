@@ -7,7 +7,7 @@
  * @param condition - Boolean condition to check
  * @param name - Name of the test suite
  * @param fn - Test suite function
- * @returns Jest describe block (either normal or skipped)
+ * @returns Vitest describe block (either normal or skipped)
  */
 export const describeIf = (condition: boolean, name: string, fn: () => void) => {
   return condition ? describe(name, fn) : describe.skip(name, fn);
