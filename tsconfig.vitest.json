@@ -16,8 +16,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "types": ["jest", "node"]
+    "types": ["vitest/globals", "node"]
   },
-  "include": ["src/**/*", "tests/e2e/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
