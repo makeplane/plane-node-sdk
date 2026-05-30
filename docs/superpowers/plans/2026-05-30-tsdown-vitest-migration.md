@@ -31,7 +31,7 @@
 - **Delete:** `jest.config.js`.
 - **Modify:** `.github/workflows/build-test.yaml` — pin `node-version: "22"`.
 - **Modify:** `CLAUDE.md` — Vitest/tsdown command + convention updates.
-- **Modify:** `AGENTS.MD` — single testing-framework directive line only.
+- **Delete:** `AGENTS.MD` — stale scaffold doc, superseded by `CLAUDE.md`.
 
 ---
 
@@ -318,7 +318,7 @@ git commit -m "ci: pin Node 22 in build-test workflow for tsdown"
 
 **Files:**
 - Modify: `CLAUDE.md`
-- Modify: `AGENTS.MD` (one line only)
+- Delete: `AGENTS.MD`
 
 - [ ] **Step 1: Update the build/test description in `CLAUDE.md`**
 
@@ -361,33 +361,32 @@ and change it to:
 - Build (tsdown) produces `dist/` with dual ESM (`.mjs`) + CJS (`.js`) bundles, bundled type declarations, and source maps, exposed via the `exports` map in `package.json`
 ```
 
-- [ ] **Step 4: Update the testing-framework directive in `AGENTS.MD`**
+- [ ] **Step 4: Delete `AGENTS.MD`**
 
-Change the single line:
+`AGENTS.MD` is a stale scaffold doc — its package.json/tsconfig/dependency examples (`node-fetch`, `eslint`, `prettier`, `@plane/node-sdk`, `tsc`, `jest`) are already out of sync with the real repo, and `CLAUDE.md` is the accurate source of truth. Remove it:
+
+Run:
+```bash
+git rm AGENTS.MD
 ```
-- Use Jest as the testing framework
-```
-to:
-```
-- Use Vitest as the testing framework
-```
-Leave the rest of `AGENTS.MD` untouched (its package.json/tsconfig examples are already out of sync with the real repo and are out of scope for this migration).
+Expected: `AGENTS.MD` removed (staged for deletion).
 
 - [ ] **Step 5: Verify the docs no longer claim Jest/tsc for the live workflow**
 
 Run:
 ```bash
 grep -niE "jest|ts-jest|tsconfig.jest|types.bundle|build:types-bundle" CLAUDE.md || echo "CLAUDE.md clean ok"
-grep -niE "Use Jest as the testing framework" AGENTS.MD || echo "AGENTS.MD directive updated ok"
+test ! -f AGENTS.MD && echo "AGENTS.MD removed ok"
 ```
 Expected: both print their `ok` message.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add CLAUDE.md AGENTS.MD
-git commit -m "docs: update build/test references for tsdown + vitest"
+git add CLAUDE.md
+git commit -m "docs: update CLAUDE.md for tsdown + vitest; remove stale AGENTS.MD"
 ```
+(The `git rm AGENTS.MD` from Step 4 already staged the deletion.)
 
 ---
 
