@@ -1,6 +1,6 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { User } from "../models/User";
+import { WorkspaceMember } from "../models/Member";
 import { UpdateWorkspaceFeatures, WorkspaceFeatures } from "../models/WorkspaceFeatures";
 
 /**
@@ -13,10 +13,10 @@ export class Workspace extends BaseResource {
   }
 
   /**
-   * Get workspace members
+   * Get workspace members with their role information.
    */
-  async getMembers(workspaceSlug: string): Promise<User[]> {
-    return this.get<User[]>(`/workspaces/${workspaceSlug}/members/`);
+  async getMembers(workspaceSlug: string): Promise<WorkspaceMember[]> {
+    return this.get<WorkspaceMember[]>(`/workspaces/${workspaceSlug}/members/`);
   }
 
   /**
