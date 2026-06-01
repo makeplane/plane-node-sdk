@@ -2,7 +2,7 @@ import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { Project, CreateProject, UpdateProject, ListProjectsParams } from "../models/Project";
 import { PaginatedResponse } from "../models/common";
-import { User } from "../models/User";
+import { ProjectMember } from "../models/Member";
 import { ProjectFeatures, UpdateProjectFeatures } from "../models/ProjectFeatures";
 
 /**
@@ -54,10 +54,10 @@ export class Projects extends BaseResource {
   }
 
   /**
-   * Get project members
+   * Get project members with their role information.
    */
-  async getMembers(workspaceSlug: string, projectId: string): Promise<User[]> {
-    return this.get<User[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/members/`);
+  async getMembers(workspaceSlug: string, projectId: string): Promise<ProjectMember[]> {
+    return this.get<ProjectMember[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/members/`);
   }
 
   /**
