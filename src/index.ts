@@ -39,6 +39,8 @@ export { WorkspaceProjectLabels } from "./api/WorkspaceProjectLabels";
 export { WorkspaceProjectStates } from "./api/WorkspaceProjectStates";
 export { WorkItemRelationDefinitions } from "./api/WorkItemRelationDefinitions";
 export { Releases } from "./api/Releases";
+export { Workflows } from "./api/Workflows";
+export { ProjectTemplates } from "./api/ProjectTemplates";
 
 // Sub-resources
 export { Relations as WorkItemRelations } from "./api/WorkItems/Relations";
@@ -64,6 +66,10 @@ export { Options as WorkspaceWorkItemPropertyOptions } from "./api/WorkspaceWork
 export { Tags as ReleaseTags } from "./api/Releases/Tags";
 export { Labels as ReleaseLabels } from "./api/Releases/Labels";
 export { ItemLabels as ReleaseItemLabels } from "./api/Releases/ItemLabels";
+export { States as WorkflowStates } from "./api/Workflows/States";
+export { Transitions as WorkflowTransitions } from "./api/Workflows/Transitions";
+export { WorkItems as ProjectWorkItemTemplates } from "./api/ProjectTemplates/WorkItems";
+export { Pages as ProjectPageTemplates } from "./api/ProjectTemplates/Pages";
 
 // Models
 export * from "./models";

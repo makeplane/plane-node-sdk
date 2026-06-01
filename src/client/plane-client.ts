@@ -27,6 +27,8 @@ import { WorkspaceProjectLabels } from "../api/WorkspaceProjectLabels";
 import { WorkspaceProjectStates } from "../api/WorkspaceProjectStates";
 import { WorkItemRelationDefinitions } from "../api/WorkItemRelationDefinitions";
 import { Releases } from "../api/Releases";
+import { Workflows } from "../api/Workflows";
+import { ProjectTemplates } from "../api/ProjectTemplates";
 
 /**
  * Main Plane Client class
@@ -62,6 +64,8 @@ export class PlaneClient {
   public workspaceProjectStates: WorkspaceProjectStates;
   public workItemRelationDefinitions: WorkItemRelationDefinitions;
   public releases: Releases;
+  public workflows: Workflows;
+  public projectTemplates: ProjectTemplates;
 
   constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
     this.config = new Configuration({
@@ -103,5 +107,7 @@ export class PlaneClient {
     this.workspaceProjectStates = new WorkspaceProjectStates(this.config);
     this.workItemRelationDefinitions = new WorkItemRelationDefinitions(this.config);
     this.releases = new Releases(this.config);
+    this.workflows = new Workflows(this.config);
+    this.projectTemplates = new ProjectTemplates(this.config);
   }
 }
