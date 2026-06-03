@@ -76,6 +76,13 @@ const project = await client.projects.create("workspace-slug", {
 - **Teamspaces**: Teamspace management
 - **Milestones**: Milestone tracking and management
 - **Initiatives**: Initiative management
+- **WorkspaceTemplates**: Workspace-level work item, project, and page templates
+- **WorkspaceWorkItemTypes**: Workspace-level work item type management with property links
+- **WorkspaceWorkItemProperties**: Workspace-level custom property management with options
+- **WorkspaceProjectLabels**: Workspace-level project label management
+- **WorkspaceProjectStates**: Workspace-level project state management
+- **WorkItemRelationDefinitions**: Custom work item relation type definitions
+- **Releases**: Release management with tags, labels, and item label assignment
 - **AgentRuns**: AI agent run orchestration and activity tracking
 - **Workflows**: Project workflow management with state attachments and transitions
 - **ProjectTemplates**: Work item and page template management per project
