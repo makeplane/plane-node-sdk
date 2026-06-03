@@ -88,6 +88,42 @@ const project = await client.projects.create("workspace-slug", {
 - **ProjectTemplates**: Work item and page template management per project
 - **Features**: Workspace and project features management
 
+## Filtering work items
+
+Work item list endpoints accept two filter inputs that map to the same backend
+filter engine:
+
+- **`filters`** — a structured object. Supports nested `and` / `or` / `not`
+  groups and field operators (`__in`, `__gte`, `__range`, `__icontains`, ...).
+  The SDK JSON-encodes this into the `filters=` query parameter.
+- **`pql`** — a Plane Query Language string. Human-readable alternative
+  with the same expressive power.
+
+```ts
+// Project-scoped, structured filters
+await client.workItems.list("my-workspace", "project-id", {
+  filters: {
+    and: [{ priority: "urgent" }, { state_group__in: ["unstarted", "started"] }],
+  },
+  order_by: "-created_at",
+  per_page: 50,
+});
+
+// Project-scoped, PQL
+await client.workItems.list("my-workspace", "project-id", {
+  pql: 'priority = "urgent" AND assignee = currentUser()',
+});
+
+// Workspace-scoped — spans every project the caller can view, with
+// per-project authorization honored server-side
+await client.workItems.listWorkspace("my-workspace", {
+  filters: { priority: "urgent" },
+});
+```
+
+The same `filters` and `pql` parameters also work on
+`cycles.listWorkItemsInCycle` and `modules.listWorkItemsInModule`.
+
 ## Development
 
 ```bash

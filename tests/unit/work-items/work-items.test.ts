@@ -114,6 +114,92 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
     }
   });
 
+  it("should list work items with structured `filters`", async () => {
+    let urgent: WorkItem | undefined;
+    let low: WorkItem | undefined;
+
+    try {
+      urgent = await client.workItems.create(workspaceSlug, projectId, {
+        name: randomizeName(),
+        priority: "urgent",
+      });
+      low = await client.workItems.create(workspaceSlug, projectId, {
+        name: randomizeName(),
+        priority: "low",
+      });
+
+      // Order by newest first and request a generous page so the just-created
+      // item is guaranteed to be on the first page even in busy workspaces.
+      const filtered = await client.workItems.list(workspaceSlug, projectId, {
+        filters: { priority: "urgent" },
+        order_by: "-created_at",
+        per_page: 100,
+      });
+
+      expect(filtered).toBeDefined();
+      expect(Array.isArray(filtered.results)).toBe(true);
+      // Every returned item must match the filter — directly proves filtering worked.
+      expect(filtered.results.length).toBeGreaterThan(0);
+      for (const wi of filtered.results) {
+        expect(wi.priority).toBe("urgent");
+      }
+      const ids = filtered.results.map((wi) => wi.id);
+      expect(ids).toContain(urgent.id);
+      expect(ids).not.toContain(low.id);
+    } finally {
+      if (urgent?.id) {
+        try {
+          await client.workItems.delete(workspaceSlug, projectId, urgent.id);
+        } catch {
+          /* best-effort cleanup */
+        }
+      }
+      if (low?.id) {
+        try {
+          await client.workItems.delete(workspaceSlug, projectId, low.id);
+        } catch {
+          /* best-effort cleanup */
+        }
+      }
+    }
+  });
+
+  it("should list workspace work items with filters", async () => {
+    let urgent: WorkItem | undefined;
+    try {
+      urgent = await client.workItems.create(workspaceSlug, projectId, {
+        name: randomizeName(),
+        priority: "urgent",
+      });
+
+      const unfiltered = await client.workItems.listWorkspace(workspaceSlug);
+      expect(unfiltered).toBeDefined();
+      expect(typeof unfiltered.total_results).toBe("number");
+
+      const filtered = await client.workItems.listWorkspace(workspaceSlug, {
+        filters: { priority: "urgent" },
+        order_by: "-created_at",
+        per_page: 100,
+      });
+      expect(filtered).toBeDefined();
+      expect(filtered.total_results).toBeLessThanOrEqual(unfiltered.total_results);
+      // Every returned item must match the filter — this is what actually
+      // proves the `filters` parameter was applied.
+      expect(filtered.results.length).toBeGreaterThan(0);
+      for (const wi of filtered.results) {
+        expect(wi.priority).toBe("urgent");
+      }
+    } finally {
+      if (urgent?.id) {
+        try {
+          await client.workItems.delete(workspaceSlug, projectId, urgent.id);
+        } catch {
+          /* best-effort cleanup */
+        }
+      }
+    }
+  });
+
   it("should retrieve work item by identifier", async () => {
     const project = await client.projects.retrieve(workspaceSlug, projectId);
     const workItemByIdentifier = await client.workItems.retrieveByIdentifier(
