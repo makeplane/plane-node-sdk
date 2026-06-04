@@ -1,12 +1,12 @@
 # Unit Tests
 
-This directory contains Jest-based unit tests for the Plane Node SDK. All tests use conditional execution patterns that gracefully skip tests when required configuration is not available.
+This directory contains Vitest-based unit tests for the Plane Node SDK. All tests use conditional execution patterns that gracefully skip tests when required configuration is not available.
 
 ## Test Structure
 
 All tests follow a consistent pattern:
 
-- Written using Jest with `describe`, `it`, `beforeAll`, and `afterAll` blocks
+- Written using Vitest with `describe`, `it`, `beforeAll`, and `afterAll` blocks
 - Use conditional `describeIf` helper to skip tests when required config is missing
 - Include proper cleanup in `afterAll` hooks to remove test data
 - Use `randomizeName()` utility to generate unique test data
@@ -36,7 +36,7 @@ Create a `.env` file in the project root with your configuration:
 
 ```bash
 # Copy the example and update with your values
-cp env.example .env
+cp .env.example .env
 ```
 
 Then update the values with your test environment details.
@@ -57,10 +57,10 @@ pnpm test customers
 pnpm test work-items
 
 # Run tests in watch mode
-pnpm test --watch
+pnpm test:watch
 
 # Run tests with coverage
-pnpm test --coverage
+pnpm test:coverage
 ```
 
 ## Test Organization

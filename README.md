@@ -116,7 +116,7 @@ Before running tests, you need to configure your test environment:
 1. **Copy the environment template:**
 
    ```bash
-   cp env.example .env.test
+   cp .env.example .env.test
    ```
 
 2. **Update `.env.test` with your test environment values:**

@@ -4,18 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is `@makeplane/plane-node-sdk` — a TypeScript SDK for the Plane API. It uses axios for HTTP, targets Node.js >=20, and is managed with pnpm@10.20.0.
+This is `@makeplane/plane-node-sdk` — a TypeScript SDK for the Plane API. It uses axios for HTTP, targets Node.js >=20, and is managed with pnpm@11.5.0.
 
 ## Common Commands
 
 ```bash
 pnpm install              # Install dependencies
-pnpm build                # Compile TS + bundle type definitions
+pnpm build                # Build ESM + CJS bundles + type declarations (tsdown)
 pnpm dev                  # Watch mode for development
-pnpm test                 # Run all tests (Jest)
+pnpm test                 # Run all tests (Vitest)
 pnpm test:unit            # Unit tests only
 pnpm test:e2e             # E2E tests only
-pnpm test -- --testPathPattern=tests/unit/project  # Run a single test file
+pnpm test tests/unit/project  # Run a single test file (path filter)
 pnpm test:coverage        # Run with coverage report
 pnpm check:lint           # Lint check (oxlint)
 pnpm fix:lint             # Auto-fix lint issues
@@ -25,7 +25,7 @@ pnpm fix:format           # Auto-format
 
 ## Testing
 
-Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (copy from `env.example`) with real workspace/project IDs. Tests run sequentially (`maxWorkers: 1`) to avoid API rate limits. Jest uses `tsconfig.jest.json` via ts-jest.
+Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (copy from `.env.example`) with real workspace/project IDs. Tests run sequentially (`fileParallelism: false`) to avoid API rate limits. Vitest reads `vitest.config.ts` with `globals: true`; test-time TypeScript globals come from `tsconfig.vitest.json`. Building requires Node ≥22.18 (tsdown); the published SDK still supports Node ≥20 at runtime.
 
 ## Architecture
 
@@ -55,4 +55,4 @@ Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (
 - Never use "Issue" in names — always use "Work Item"
 - File naming: kebab-case for files, PascalCase for classes, camelCase for methods
 - Avoid `any` types; use proper typing or `unknown` with type guards
-- Build produces `dist/` with compiled JS, declarations, source maps, and a bundled `types.bundle.d.ts`
+- Build (tsdown) produces `dist/` with dual ESM (`.mjs`) + CJS (`.cjs`) bundles, bundled type declarations (`.d.mts`/`.d.cts`), and source maps, exposed via the `exports` map in `package.json`
