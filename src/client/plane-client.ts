@@ -19,6 +19,7 @@ import { Stickies } from "../api/Stickies";
 import { Teamspaces } from "../api/Teamspaces";
 import { Initiatives } from "../api/Initiatives";
 import { Milestones } from "../api/Milestones";
+import { Releases } from "../api/Releases";
 import { AgentRuns } from "../api/AgentRuns";
 
 /**
@@ -47,6 +48,7 @@ export class PlaneClient {
   public teamspaces: Teamspaces;
   public milestones: Milestones;
   public initiatives: Initiatives;
+  public releases: Releases;
   public agentRuns: AgentRuns;
 
   constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
@@ -81,6 +83,7 @@ export class PlaneClient {
     this.teamspaces = new Teamspaces(this.config);
     this.milestones = new Milestones(this.config);
     this.initiatives = new Initiatives(this.config);
+    this.releases = new Releases(this.config);
     this.agentRuns = new AgentRuns(this.config);
   }
 }
