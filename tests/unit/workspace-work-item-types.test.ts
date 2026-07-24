@@ -48,6 +48,17 @@ describe(!!config.workspaceSlug, "WorkspaceWorkItemTypes API Tests", () => {
     workItemType = updated;
   });
 
+  it("should import a workspace work item type into a project", async () => {
+    // Regression guard for the endpoint URL (import-work-item-types/) and the
+    // payload key (work_item_types). The server responds 200 with an empty body,
+    // so this asserts the call resolves rather than checking returned data.
+    if (!config.projectId) return;
+    // Resolving (no 404/400) confirms the endpoint URL and payload key are correct.
+    await expect(
+      client.workItemTypes.importToProject(workspaceSlug, config.projectId, [workItemType.id!])
+    ).resolves.toBeDefined();
+  });
+
   it("should list properties for a workspace work item type", async () => {
     const properties = await client.workspaceWorkItemTypes.properties.list(workspaceSlug, workItemType.id!);
     expect(properties).toBeDefined();
