@@ -1,7 +1,14 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
-import { CreateModuleRequest, UpdateModuleRequest, Module, ListModulesParamsRequest } from "../models/Module";
+import {
+  CreateModuleRequest,
+  UpdateModuleRequest,
+  Module,
+  ListModulesParamsRequest,
+  ModuleLite,
+  ListModulesLiteParams,
+} from "../models/Module";
 import { WorkItem } from "../models/WorkItem";
 
 /**
@@ -58,6 +65,21 @@ export class Modules extends BaseResource {
   }
 
   /**
+   * List modules as a paginated "lite" response, intended for pickers and
+   * reference lookups.
+   */
+  async listLite(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListModulesLiteParams
+  ): Promise<PaginatedResponse<ModuleLite>> {
+    return this.get<PaginatedResponse<ModuleLite>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/modules-lite/`,
+      params
+    );
+  }
+
+  /**
    * List work items in module
    */
   async listWorkItemsInModule(
@@ -109,7 +131,7 @@ export class Modules extends BaseResource {
     params?: any
   ): Promise<PaginatedResponse<Module>> {
     return this.get<PaginatedResponse<Module>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/archived/`,
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-modules/`,
       params
     );
   }

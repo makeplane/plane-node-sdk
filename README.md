@@ -63,7 +63,8 @@ const project = await client.projects.create("workspace-slug", {
 - **Labels**: Issue categorization and tagging
 - **States**: Workflow state management
 - **Users**: User management and profiles
-- **Members**: Team membership and permissions
+- **Roles**: Workspace and project role definitions (read-only)
+- **Estimates**: Project estimates and estimate points
 - **Modules**: Feature organization and module management
 - **Cycles**: Sprint and iteration management
 - **Customers**: Customer management and operations
@@ -82,7 +83,8 @@ const project = await client.projects.create("workspace-slug", {
 - **WorkspaceProjectLabels**: Workspace-level project label management
 - **WorkspaceProjectStates**: Workspace-level project state management
 - **WorkItemRelationDefinitions**: Custom work item relation type definitions
-- **Releases**: Release management with tags, labels, and item label assignment
+- **Releases**: Release management with tags, labels, item labels, changelog, comments, links, and work items
+- **Collections**: Folders that group workspace pages, with member and page management
 - **AgentRuns**: AI agent run orchestration and activity tracking
 - **Workflows**: Project workflow management with state attachments and transitions
 - **ProjectTemplates**: Work item and page template management per project

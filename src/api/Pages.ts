@@ -1,6 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { Page, CreatePage } from "../models/Page";
+import { PaginatedResponse } from "../models/common";
 
 /**
  * Pages API resource
@@ -27,6 +28,20 @@ export class Pages extends BaseResource {
     return this.get<Page>(`/workspaces/${workspaceSlug}/pages/${pageId}/`);
   }
 
+  /**
+   * List workspace pages
+   */
+  async listWorkspacePages(workspaceSlug: string, params?: any): Promise<PaginatedResponse<Page>> {
+    return this.get<PaginatedResponse<Page>>(`/workspaces/${workspaceSlug}/pages/`, params);
+  }
+
+  /**
+   * Delete a workspace page
+   */
+  async deleteWorkspacePage(workspaceSlug: string, pageId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/pages/${pageId}/`);
+  }
+
   // ===== PROJECT PAGES API METHODS =====
 
   /**
@@ -41,6 +56,20 @@ export class Pages extends BaseResource {
    */
   async getProjectPage(workspaceSlug: string, projectId: string, pageId: string): Promise<Page> {
     return this.get<Page>(`/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/`);
+  }
+
+  /**
+   * List project pages
+   */
+  async listProjectPages(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<Page>> {
+    return this.get<PaginatedResponse<Page>>(`/workspaces/${workspaceSlug}/projects/${projectId}/pages/`, params);
+  }
+
+  /**
+   * Delete a project page
+   */
+  async deleteProjectPage(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/`);
   }
 
   /**

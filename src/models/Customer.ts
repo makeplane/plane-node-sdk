@@ -157,3 +157,13 @@ export interface LinkedIssue {
   project_id: string;
   project__identifier: string;
 }
+
+/**
+ * Request model for setting several customer property values at once.
+ * Maps property id to its list of values. Every value is sent as a string
+ * regardless of the property's type — dates as YYYY-MM-DD, booleans as
+ * "True"/"False", options and relations as UUIDs.
+ */
+export interface SetCustomerPropertyValues {
+  customer_property_values: Record<string, string[]>;
+}

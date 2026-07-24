@@ -50,3 +50,12 @@ export interface UpdateIntakeWorkItemRequest {
   source_email?: string;
   issue?: WorkItemForIntakeRequest; // Issue data to update in the intake issue
 }
+
+/**
+ * Request model for updating the triage status of an intake work item.
+ */
+export interface UpdateIntakeStatusRequest {
+  status?: IntakeWorkItemStatusEnum;
+  snoozed_till?: string;
+  duplicate_to?: string;
+}

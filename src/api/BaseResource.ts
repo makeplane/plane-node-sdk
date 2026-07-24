@@ -111,11 +111,12 @@ export abstract class BaseResource {
   /**
    * DELETE request
    */
-  protected async httpDelete(endpoint: string, data?: any): Promise<void> {
+  protected async httpDelete(endpoint: string, data?: any, params?: any): Promise<void> {
     try {
       await axios.delete(this.buildUrl(endpoint), {
         headers: this.getHeaders(),
         data,
+        params,
       });
     } catch (error) {
       throw this.handleError(error);
@@ -154,7 +155,11 @@ export abstract class BaseResource {
    * Centralized error handling
    */
   protected handleError(error: any): never {
-    console.error("❌ [ERROR]", error);
+    // Only dump the raw error when logging is explicitly enabled — a library
+    // should not write to the consumer's console on every failed request.
+    if (this.config.enableLogging) {
+      console.error("❌ [ERROR]", error);
+    }
 
     if (error instanceof HttpError) {
       throw error;

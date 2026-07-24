@@ -44,8 +44,11 @@ describe(!!config.workspaceSlug, "WorkspaceTemplates API Tests", () => {
   // ─── Work Item Templates ─────────────────────────────────────────────────────
 
   it("should create a workspace work item template", async () => {
+    // The server requires template_data with the seeded work item's own name,
+    // in addition to the outer template name.
     workItemTemplate = await client.workspaceTemplates.workItems.create(workspaceSlug, {
       name: randomizeName("WS WI Template"),
+      template_data: { name: randomizeName("Seed Work Item ") },
     });
     expect(workItemTemplate).toBeDefined();
     expect(workItemTemplate.id).toBeDefined();
@@ -79,6 +82,7 @@ describe(!!config.workspaceSlug, "WorkspaceTemplates API Tests", () => {
   it("should create a workspace project template", async () => {
     projectTemplate = await client.workspaceTemplates.projects.create(workspaceSlug, {
       name: randomizeName("WS Project Template"),
+      template_data: { name: randomizeName("Seed Project ") },
     });
     expect(projectTemplate).toBeDefined();
     expect(projectTemplate.id).toBeDefined();

@@ -1,6 +1,6 @@
 import { BaseResource } from "../BaseResource";
 import { Configuration } from "../../Configuration";
-import { CreateReleaseTag, ReleaseTag } from "../../models/Release";
+import { CreateReleaseTag, ReleaseTag, UpdateReleaseTag } from "../../models/Release";
 
 /**
  * ReleaseTags sub-resource
@@ -20,5 +20,17 @@ export class Tags extends BaseResource {
 
   async create(workspaceSlug: string, data: CreateReleaseTag): Promise<ReleaseTag> {
     return this.post<ReleaseTag>(`/workspaces/${workspaceSlug}/releases/tags/`, data);
+  }
+
+  async retrieve(workspaceSlug: string, tagId: string): Promise<ReleaseTag> {
+    return this.get<ReleaseTag>(`/workspaces/${workspaceSlug}/releases/tags/${tagId}/`);
+  }
+
+  async update(workspaceSlug: string, tagId: string, data: UpdateReleaseTag): Promise<ReleaseTag> {
+    return this.patch<ReleaseTag>(`/workspaces/${workspaceSlug}/releases/tags/${tagId}/`, data);
+  }
+
+  async delete(workspaceSlug: string, tagId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/releases/tags/${tagId}/`);
   }
 }

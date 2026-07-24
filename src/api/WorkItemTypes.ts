@@ -76,9 +76,8 @@ export class WorkItemTypes extends BaseResource {
    * @returns The resulting project-level work item types after import.
    */
   async importToProject(workspaceSlug: string, projectId: string, workItemTypeIds: string[]): Promise<WorkItemType[]> {
-    return this.post<WorkItemType[]>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/work-item-types/import-work-item-types/`,
-      { work_item_type_ids: workItemTypeIds }
-    );
+    return this.post<WorkItemType[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/import-work-item-types/`, {
+      work_item_types: workItemTypeIds,
+    });
   }
 }

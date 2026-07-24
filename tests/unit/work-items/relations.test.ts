@@ -2,7 +2,6 @@ import { PlaneClient } from "../../../src/client/plane-client";
 import { config } from "../constants";
 import { createTestClient } from "../../helpers/test-utils";
 import { describeIf as describe } from "../../helpers/conditional-tests";
-import { WorkItemRelationResponse } from "../../../src/models/WorkItemRelation";
 describe(
   !!(config.workspaceSlug && config.projectId && config.workItemId && config.workItemId2),
   "Work Item Relations API Tests",
@@ -21,9 +20,9 @@ describe(
       workItemId = config.workItemId;
       workItemId2 = config.workItemId2;
 
-      // Get the actual work item ID from the identifier
-      const workItem2 = await client.workItems.retrieveByIdentifier(workspaceSlug, workItemId2);
-      relatedWorkItemId = workItem2.id!;
+      // TEST_WORK_ITEM_ID_2 is already a work item UUID — use it directly.
+      // (retrieveByIdentifier expects a PROJ-123 style identifier, not a UUID.)
+      relatedWorkItemId = workItemId2;
     });
 
     it("should create a relation", async () => {

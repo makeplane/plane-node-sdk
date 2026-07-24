@@ -159,3 +159,99 @@ export interface AdvancedSearchResult {
   target_date?: string | null;
   start_date?: string | null;
 }
+
+// ─── Workspace Work Item Count ───────────────────────────────────────────────
+
+/**
+ * Query params for workspace-wide work item count.
+ */
+export interface WorkItemCountParams {
+  /** JSON-encoded filters object */
+  filters?: string;
+  /** PQL query string */
+  pql?: string;
+  group_by?: string;
+  sub_group_by?: string;
+  [key: string]: unknown;
+}
+
+export interface WorkItemCountEntry {
+  count: number;
+  sub_grouped_counts?: Record<string, { count: number }>;
+}
+
+/**
+ * Response for GET /workspaces/{slug}/work-items/count.
+ * grouped_counts keys are raw ORM field values ("None" for empty).
+ */
+export interface WorkItemCountResponse {
+  grouped_by?: string | null;
+  sub_grouped_by?: string | null;
+  total_count: number;
+  grouped_counts?: Record<string, WorkItemCountEntry>;
+}
+
+// ─── Work Item Dependencies ──────────────────────────────────────────────────
+
+/**
+ * Built-in dependency directions, from the perspective of the work item.
+ */
+export type DependencyType =
+  | "blocking"
+  | "blocked_by"
+  | "start_before"
+  | "start_after"
+  | "finish_before"
+  | "finish_after";
+
+/**
+ * Work item with an injected relation_type label.
+ */
+export interface WorkItemWithRelationType {
+  id: string;
+  name?: string;
+  sequence_id?: number;
+  project_id?: string;
+  state_id?: string;
+  priority?: string;
+  type_id?: string;
+  is_epic?: boolean;
+  relation_type?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Response for GET .../work-items/{id}/dependencies/ grouped by direction.
+ */
+export interface WorkItemDependencyResponse {
+  blocking: WorkItemWithRelationType[];
+  blocked_by: WorkItemWithRelationType[];
+  start_before: WorkItemWithRelationType[];
+  start_after: WorkItemWithRelationType[];
+  finish_before: WorkItemWithRelationType[];
+  finish_after: WorkItemWithRelationType[];
+}
+
+/**
+ * Request model for creating work item dependency relations.
+ */
+export interface CreateWorkItemDependencyRequest {
+  /** Dependency direction from the perspective of this work item */
+  relation_type: DependencyType;
+  /** UUIDs of work items to create dependencies with (min 1) */
+  work_item_ids: string[];
+}
+
+// ─── Work Item Custom Relations ──────────────────────────────────────────────
+
+/**
+ * Request model for creating a custom (definition-based) work item relation.
+ */
+export interface CreateWorkItemCustomRelationRequest {
+  /** UUID of the workspace relation definition */
+  relation_definition_id: string;
+  /** The outward or inward label of the definition (controls directionality) */
+  relation_definition_type: string;
+  /** UUIDs of work items to create the relation with (min 1) */
+  work_item_ids: string[];
+}

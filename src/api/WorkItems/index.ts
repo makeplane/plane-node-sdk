@@ -10,6 +10,8 @@ import {
   WorkItemSearch,
   AdvancedSearchWorkItem,
   AdvancedSearchResult,
+  WorkItemCountParams,
+  WorkItemCountResponse,
 } from "../../models/WorkItem";
 import { PaginatedResponse } from "../../models/common";
 import { Links } from "../Links";
@@ -18,6 +20,9 @@ import { Attachments } from "./Attachments";
 import { Comments } from "./Comments";
 import { Activities } from "./Activities";
 import { WorkLogs } from "./WorkLogs";
+import { Dependencies } from "./Dependencies";
+import { CustomRelations } from "./CustomRelations";
+import { Pages } from "./Pages";
 
 /**
  * WorkItems API resource
@@ -30,6 +35,9 @@ export class WorkItems extends BaseResource {
   public comments: Comments;
   public activities: Activities;
   public workLogs: WorkLogs;
+  public dependencies: Dependencies;
+  public customRelations: CustomRelations;
+  public pages: Pages;
 
   constructor(config: Configuration) {
     super(config);
@@ -39,6 +47,9 @@ export class WorkItems extends BaseResource {
     this.comments = new Comments(config);
     this.activities = new Activities(config);
     this.workLogs = new WorkLogs(config);
+    this.dependencies = new Dependencies(config);
+    this.customRelations = new CustomRelations(config);
+    this.pages = new Pages(config);
   }
 
   /**
@@ -106,6 +117,60 @@ export class WorkItems extends BaseResource {
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`,
       params
     );
+  }
+
+  /**
+   * List work items across an entire workspace.
+   *
+   * Returns a paginated envelope of work items the caller can view, spanning
+   * every project in the workspace (per-project authorization is honored
+   * server-side). Supports `filters`, `pql`, `order_by`, `cursor`, `per_page`,
+   * `fields`, and `expand` query params.
+   */
+  async listWorkspace(workspaceSlug: string, params?: ListWorkItemsParams): Promise<PaginatedResponse<WorkItem>> {
+    return this.get<PaginatedResponse<WorkItem>>(`/workspaces/${workspaceSlug}/work-items/`, params);
+  }
+
+  /**
+   * Return the count of work items across an entire workspace.
+   *
+   * Supports `filters`, `pql`, `group_by`, and `sub_group_by` query params.
+   * `grouped_counts` keys are raw ORM field values: UUID strings for FK/M2M
+   * dimensions, plain strings for `priority` / `state__group`, ISO-date strings
+   * for `target_date` / `start_date`. "None" is used for empty values.
+   */
+  async countWorkspace(workspaceSlug: string, params?: WorkItemCountParams): Promise<WorkItemCountResponse> {
+    return this.get<WorkItemCountResponse>(`/workspaces/${workspaceSlug}/work-items/count/`, params);
+  }
+
+  /**
+   * List archived work items in a project.
+   * Supports the same `filters` and `pql` query parameters as list().
+   */
+  async listArchived(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListWorkItemsParams
+  ): Promise<PaginatedResponse<WorkItem>> {
+    return this.get<PaginatedResponse<WorkItem>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-work-items/`,
+      params
+    );
+  }
+
+  /**
+   * Archive a work item.
+   * Only work items in a completed or cancelled state can be archived.
+   */
+  async archive(workspaceSlug: string, projectId: string, workItemId: string): Promise<void> {
+    await this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/archive/`, {});
+  }
+
+  /**
+   * Unarchive a work item — restore it to active status.
+   */
+  async unarchive(workspaceSlug: string, projectId: string, workItemId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/unarchive/`);
   }
 
   // method overloads

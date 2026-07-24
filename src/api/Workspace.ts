@@ -1,6 +1,7 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { WorkspaceMember } from "../models/Member";
+import { WorkspaceMember, ListMembersLiteParams, ProjectRoleDistribution } from "../models/Member";
+import { PaginatedResponse } from "../models/common";
 import { UpdateWorkspaceFeatures, WorkspaceFeatures } from "../models/WorkspaceFeatures";
 
 /**
@@ -17,6 +18,27 @@ export class Workspace extends BaseResource {
    */
   async getMembers(workspaceSlug: string): Promise<WorkspaceMember[]> {
     return this.get<WorkspaceMember[]>(`/workspaces/${workspaceSlug}/members/`);
+  }
+
+  /**
+   * List workspace members as a paginated "lite" response.
+   * Unlike getMembers() (which returns a bare list), this returns a
+   * cursor-paginated envelope.
+   */
+  async getMembersLite(
+    workspaceSlug: string,
+    params?: ListMembersLiteParams
+  ): Promise<PaginatedResponse<WorkspaceMember>> {
+    return this.get<PaginatedResponse<WorkspaceMember>>(`/workspaces/${workspaceSlug}/members-lite/`, params);
+  }
+
+  /**
+   * Aggregate count of project members by role across the workspace.
+   * Counts span all active (non-archived) projects and include both built-in
+   * and custom roles.
+   */
+  async getProjectRoleDistribution(workspaceSlug: string): Promise<ProjectRoleDistribution> {
+    return this.get<ProjectRoleDistribution>(`/workspaces/${workspaceSlug}/project-role-distribution/`);
   }
 
   /**

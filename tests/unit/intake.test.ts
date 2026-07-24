@@ -75,4 +75,14 @@ describe(!!(config.workspaceSlug && config.projectId), "Intake API Tests", () =>
     const foundIntake = intakes.results.find((i) => i.id === intakeWorkItem.id);
     expect(foundIntake).toBeDefined();
   });
+
+  it("should update the triage status of an intake work item", async () => {
+    // 1 = accepted
+    const updated = await client.intake.updateStatus(workspaceSlug, projectId, intakeWorkItem.issue!, {
+      status: 1,
+    });
+
+    expect(updated).toBeDefined();
+    expect(updated.status).toBe(1);
+  });
 });

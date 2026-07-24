@@ -42,9 +42,11 @@ describe(!!(config.workspaceSlug && config.projectId), "ProjectTemplates API Tes
   // ─── Work Item Templates ─────────────────────────────────────────────────────
 
   it("should create a work item template", async () => {
+    // The server requires template_data carrying the seeded work item's name.
     workItemTemplate = await client.projectTemplates.workItems.create(workspaceSlug, projectId, {
       name: randomizeName("Test WI Template"),
       short_description: "Created by test suite",
+      template_data: { name: randomizeName("Seed Work Item ") },
     });
 
     expect(workItemTemplate).toBeDefined();

@@ -1,6 +1,6 @@
 import { BaseResource } from "../BaseResource";
 import { Configuration } from "../../Configuration";
-import { CreateReleaseLabel, ReleaseLabel } from "../../models/Release";
+import { CreateReleaseLabel, ReleaseLabel, UpdateReleaseLabel } from "../../models/Release";
 
 /**
  * ReleaseLabels sub-resource
@@ -20,5 +20,17 @@ export class Labels extends BaseResource {
 
   async create(workspaceSlug: string, data: CreateReleaseLabel): Promise<ReleaseLabel> {
     return this.post<ReleaseLabel>(`/workspaces/${workspaceSlug}/releases/labels/`, data);
+  }
+
+  async retrieve(workspaceSlug: string, labelId: string): Promise<ReleaseLabel> {
+    return this.get<ReleaseLabel>(`/workspaces/${workspaceSlug}/releases/labels/${labelId}/`);
+  }
+
+  async update(workspaceSlug: string, labelId: string, data: UpdateReleaseLabel): Promise<ReleaseLabel> {
+    return this.patch<ReleaseLabel>(`/workspaces/${workspaceSlug}/releases/labels/${labelId}/`, data);
+  }
+
+  async delete(workspaceSlug: string, labelId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/releases/labels/${labelId}/`);
   }
 }

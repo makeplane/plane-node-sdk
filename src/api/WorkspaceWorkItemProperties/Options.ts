@@ -33,6 +33,12 @@ export class Options extends BaseResource {
     );
   }
 
+  async retrieve(workspaceSlug: string, propertyId: string, optionId: string): Promise<WorkItemPropertyOption> {
+    return this.get<WorkItemPropertyOption>(
+      `/workspaces/${workspaceSlug}/work-item-properties/${propertyId}/options/${optionId}/`
+    );
+  }
+
   async update(
     workspaceSlug: string,
     propertyId: string,
@@ -43,5 +49,9 @@ export class Options extends BaseResource {
       `/workspaces/${workspaceSlug}/work-item-properties/${propertyId}/options/${optionId}/`,
       data
     );
+  }
+
+  async delete(workspaceSlug: string, propertyId: string, optionId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/work-item-properties/${propertyId}/options/${optionId}/`);
   }
 }

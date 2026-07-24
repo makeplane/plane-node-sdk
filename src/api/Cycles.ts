@@ -2,7 +2,14 @@ import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
 
-import { Cycle, CreateCycleRequest, UpdateCycleRequest, TransferCycleWorkItemRequest } from "../models/Cycle";
+import {
+  Cycle,
+  CreateCycleRequest,
+  UpdateCycleRequest,
+  TransferCycleWorkItemRequest,
+  CycleLite,
+  ListCyclesLiteParams,
+} from "../models/Cycle";
 import { WorkItem } from "../models/WorkItem";
 
 /**
@@ -55,6 +62,21 @@ export class Cycles extends BaseResource {
   }
 
   /**
+   * List cycles as a paginated "lite" response, intended for pickers and
+   * reference lookups. Accepts an optional status filter.
+   */
+  async listLite(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListCyclesLiteParams
+  ): Promise<PaginatedResponse<CycleLite>> {
+    return this.get<PaginatedResponse<CycleLite>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles-lite/`,
+      params
+    );
+  }
+
+  /**
    * List archived cycles
    */
   async listArchived(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<Cycle>> {
@@ -75,7 +97,7 @@ export class Cycles extends BaseResource {
    * Archive a cycle
    */
   async archive(workspaceSlug: string, projectId: string, cycleId: string): Promise<void> {
-    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/archive/`);
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/archive/`);
   }
 
   /**

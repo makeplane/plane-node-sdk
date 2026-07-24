@@ -62,3 +62,26 @@ export interface ListModulesParamsRequest {
   limit?: number;
   offset?: number;
 }
+
+/**
+ * Lite module shape returned by the read-only modules-lite list endpoint.
+ */
+export interface ModuleLite {
+  id: string;
+  name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Query params for the paginated modules-lite endpoint.
+ */
+export interface ListModulesLiteParams {
+  order_by?: string;
+  per_page?: number;
+  cursor?: string;
+  [key: string]: unknown;
+}

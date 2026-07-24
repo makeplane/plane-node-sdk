@@ -26,6 +26,10 @@ export class WorkspaceWorkItemProperties extends BaseResource {
     return this.post<WorkItemProperty>(`/workspaces/${workspaceSlug}/work-item-properties/`, data);
   }
 
+  async retrieve(workspaceSlug: string, propertyId: string): Promise<WorkItemProperty> {
+    return this.get<WorkItemProperty>(`/workspaces/${workspaceSlug}/work-item-properties/${propertyId}/`);
+  }
+
   async update(workspaceSlug: string, propertyId: string, data: UpdateWorkItemProperty): Promise<WorkItemProperty> {
     return this.patch<WorkItemProperty>(`/workspaces/${workspaceSlug}/work-item-properties/${propertyId}/`, data);
   }

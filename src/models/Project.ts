@@ -47,3 +47,31 @@ export interface ListProjectsParams {
   limit?: number;
   offset?: number;
 }
+
+/**
+ * Lite project shape returned by the read-only projects-lite list endpoint,
+ * intended for pickers and reference lookups.
+ */
+export interface ProjectLite {
+  id: string;
+  identifier: string;
+  name: string;
+  cover_image?: string;
+  icon_prop?: Record<string, unknown>;
+  emoji?: string;
+  description?: string;
+  cover_image_url?: string;
+  archived_at?: string;
+}
+
+/**
+ * Query params for the paginated projects-lite endpoint.
+ */
+export interface ListProjectsLiteParams {
+  /** Include archived projects in the results (defaults to false) */
+  include_archived?: boolean;
+  order_by?: string;
+  per_page?: number;
+  cursor?: string;
+  [key: string]: unknown;
+}
