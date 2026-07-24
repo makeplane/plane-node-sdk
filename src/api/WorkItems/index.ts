@@ -25,6 +25,24 @@ import { CustomRelations } from "./CustomRelations";
 import { Pages } from "./Pages";
 
 /**
+ * Prepare query params for work-item list endpoints.
+ *
+ * The backend's `filters=` query parameter expects a JSON-encoded string, not
+ * an exploded object — so we stringify it here before letting axios URL-encode
+ * the result into a single query value. Everything else passes through
+ * unchanged.
+ *
+ * Exported for reuse from sibling resources (Cycles, Modules) that list work
+ * items.
+ */
+export function prepareWorkItemParams(params?: ListWorkItemsParams): Record<string, unknown> | undefined {
+  if (!params) return undefined;
+  if (params.filters === undefined) return params as Record<string, unknown>;
+  const { filters, ...rest } = params;
+  return { ...rest, filters: JSON.stringify(filters) };
+}
+
+/**
  * WorkItems API resource
  * Handles all work item (issue) related operations
  */
@@ -106,7 +124,19 @@ export class WorkItems extends BaseResource {
   }
 
   /**
-   * List work items with optional filtering
+   * List work items in a project with optional filtering.
+   *
+   * Supports rich filtering via `filters` (a structured object, JSON-encoded
+   * into a single `filters=` query param) and `pql` (Plane Query Language).
+   *
+   * @example
+   * ```ts
+   * await client.workItems.list("my-workspace", "project-id", {
+   *   filters: { and: [{ priority: "urgent" }, { state_group__in: ["unstarted", "started"] }] },
+   *   order_by: "-created_at",
+   *   per_page: 50,
+   * });
+   * ```
    */
   async list(
     workspaceSlug: string,
@@ -115,7 +145,7 @@ export class WorkItems extends BaseResource {
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/`,
-      params
+      prepareWorkItemParams(params)
     );
   }
 
@@ -124,11 +154,15 @@ export class WorkItems extends BaseResource {
    *
    * Returns a paginated envelope of work items the caller can view, spanning
    * every project in the workspace (per-project authorization is honored
-   * server-side). Supports `filters`, `pql`, `order_by`, `cursor`, `per_page`,
-   * `fields`, and `expand` query params.
+   * server-side). Supports the same `filters` and `pql` query params as
+   * {@link WorkItems.list}, plus `order_by`, `cursor`, `per_page`, `fields`,
+   * and `expand`.
    */
   async listWorkspace(workspaceSlug: string, params?: ListWorkItemsParams): Promise<PaginatedResponse<WorkItem>> {
-    return this.get<PaginatedResponse<WorkItem>>(`/workspaces/${workspaceSlug}/work-items/`, params);
+    return this.get<PaginatedResponse<WorkItem>>(
+      `/workspaces/${workspaceSlug}/work-items/`,
+      prepareWorkItemParams(params)
+    );
   }
 
   /**
@@ -154,7 +188,7 @@ export class WorkItems extends BaseResource {
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/archived-work-items/`,
-      params
+      prepareWorkItemParams(params)
     );
   }
 

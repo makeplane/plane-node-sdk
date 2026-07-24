@@ -9,7 +9,8 @@ import {
   ModuleLite,
   ListModulesLiteParams,
 } from "../models/Module";
-import { WorkItem } from "../models/WorkItem";
+import { ListWorkItemsParams, WorkItem } from "../models/WorkItem";
+import { prepareWorkItemParams } from "./WorkItems";
 
 /**
  * Modules API resource
@@ -80,17 +81,20 @@ export class Modules extends BaseResource {
   }
 
   /**
-   * List work items in module
+   * List work items in a module.
+   *
+   * Supports the same `filters` and `pql` query parameters as
+   * {@link WorkItems.list}.
    */
   async listWorkItemsInModule(
     workspaceSlug: string,
     projectId: string,
     moduleId: string,
-    params?: any
+    params?: ListWorkItemsParams
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`,
-      params
+      prepareWorkItemParams(params)
     );
   }
 

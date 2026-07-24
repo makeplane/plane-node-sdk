@@ -87,9 +87,18 @@ export interface ListWorkItemsParams {
   assignee?: string;
   limit?: number;
   offset?: number;
+  /**
+   * Plane Query Language expression — a string-based alternative to the
+   * structured `filters` object. The two have equivalent expressive power.
+   * Example: `priority = "urgent" AND assignee = currentUser()`.
+   */
   pql?: string;
-  /** JSON-encoded filters object (workspace/project list endpoints) */
-  filters?: string;
+  /**
+   * Structured filter expression. Supports nested `and`/`or`/`not` groups and
+   * field operators like `__in`, `__gte`, `__range`, `__icontains`. The SDK
+   * JSON-encodes this object into the `filters=` query parameter before sending.
+   */
+  filters?: Record<string, unknown>;
   order_by?: string;
   cursor?: string;
   per_page?: number;
@@ -150,6 +159,11 @@ export type AdvancedSearchFilter = {
 export interface AdvancedSearchWorkItem {
   query?: string;
   filters?: AdvancedSearchFilter;
+  /**
+   * Plane Query Language expression. Alternative to `filters` with the same
+   * expressive power. The backend accepts either or both.
+   */
+  pql?: string;
   limit?: number;
 }
 
