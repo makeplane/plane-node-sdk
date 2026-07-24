@@ -72,37 +72,4 @@ describe(!!(config.workspaceSlug && config.projectId), "Page API Tests", () => {
     expect(Array.isArray(pages.results)).toBe(true);
     expect(pages.results.find((p) => p.id === projectPage.id)).toBeDefined();
   });
-
-  it("should delete a workspace page", async () => {
-    try {
-      await client.pages.deleteWorkspacePage(workspaceSlug, workspacePage.id!);
-    } catch (error: any) {
-      const msg = String(error?.response?.detail ?? error?.response?.error ?? "");
-      if (error?.statusCode === 405 && msg.includes("DELETE")) {
-        // This server build does not expose DELETE on pages — skip gracefully
-        console.warn("Server does not support page deletion (405) — skipping:", msg);
-        return;
-      }
-      throw error;
-    }
-
-    const pages = await client.pages.listWorkspacePages(workspaceSlug);
-    expect(pages.results.find((p) => p.id === workspacePage.id)).toBeUndefined();
-  });
-
-  it("should delete a project page", async () => {
-    try {
-      await client.pages.deleteProjectPage(workspaceSlug, projectId, projectPage.id!);
-    } catch (error: any) {
-      const msg = String(error?.response?.detail ?? error?.response?.error ?? "");
-      if (error?.statusCode === 405 && msg.includes("DELETE")) {
-        console.warn("Server does not support page deletion (405) — skipping:", msg);
-        return;
-      }
-      throw error;
-    }
-
-    const pages = await client.pages.listProjectPages(workspaceSlug, projectId);
-    expect(pages.results.find((p) => p.id === projectPage.id)).toBeUndefined();
-  });
 });

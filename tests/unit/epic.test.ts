@@ -18,17 +18,13 @@ describe(!!(config.workspaceSlug && config.projectId), "Epic API Tests", () => {
     const epics = await client.epics.list(workspaceSlug, projectId);
     expect(epics).toBeDefined();
     expect(Array.isArray(epics.results)).toBe(true);
-    if (epics.results.length === 0) {
-      console.warn("No epics in project — skipping content assertions");
-    }
   });
 
   it("should retrieve an epic", async () => {
     const epics = await client.epics.list(workspaceSlug, projectId);
-    if (epics.results.length === 0) {
-      console.warn("No epics in project — skipping retrieve test");
-      return;
-    }
+    // Epics are read-only in this SDK, so we can't seed one — only assert
+    // retrieve when the project already has an epic.
+    if (epics.results.length === 0) return;
     const epic = await client.epics.retrieve(workspaceSlug, projectId, epics.results[0]!.id!);
     expect(epic).toBeDefined();
     expect(epic.id).toBe(epics.results[0]!.id);

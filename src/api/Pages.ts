@@ -35,13 +35,6 @@ export class Pages extends BaseResource {
     return this.get<PaginatedResponse<Page>>(`/workspaces/${workspaceSlug}/pages/`, params);
   }
 
-  /**
-   * Delete a workspace page
-   */
-  async deleteWorkspacePage(workspaceSlug: string, pageId: string): Promise<void> {
-    return this.httpDelete(`/workspaces/${workspaceSlug}/pages/${pageId}/`);
-  }
-
   // ===== PROJECT PAGES API METHODS =====
 
   /**
@@ -63,13 +56,6 @@ export class Pages extends BaseResource {
    */
   async listProjectPages(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<Page>> {
     return this.get<PaginatedResponse<Page>>(`/workspaces/${workspaceSlug}/projects/${projectId}/pages/`, params);
-  }
-
-  /**
-   * Delete a project page
-   */
-  async deleteProjectPage(workspaceSlug: string, projectId: string, pageId: string): Promise<void> {
-    return this.httpDelete(`/workspaces/${workspaceSlug}/projects/${projectId}/pages/${pageId}/`);
   }
 
   /**

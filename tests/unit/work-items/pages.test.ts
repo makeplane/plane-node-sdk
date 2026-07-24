@@ -24,15 +24,7 @@ describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Wor
     });
   });
 
-  afterAll(async () => {
-    if (page?.id) {
-      try {
-        await client.pages.deleteProjectPage(workspaceSlug, projectId, page.id);
-      } catch (error) {
-        console.warn("Failed to delete page:", error);
-      }
-    }
-  });
+  // Note: the created page cannot be cleaned up — the server exposes no page DELETE.
 
   it("should link a page to a work item", async () => {
     workItemPage = await client.workItems.pages.create(workspaceSlug, projectId, workItemId, {

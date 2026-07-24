@@ -88,6 +88,16 @@ export interface ListWorkItemsParams {
   limit?: number;
   offset?: number;
   pql?: string;
+  /** JSON-encoded filters object (workspace/project list endpoints) */
+  filters?: string;
+  order_by?: string;
+  cursor?: string;
+  per_page?: number;
+  /** Comma-separated field list to return */
+  fields?: string;
+  /** Comma-separated relations to expand */
+  expand?: string;
+  [key: string]: unknown;
 }
 
 export interface WorkItemActivity {

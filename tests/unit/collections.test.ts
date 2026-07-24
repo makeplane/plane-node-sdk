@@ -95,13 +95,7 @@ describe(!!config.workspaceSlug, "Collection Pages API Tests", () => {
   });
 
   afterAll(async () => {
-    if (page?.id) {
-      try {
-        await client.pages.deleteWorkspacePage(workspaceSlug, page.id);
-      } catch (error) {
-        console.warn("Failed to delete page:", error);
-      }
-    }
+    // Note: pages cannot be cleaned up — the server exposes no page DELETE.
     for (const c of [source, target]) {
       if (c?.id) {
         try {
@@ -150,17 +144,10 @@ describe(!!config.workspaceSlug, "Collection Pages API Tests", () => {
       collection_id: source.id,
     });
 
-    try {
-      const listed = await client.collections.pages.list(workspaceSlug, source.id);
-      const pageIds = listed.results.filter((row) => row.page).map((row) => row.page!.id);
-      expect(pageIds).toContain(inlinePage.id);
-    } finally {
-      try {
-        await client.pages.deleteWorkspacePage(workspaceSlug, inlinePage.id!);
-      } catch (error) {
-        console.warn("Failed to delete inline page:", error);
-      }
-    }
+    // Note: the created page cannot be cleaned up — the server exposes no page DELETE.
+    const listed = await client.collections.pages.list(workspaceSlug, source.id);
+    const pageIds = listed.results.filter((row) => row.page).map((row) => row.page!.id);
+    expect(pageIds).toContain(inlinePage.id);
   });
 });
 

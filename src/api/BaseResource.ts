@@ -155,10 +155,20 @@ export abstract class BaseResource {
    * Centralized error handling
    */
   protected handleError(error: any): never {
-    // Only dump the raw error when logging is explicitly enabled — a library
-    // should not write to the consumer's console on every failed request.
     if (this.config.enableLogging) {
-      console.error("❌ [ERROR]", error);
+      if (axios.isAxiosError(error)) {
+        console.error("❌ [ERROR]", {
+          method: error.config?.method?.toUpperCase(),
+          url: error.config?.url,
+          status: error.response?.status,
+          headers: this.sanitizeHeaders(error.config?.headers),
+          requestData: error.config?.data ? this.sanitizeData(error.config.data) : undefined,
+          responseData: this.sanitizeData(error.response?.data),
+          message: error.message,
+        });
+      } else {
+        console.error("❌ [ERROR]", error instanceof Error ? error.message : error);
+      }
     }
 
     if (error instanceof HttpError) {
