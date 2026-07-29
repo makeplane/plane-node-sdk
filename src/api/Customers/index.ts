@@ -55,6 +55,18 @@ export class Customers extends BaseResource {
   }
 
   /**
+   * Delete a customer addressed by its external reference
+   * (external_source + external_id query params) instead of its id.
+   * Deleting by an external reference that matches nothing succeeds silently.
+   */
+  async deleteByExternalId(workspaceSlug: string, externalSource: string, externalId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/customers/`, undefined, {
+      external_source: externalSource,
+      external_id: externalId,
+    });
+  }
+
+  /**
    * List customers with optional filtering
    */
   async list(workspaceSlug: string, params?: ListCustomersParams): Promise<PaginatedResponse<Customer>> {

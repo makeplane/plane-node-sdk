@@ -1,7 +1,12 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
-import { IntakeWorkItem, IntakeWorkItemCreateRequest, UpdateIntakeWorkItemRequest } from "../models/Intake";
+import {
+  IntakeWorkItem,
+  IntakeWorkItemCreateRequest,
+  UpdateIntakeWorkItemRequest,
+  UpdateIntakeStatusRequest,
+} from "../models/Intake";
 
 /**
  * Intake API resource
@@ -52,6 +57,24 @@ export class Intake extends BaseResource {
     return this.patch<IntakeWorkItem>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${intakeId}/`,
       updateData
+    );
+  }
+
+  /**
+   * Update the triage status of an intake work item.
+   *
+   * @param workItemId - UUID of the underlying work item (the `issue` field
+   * from the IntakeWorkItem response, not the intake issue ID)
+   */
+  async updateStatus(
+    workspaceSlug: string,
+    projectId: string,
+    workItemId: string,
+    statusData: UpdateIntakeStatusRequest
+  ): Promise<IntakeWorkItem> {
+    return this.patch<IntakeWorkItem>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/intake-issues/${workItemId}/status/`,
+      statusData
     );
   }
 

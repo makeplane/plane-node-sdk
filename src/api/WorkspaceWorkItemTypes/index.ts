@@ -26,7 +26,15 @@ export class WorkspaceWorkItemTypes extends BaseResource {
     return this.post<WorkItemType>(`/workspaces/${workspaceSlug}/work-item-types/`, data);
   }
 
+  async retrieve(workspaceSlug: string, typeId: string): Promise<WorkItemType> {
+    return this.get<WorkItemType>(`/workspaces/${workspaceSlug}/work-item-types/${typeId}/`);
+  }
+
   async update(workspaceSlug: string, typeId: string, data: UpdateWorkItemType): Promise<WorkItemType> {
     return this.patch<WorkItemType>(`/workspaces/${workspaceSlug}/work-item-types/${typeId}/`, data);
+  }
+
+  async delete(workspaceSlug: string, typeId: string): Promise<void> {
+    return this.httpDelete(`/workspaces/${workspaceSlug}/work-item-types/${typeId}/`);
   }
 }

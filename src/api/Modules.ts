@@ -1,8 +1,16 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
-import { CreateModuleRequest, UpdateModuleRequest, Module, ListModulesParamsRequest } from "../models/Module";
-import { WorkItem } from "../models/WorkItem";
+import {
+  CreateModuleRequest,
+  UpdateModuleRequest,
+  Module,
+  ListModulesParamsRequest,
+  ModuleLite,
+  ListModulesLiteParams,
+} from "../models/Module";
+import { ListWorkItemsParams, WorkItem } from "../models/WorkItem";
+import { prepareWorkItemParams } from "./WorkItems";
 
 /**
  * Modules API resource
@@ -58,17 +66,35 @@ export class Modules extends BaseResource {
   }
 
   /**
-   * List work items in module
+   * List modules as a paginated "lite" response, intended for pickers and
+   * reference lookups.
+   */
+  async listLite(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListModulesLiteParams
+  ): Promise<PaginatedResponse<ModuleLite>> {
+    return this.get<PaginatedResponse<ModuleLite>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/modules-lite/`,
+      params
+    );
+  }
+
+  /**
+   * List work items in a module.
+   *
+   * Supports the same `filters` and `pql` query parameters as
+   * {@link WorkItems.list}.
    */
   async listWorkItemsInModule(
     workspaceSlug: string,
     projectId: string,
     moduleId: string,
-    params?: any
+    params?: ListWorkItemsParams
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/modules/${moduleId}/module-issues/`,
-      params
+      prepareWorkItemParams(params)
     );
   }
 
@@ -109,7 +135,7 @@ export class Modules extends BaseResource {
     params?: any
   ): Promise<PaginatedResponse<Module>> {
     return this.get<PaginatedResponse<Module>>(
-      `/workspaces/${workspaceSlug}/projects/${projectId}/modules/archived/`,
+      `/workspaces/${workspaceSlug}/projects/${projectId}/archived-modules/`,
       params
     );
   }

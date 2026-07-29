@@ -1,8 +1,15 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { Project, CreateProject, UpdateProject, ListProjectsParams } from "../models/Project";
+import {
+  Project,
+  CreateProject,
+  UpdateProject,
+  ListProjectsParams,
+  ProjectLite,
+  ListProjectsLiteParams,
+} from "../models/Project";
 import { PaginatedResponse } from "../models/common";
-import { ProjectMember } from "../models/Member";
+import { ProjectMember, ListMembersLiteParams } from "../models/Member";
 import { ProjectFeatures, UpdateProjectFeatures } from "../models/ProjectFeatures";
 
 /**
@@ -54,17 +61,41 @@ export class Projects extends BaseResource {
   }
 
   /**
+   * List projects as a paginated "lite" response, intended for pickers and
+   * reference lookups.
+   */
+  async listLite(workspaceSlug: string, params?: ListProjectsLiteParams): Promise<PaginatedResponse<ProjectLite>> {
+    return this.get<PaginatedResponse<ProjectLite>>(`/workspaces/${workspaceSlug}/projects-lite/`, params);
+  }
+
+  /**
    * Get project members with their role information.
    */
   async getMembers(workspaceSlug: string, projectId: string): Promise<ProjectMember[]> {
-    return this.get<ProjectMember[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/members/`);
+    return this.get<ProjectMember[]>(`/workspaces/${workspaceSlug}/projects/${projectId}/project-members/`);
+  }
+
+  /**
+   * List project members as a paginated "lite" response.
+   * Unlike getMembers() (which returns a bare list), this returns a
+   * cursor-paginated envelope.
+   */
+  async getMembersLite(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListMembersLiteParams
+  ): Promise<PaginatedResponse<ProjectMember>> {
+    return this.get<PaginatedResponse<ProjectMember>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/project-members-lite/`,
+      params
+    );
   }
 
   /**
    * Get total work logs for a project
    */
   async getTotalWorkLogs(workspaceSlug: string, projectId: string): Promise<any> {
-    return this.get<any>(`/workspaces/${workspaceSlug}/projects/${projectId}/work-logs/total/`);
+    return this.get<any>(`/workspaces/${workspaceSlug}/projects/${projectId}/total-worklogs/`);
   }
 
   /**

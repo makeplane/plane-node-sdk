@@ -25,10 +25,13 @@ describe(!!config.workspaceSlug, "WorkspaceProjectStates API Tests", () => {
   });
 
   it("should create a workspace project state", async () => {
+    // Workspace project-state groups are project-lifecycle values
+    // (draft/planning/execution/monitoring/completed/cancelled) — NOT the
+    // work-item state groups (backlog/unstarted/started/…).
     state = await client.workspaceProjectStates.create(workspaceSlug, {
       name: randomizeName("WS State"),
       color: "#3A3A3A",
-      group: "started",
+      group: "planning",
     });
     expect(state).toBeDefined();
     expect(state.id).toBeDefined();

@@ -111,11 +111,12 @@ export abstract class BaseResource {
   /**
    * DELETE request
    */
-  protected async httpDelete(endpoint: string, data?: any): Promise<void> {
+  protected async httpDelete(endpoint: string, data?: any, params?: any): Promise<void> {
     try {
       await axios.delete(this.buildUrl(endpoint), {
         headers: this.getHeaders(),
         data,
+        params,
       });
     } catch (error) {
       throw this.handleError(error);
@@ -154,7 +155,21 @@ export abstract class BaseResource {
    * Centralized error handling
    */
   protected handleError(error: any): never {
-    console.error("❌ [ERROR]", error);
+    if (this.config.enableLogging) {
+      if (axios.isAxiosError(error)) {
+        console.error("❌ [ERROR]", {
+          method: error.config?.method?.toUpperCase(),
+          url: error.config?.url,
+          status: error.response?.status,
+          headers: this.sanitizeHeaders(error.config?.headers),
+          requestData: error.config?.data ? this.sanitizeData(error.config.data) : undefined,
+          responseData: this.sanitizeData(error.response?.data),
+          message: error.message,
+        });
+      } else {
+        console.error("❌ [ERROR]", error instanceof Error ? error.message : error);
+      }
+    }
 
     if (error instanceof HttpError) {
       throw error;

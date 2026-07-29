@@ -73,3 +73,30 @@ export interface RemoveCycleIssuesRequestRequest {
 export interface TransferCycleIssueRequestRequest {
   new_cycle_id: string; // ID of the target cycle to transfer issues to
 }
+
+/**
+ * Lite cycle shape returned by the read-only cycles-lite list endpoint.
+ */
+export interface CycleLite {
+  id: string;
+  name: string;
+  description?: string;
+  start_date?: string;
+  end_date?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Query params for the paginated cycles-lite endpoint.
+ */
+export interface ListCyclesLiteParams {
+  /** Filter by cycle status: current | upcoming | completed | draft */
+  status?: string;
+  order_by?: string;
+  per_page?: number;
+  cursor?: string;
+  [key: string]: unknown;
+}

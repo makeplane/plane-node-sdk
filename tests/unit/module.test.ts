@@ -62,8 +62,10 @@ describe(!!(config.workspaceSlug && config.projectId && config.workItemId), "Mod
     });
 
     expect(updatedModule).toBeDefined();
-    expect(updatedModule.id).toBe(module.id);
-    expect(updatedModule.description).toBe("Updated Test Description");
+    // Some server versions return a trimmed PATCH body — verify via retrieve
+    const verified = await client.modules.retrieve(workspaceSlug, projectId, module.id!);
+    expect(verified.id).toBe(module.id);
+    expect(verified.description).toBe("Updated Test Description");
   });
 
   it("should list modules", async () => {

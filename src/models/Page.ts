@@ -17,4 +17,9 @@ export interface Page extends BaseModel {
   [key: string]: any;
 }
 
-export type CreatePage = Partial<Page>;
+export type CreatePage = Partial<Page> & {
+  /** Create the page as a sub-page of this parent page */
+  parent_id?: string;
+  /** Create the page directly inside this collection */
+  collection_id?: string;
+};

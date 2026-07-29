@@ -114,6 +114,71 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
     }
   });
 
+  it("should list work items with structured `filters`", async () => {
+    let urgent: WorkItem | undefined;
+    let low: WorkItem | undefined;
+    try {
+      urgent = await client.workItems.create(workspaceSlug, projectId, { name: randomizeName(), priority: "urgent" });
+      low = await client.workItems.create(workspaceSlug, projectId, { name: randomizeName(), priority: "low" });
+
+      const filtered = await client.workItems.list(workspaceSlug, projectId, {
+        filters: { priority: "urgent" },
+        order_by: "-created_at",
+        per_page: 100,
+      });
+
+      expect(Array.isArray(filtered.results)).toBe(true);
+      expect(filtered.results.length).toBeGreaterThan(0);
+      // Every returned item must match the filter — proves the object was applied.
+      for (const wi of filtered.results) {
+        expect(wi.priority).toBe("urgent");
+      }
+      const ids = filtered.results.map((wi) => wi.id);
+      expect(ids).toContain(urgent.id);
+      expect(ids).not.toContain(low.id);
+    } finally {
+      for (const wi of [urgent, low]) {
+        if (wi?.id) {
+          try {
+            await client.workItems.delete(workspaceSlug, projectId, wi.id);
+          } catch {
+            /* best-effort cleanup */
+          }
+        }
+      }
+    }
+  });
+
+  it("should list workspace work items with structured `filters`", async () => {
+    let urgent: WorkItem | undefined;
+    try {
+      urgent = await client.workItems.create(workspaceSlug, projectId, { name: randomizeName(), priority: "urgent" });
+
+      const unfiltered = await client.workItems.listWorkspace(workspaceSlug);
+      expect(typeof unfiltered.total_results).toBe("number");
+
+      const filtered = await client.workItems.listWorkspace(workspaceSlug, {
+        filters: { priority: "urgent" },
+        order_by: "-created_at",
+        per_page: 100,
+      });
+
+      expect(filtered.total_results).toBeLessThanOrEqual(unfiltered.total_results);
+      expect(filtered.results.length).toBeGreaterThan(0);
+      for (const wi of filtered.results) {
+        expect(wi.priority).toBe("urgent");
+      }
+    } finally {
+      if (urgent?.id) {
+        try {
+          await client.workItems.delete(workspaceSlug, projectId, urgent.id);
+        } catch {
+          /* best-effort cleanup */
+        }
+      }
+    }
+  });
+
   it("should retrieve work item by identifier", async () => {
     const project = await client.projects.retrieve(workspaceSlug, projectId);
     const workItemByIdentifier = await client.workItems.retrieveByIdentifier(

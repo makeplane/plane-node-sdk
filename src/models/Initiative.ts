@@ -32,8 +32,10 @@ export type CreateInitiative = Omit<
 export type UpdateInitiative = Partial<CreateInitiative>;
 
 export interface ListInitiativesParams {
-  limit?: number;
-  offset?: number;
+  /** Page size. Maps to the API's `per_page` query param. */
+  per_page?: number;
+  /** Pagination position. Use `next_cursor` from the previous response. */
+  cursor?: string;
   [key: string]: any;
 }
 

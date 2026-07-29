@@ -2,8 +2,16 @@ import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { PaginatedResponse } from "../models/common";
 
-import { Cycle, CreateCycleRequest, UpdateCycleRequest, TransferCycleWorkItemRequest } from "../models/Cycle";
-import { WorkItem } from "../models/WorkItem";
+import {
+  Cycle,
+  CreateCycleRequest,
+  UpdateCycleRequest,
+  TransferCycleWorkItemRequest,
+  CycleLite,
+  ListCyclesLiteParams,
+} from "../models/Cycle";
+import { ListWorkItemsParams, WorkItem } from "../models/WorkItem";
+import { prepareWorkItemParams } from "./WorkItems";
 
 /**
  * Cycles API resource
@@ -55,6 +63,21 @@ export class Cycles extends BaseResource {
   }
 
   /**
+   * List cycles as a paginated "lite" response, intended for pickers and
+   * reference lookups. Accepts an optional status filter.
+   */
+  async listLite(
+    workspaceSlug: string,
+    projectId: string,
+    params?: ListCyclesLiteParams
+  ): Promise<PaginatedResponse<CycleLite>> {
+    return this.get<PaginatedResponse<CycleLite>>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/cycles-lite/`,
+      params
+    );
+  }
+
+  /**
    * List archived cycles
    */
   async listArchived(workspaceSlug: string, projectId: string, params?: any): Promise<PaginatedResponse<Cycle>> {
@@ -75,21 +98,24 @@ export class Cycles extends BaseResource {
    * Archive a cycle
    */
   async archive(workspaceSlug: string, projectId: string, cycleId: string): Promise<void> {
-    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/archived-cycles/${cycleId}/archive/`);
+    return this.post<void>(`/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/archive/`);
   }
 
   /**
-   * List work items in cycle
+   * List work items in a cycle.
+   *
+   * Supports the same `filters` and `pql` query parameters as
+   * {@link WorkItems.list}.
    */
   async listWorkItemsInCycle(
     workspaceSlug: string,
     projectId: string,
     cycleId: string,
-    params?: any
+    params?: ListWorkItemsParams
   ): Promise<PaginatedResponse<WorkItem>> {
     return this.get<PaginatedResponse<WorkItem>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/cycles/${cycleId}/cycle-issues/`,
-      params
+      prepareWorkItemParams(params)
     );
   }
 

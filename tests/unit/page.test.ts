@@ -56,4 +56,20 @@ describe(!!(config.workspaceSlug && config.projectId), "Page API Tests", () => {
     expect(retrievedProjectPage.id).toBe(projectPage.id);
     expect(retrievedProjectPage.name).toBe(projectPage.name);
   });
+
+  it("should list workspace pages", async () => {
+    const pages = await client.pages.listWorkspacePages(workspaceSlug);
+
+    expect(pages).toBeDefined();
+    expect(Array.isArray(pages.results)).toBe(true);
+    expect(pages.results.find((p) => p.id === workspacePage.id)).toBeDefined();
+  });
+
+  it("should list project pages", async () => {
+    const pages = await client.pages.listProjectPages(workspaceSlug, projectId);
+
+    expect(pages).toBeDefined();
+    expect(Array.isArray(pages.results)).toBe(true);
+    expect(pages.results.find((p) => p.id === projectPage.id)).toBeDefined();
+  });
 });

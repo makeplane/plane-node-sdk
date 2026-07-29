@@ -9,6 +9,7 @@ import {
   CreateCustomerPropertyRequest,
   UpdateCustomerPropertyRequest,
   CustomPropertyValueResponse,
+  SetCustomerPropertyValues,
 } from "../../models/Customer";
 import { PaginatedResponse } from "../../models/common";
 
@@ -85,6 +86,18 @@ export class Properties extends BaseResource {
       `/workspaces/${workspaceSlug}/customers/${customerId}/property-values/`,
       params
     );
+  }
+
+  /**
+   * Set several of a customer's property values at once.
+   *
+   * Acts as an upsert: the properties named are given these values, replacing
+   * any they already held. Properties absent from the payload are untouched.
+   * Every value is sent as a string — dates as YYYY-MM-DD, booleans as
+   * "True"/"False", options and relations as UUIDs.
+   */
+  async createValues(workspaceSlug: string, customerId: string, values: SetCustomerPropertyValues): Promise<void> {
+    await this.post<void>(`/workspaces/${workspaceSlug}/customers/${customerId}/property-values/`, values);
   }
 
   /**

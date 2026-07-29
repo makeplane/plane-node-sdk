@@ -1,6 +1,6 @@
 import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
-import { User } from "../models/User";
+import { User, UserAssetUploadRequest, UserAssetUploadResponse } from "../models/User";
 
 /**
  * User API resource
@@ -16,5 +16,12 @@ export class Users extends BaseResource {
    */
   async me(): Promise<User> {
     return this.get<User>("/users/me/");
+  }
+
+  /**
+   * Upload a user asset (avatar or cover)
+   */
+  async uploadAsset(assetData: UserAssetUploadRequest): Promise<UserAssetUploadResponse> {
+    return this.post<UserAssetUploadResponse>("/users/assets/", assetData);
   }
 }
