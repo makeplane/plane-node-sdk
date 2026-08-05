@@ -86,9 +86,12 @@ const project = await client.projects.create("workspace-slug", {
 - **Releases**: Release management with tags, labels, item labels, changelog, comments, links, and work items
 - **Collections**: Folders that group workspace pages, with member and page management
 - **AgentRuns**: AI agent run orchestration and activity tracking
-- **Workflows**: Project workflow management with state attachments and transitions
+- **Workflows**: Project workflow management with state attachments, transitions, transition hooks, activities, and work item approvals
 - **ProjectTemplates**: Work item and page template management per project
 - **Features**: Workspace and project features management
+- **WorkspaceStates**: Workspace-level (catalog) work-item states under workspace governance — dual-mode reads, governed-only writes
+- **WorkspaceWorkflows**: Workspace-level workflow catalog under workspace governance, with chain (states), transitions, usage, activities, and transition hooks
+- **WorkItemTypeGovernance**: Governs which workflows a workspace-level work item type may use (any/constrained/required modes), with per-project pins and the project-side pick/fallback-preview endpoints
 
 ## Development
 

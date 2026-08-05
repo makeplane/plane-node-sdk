@@ -23,6 +23,20 @@ export class Transitions extends BaseResource {
   }
 
   /**
+   * Retrieve a workflow state transition by ID
+   */
+  async retrieve(
+    workspaceSlug: string,
+    projectId: string,
+    workflowId: string,
+    transitionId: string
+  ): Promise<WorkflowTransition> {
+    return this.get<WorkflowTransition>(
+      `/workspaces/${workspaceSlug}/projects/${projectId}/workflows/${workflowId}/state-transitions/${transitionId}/`
+    );
+  }
+
+  /**
    * Create a state transition for a workflow.
    * Returns null if the transition already exists (HTTP 400 "already exists").
    */

@@ -4,6 +4,7 @@ import { State } from "../../../src/models/State";
 import { config } from "../constants";
 import { createTestClient, randomizeName } from "../../helpers/test-utils";
 import { describeIf as describe } from "../../helpers/conditional-tests";
+import { workspaceManagedReason } from "../../helpers/governance";
 
 describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () => {
   let client: PlaneClient;
@@ -13,24 +14,38 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
   let stateA: State;
   let stateB: State;
   let transition: WorkflowTransition;
+  // Governed workspaces manage states at the workspace level and reject
+  // project-scoped state creation with a 400 — skip the state/transition
+  // dependent tests gracefully in that case.
+  let statesUnavailable = false;
 
   beforeAll(async () => {
     client = createTestClient();
     workspaceSlug = config.workspaceSlug;
     projectId = config.projectId;
 
-    // Create two states to use for workflow state/transition operations
-    stateA = await client.states.create(workspaceSlug, projectId, {
-      name: randomizeName("WF State A"),
-      group: "started",
-      color: "#9AA4BC",
-    });
+    try {
+      // Create two states to use for workflow state/transition operations
+      stateA = await client.states.create(workspaceSlug, projectId, {
+        name: randomizeName("WF State A"),
+        group: "started",
+        color: "#9AA4BC",
+      });
 
-    stateB = await client.states.create(workspaceSlug, projectId, {
-      name: randomizeName("WF State B"),
-      group: "started",
-      color: "#A4BC9A",
-    });
+      stateB = await client.states.create(workspaceSlug, projectId, {
+        name: randomizeName("WF State B"),
+        group: "started",
+        color: "#A4BC9A",
+      });
+    } catch (error) {
+      const reason = workspaceManagedReason(error);
+      if (reason !== null) {
+        statesUnavailable = true;
+        console.warn("Skipped: project-level states are managed at the workspace level —", reason);
+        return;
+      }
+      throw error;
+    }
   });
 
   afterAll(async () => {
@@ -73,6 +88,11 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
         name: randomizeName("Test Workflow"),
       });
     } catch (error: any) {
+      const reason = workspaceManagedReason(error);
+      if (reason !== null) {
+        console.warn("Skipped: project-level workflows are managed at the workspace level —", reason);
+        return;
+      }
       const msg = String(error?.response?.error ?? error?.response?.detail ?? "");
       if (error?.statusCode === 403 && msg.includes("Workflows feature")) {
         console.warn("Workflows feature not enabled for this project — skipping:", msg);
@@ -114,13 +134,29 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
     workflow = updated;
   });
 
-  it("should attach a state to a workflow", async () => {
+  it("should retrieve a workflow by ID", async () => {
     if (!workflow?.id) return;
+    const retrieved = await client.workflows.retrieve(workspaceSlug, projectId, workflow.id!);
+
+    expect(retrieved.id).toBe(workflow.id);
+    expect(retrieved.name).toBe(workflow.name);
+  });
+
+  it("should attach a state to a workflow", async () => {
+    if (!workflow?.id || statesUnavailable) return;
     await expect(
       client.workflows.states.attach(workspaceSlug, projectId, workflow.id!, {
         state_ids: [stateA.id!],
       })
     ).resolves.toBeUndefined();
+  });
+
+  it("should list the states attached to a workflow", async () => {
+    if (!workflow?.id || statesUnavailable) return;
+    const states = await client.workflows.states.list(workspaceSlug, projectId, workflow.id!);
+
+    expect(Array.isArray(states)).toBe(true);
+    expect(states.find((s) => s.state_id === stateA.id)).toBeDefined();
   });
 
   it("should list transitions (initially empty for the workflow)", async () => {
@@ -132,7 +168,7 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
   });
 
   it("should create a workflow transition", async () => {
-    if (!workflow?.id) return;
+    if (!workflow?.id || statesUnavailable) return;
     const result = await client.workflows.transitions.create(workspaceSlug, projectId, workflow.id!, {
       state_id: stateA.id!,
       transition_state_id: stateB.id!,
@@ -152,7 +188,7 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
   });
 
   it("should list transitions (find newly created)", async () => {
-    if (!workflow?.id) return;
+    if (!workflow?.id || statesUnavailable) return;
     const transitions = await client.workflows.transitions.list(workspaceSlug, projectId, workflow.id!);
 
     expect(transitions).toBeDefined();
@@ -163,8 +199,20 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
     expect(found).toBeDefined();
   });
 
+  it("should retrieve a workflow transition by ID", async () => {
+    if (!workflow?.id || !transition?.id || statesUnavailable) return;
+    const retrieved = await client.workflows.transitions.retrieve(
+      workspaceSlug,
+      projectId,
+      workflow.id!,
+      transition.id!
+    );
+
+    expect(retrieved.id).toBe(transition.id);
+  });
+
   it("should update a workflow transition", async () => {
-    if (!workflow?.id || !transition?.id) return;
+    if (!workflow?.id || !transition?.id || statesUnavailable) return;
     const updated = await client.workflows.transitions.update(workspaceSlug, projectId, workflow.id!, transition.id!, {
       pre_rules: [],
       post_rules: [],
@@ -174,17 +222,38 @@ describe(!!(config.workspaceSlug && config.projectId), "Workflow API Tests", () 
     expect(updated.id).toBe(transition.id);
   });
 
+  it("should list hooks on a transition (initially empty)", async () => {
+    if (!workflow?.id || !transition?.id || statesUnavailable) return;
+    const hooks = await client.workflows.hooks.list(workspaceSlug, projectId, workflow.id!, transition.id!);
+
+    expect(Array.isArray(hooks)).toBe(true);
+  });
+
   it("should delete a workflow transition", async () => {
-    if (!workflow?.id || !transition?.id) return;
+    if (!workflow?.id || !transition?.id || statesUnavailable) return;
     await expect(
       client.workflows.transitions.del(workspaceSlug, projectId, workflow.id!, transition.id!)
     ).resolves.toBeUndefined();
   });
 
   it("should detach a state from a workflow", async () => {
-    if (!workflow?.id) return;
+    if (!workflow?.id || statesUnavailable) return;
     await expect(
       client.workflows.states.detach(workspaceSlug, projectId, workflow.id!, stateA.id!)
     ).resolves.toBeUndefined();
+  });
+
+  it("should list workflow activities", async () => {
+    if (!workflow?.id) return;
+    const activities = await client.workflows.activities(workspaceSlug, projectId, workflow.id!);
+
+    expect(Array.isArray(activities)).toBe(true);
+  });
+
+  it("should delete the workflow", async () => {
+    if (!workflow?.id) return;
+    await expect(client.workflows.delete(workspaceSlug, projectId, workflow.id!)).resolves.toBeUndefined();
+    // afterAll's detach is now a no-op since the workflow itself is gone.
+    workflow = { ...workflow, id: undefined } as unknown as Workflow;
   });
 });

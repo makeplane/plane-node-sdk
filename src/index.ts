@@ -43,6 +43,9 @@ export { WorkItemRelationDefinitions } from "./api/WorkItemRelationDefinitions";
 export { Releases } from "./api/Releases";
 export { Workflows } from "./api/Workflows";
 export { ProjectTemplates } from "./api/ProjectTemplates";
+export { WorkspaceStates } from "./api/WorkspaceStates";
+export { WorkspaceWorkflows } from "./api/WorkspaceWorkflows";
+export { WorkItemTypeGovernance } from "./api/WorkItemTypeGovernance";
 
 // Sub-resources
 export { Relations as WorkItemRelations } from "./api/WorkItems/Relations";
@@ -79,8 +82,14 @@ export { Links as ReleaseLinks } from "./api/Releases/Links";
 export { WorkItems as ReleaseWorkItems } from "./api/Releases/WorkItems";
 export { States as WorkflowStates } from "./api/Workflows/States";
 export { Transitions as WorkflowTransitions } from "./api/Workflows/Transitions";
+export { Hooks as WorkflowTransitionHooks } from "./api/Workflows/Hooks";
 export { WorkItems as ProjectWorkItemTemplates } from "./api/ProjectTemplates/WorkItems";
 export { Pages as ProjectPageTemplates } from "./api/ProjectTemplates/Pages";
+export { States as WorkspaceWorkflowStates } from "./api/WorkspaceWorkflows/States";
+export { Transitions as WorkspaceWorkflowTransitions } from "./api/WorkspaceWorkflows/Transitions";
+export { Hooks as WorkspaceWorkflowTransitionHooks } from "./api/WorkspaceWorkflows/Hooks";
+export { Pins as WorkItemTypeWorkflowPins } from "./api/WorkItemTypeGovernance/Pins";
+export { ProjectWorkflows as ProjectTypeWorkflows } from "./api/WorkItemTypeGovernance/ProjectWorkflows";
 
 // Models
 export * from "./models";
