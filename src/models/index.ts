@@ -38,3 +38,5 @@ export * from "./WorkItemRelationDefinition";
 export * from "./Release";
 export * from "./Workflow";
 export * from "./ProjectTemplate";
+export * from "./WorkspaceWorkflow";
+export * from "./WorkItemTypeGovernance";

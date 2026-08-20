@@ -3,6 +3,7 @@ import { WorkItemType } from "../../../src/models/WorkItemType";
 import { config } from "../constants";
 import { createTestClient, randomizeName } from "../../helpers/test-utils";
 import { describeIf as describe } from "../../helpers/conditional-tests";
+import { workspaceManagedReason } from "../../helpers/governance";
 
 describe(!!(config.workspaceSlug && config.projectId), "Work Item Types API Tests", () => {
   let client: PlaneClient;
@@ -43,6 +44,11 @@ describe(!!(config.workspaceSlug && config.projectId), "Work Item Types API Test
         name: randomizeName("Test WI Type"),
       });
     } catch (error: any) {
+      const reason = workspaceManagedReason(error);
+      if (reason !== null) {
+        console.warn("Skipped: project-level work item types are managed at the workspace level —", reason);
+        return;
+      }
       const msg = String(error?.response?.error ?? error?.response?.detail ?? "");
       if (error?.statusCode === 400 && msg.includes("work item types")) {
         console.warn("Server blocks project-level work item types (workspace types enabled) — skipping:", msg);

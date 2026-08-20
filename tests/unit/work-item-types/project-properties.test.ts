@@ -3,6 +3,7 @@ import { WorkItemProperty, WorkItemType } from "../../../src/models";
 import { config } from "../constants";
 import { createTestClient, randomizeName } from "../../helpers/test-utils";
 import { describeIf as describe } from "../../helpers/conditional-tests";
+import { workspaceManagedReason } from "../../helpers/governance";
 
 describe(!!(config.workspaceSlug && config.projectId), "Project-Level Work Item Properties API Tests", () => {
   let client: PlaneClient;
@@ -24,6 +25,12 @@ describe(!!(config.workspaceSlug && config.projectId), "Project-Level Work Item 
         name: randomizeName("Prop Test Type "),
       });
     } catch (error: any) {
+      const reason = workspaceManagedReason(error);
+      if (reason !== null) {
+        serverBlocksProjectLevel = true;
+        console.warn("Skipped: project-level types/properties are managed at the workspace level —", reason);
+        return;
+      }
       const msg = String(error?.response?.error ?? error?.response?.detail ?? "");
       if (error?.statusCode === 400 && (msg.includes("work item types") || msg.includes("issue properties"))) {
         serverBlocksProjectLevel = true;

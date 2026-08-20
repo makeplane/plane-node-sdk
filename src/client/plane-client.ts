@@ -31,6 +31,9 @@ import { WorkItemRelationDefinitions } from "../api/WorkItemRelationDefinitions"
 import { Releases } from "../api/Releases";
 import { Workflows } from "../api/Workflows";
 import { ProjectTemplates } from "../api/ProjectTemplates";
+import { WorkspaceStates } from "../api/WorkspaceStates";
+import { WorkspaceWorkflows } from "../api/WorkspaceWorkflows";
+import { WorkItemTypeGovernance } from "../api/WorkItemTypeGovernance";
 
 /**
  * Main Plane Client class
@@ -70,6 +73,9 @@ export class PlaneClient {
   public releases: Releases;
   public workflows: Workflows;
   public projectTemplates: ProjectTemplates;
+  public workspaceStates: WorkspaceStates;
+  public workspaceWorkflows: WorkspaceWorkflows;
+  public workItemTypeGovernance: WorkItemTypeGovernance;
 
   constructor(config: { baseUrl?: string; apiKey?: string; accessToken?: string; enableLogging?: boolean }) {
     this.config = new Configuration({
@@ -115,5 +121,8 @@ export class PlaneClient {
     this.releases = new Releases(this.config);
     this.workflows = new Workflows(this.config);
     this.projectTemplates = new ProjectTemplates(this.config);
+    this.workspaceStates = new WorkspaceStates(this.config);
+    this.workspaceWorkflows = new WorkspaceWorkflows(this.config);
+    this.workItemTypeGovernance = new WorkItemTypeGovernance(this.config);
   }
 }

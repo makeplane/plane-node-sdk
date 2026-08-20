@@ -3,6 +3,7 @@ import { WorkItemProperty } from "../../../src/models/WorkItemProperty";
 import { config } from "../constants";
 import { createTestClient, randomizeName } from "../../helpers/test-utils";
 import { describeIf } from "../../helpers/conditional-tests";
+import { workspaceManagedReason } from "../../helpers/governance";
 
 describeIf(
   !!(config.workspaceSlug && config.projectId && config.workItemTypeId),
@@ -38,6 +39,12 @@ describeIf(
         });
         await client.workItemProperties.delete(workspaceSlug, projectId, workItemTypeId, probe.id!);
       } catch (error: any) {
+        const reason = workspaceManagedReason(error);
+        if (reason !== null) {
+          serverBlocksTypeScoped = true;
+          console.warn("Skipped: type-scoped work item properties are managed at the workspace level —", reason);
+          return;
+        }
         const msg = String(error?.response?.error ?? error?.response?.detail ?? "");
         if (error?.statusCode === 400 && msg.includes("work item propert")) {
           serverBlocksTypeScoped = true;
