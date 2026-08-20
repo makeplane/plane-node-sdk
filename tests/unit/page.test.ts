@@ -72,4 +72,48 @@ describe(!!(config.workspaceSlug && config.projectId), "Page API Tests", () => {
     expect(Array.isArray(pages.results)).toBe(true);
     expect(pages.results.find((p) => p.id === projectPage.id)).toBeDefined();
   });
+
+  it("should update a workspace page", async () => {
+    const name = randomizeName("Updated Workspace Page");
+    const updated = await client.pages.updateWorkspacePage(workspaceSlug, workspacePage.id!, { name });
+
+    expect(updated.id).toBe(workspacePage.id);
+    expect(updated.name).toBe(name);
+  });
+
+  it("should update a project page's name and content", async () => {
+    const name = randomizeName("Updated Project Page");
+    const updated = await client.pages.updateProjectPage(workspaceSlug, projectId, projectPage.id!, {
+      name,
+      description_html: "<p>Revised Content</p>",
+    });
+
+    expect(updated.id).toBe(projectPage.id);
+    expect(updated.name).toBe(name);
+  });
+
+  it("should refuse an update that carries no field to change", async () => {
+    // Refused rather than reported as a successful no-op.
+    await expect(client.pages.updateProjectPage(workspaceSlug, projectId, projectPage.id!, {})).rejects.toThrow();
+  });
+
+  it("should archive and unarchive a workspace page", async () => {
+    await client.pages.archiveWorkspacePage(workspaceSlug, workspacePage.id!);
+    expect((await client.pages.retrieveWorkspacePage(workspaceSlug, workspacePage.id!)).archived_at).toBeTruthy();
+
+    await client.pages.unarchiveWorkspacePage(workspaceSlug, workspacePage.id!);
+    expect((await client.pages.retrieveWorkspacePage(workspaceSlug, workspacePage.id!)).archived_at).toBeFalsy();
+  });
+
+  it("should refuse to delete a page that is not archived", async () => {
+    const page = await client.pages.createProjectPage(workspaceSlug, projectId, {
+      name: randomizeName("Test Delete Page"),
+      description_html: "<p>Draft</p>",
+    });
+
+    await expect(client.pages.deleteProjectPage(workspaceSlug, projectId, page.id!)).rejects.toThrow();
+
+    await client.pages.archiveProjectPage(workspaceSlug, projectId, page.id!);
+    await client.pages.deleteProjectPage(workspaceSlug, projectId, page.id!);
+  });
 });

@@ -14,6 +14,7 @@ export interface Project extends BaseModel {
   cover_image_url: null;
   name: string;
   description: string;
+  description_html?: string;
   network?: number;
   identifier?: string;
   emoji?: null;
