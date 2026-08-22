@@ -13,10 +13,27 @@ on:
       - check-tests
 
 jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      has_token: ${{ steps.check.outputs.has_token }}
+    steps:
+      - name: Check whether PLANE_EE_CHECKOUT_TOKEN is configured
+        # `secrets` isn't reliably available in a job-level `if:` on every runner
+        # context, so export the check as a step output here instead and gate the
+        # v2-golden-drift job on that output.
+        id: check
+        run: echo "has_token=${{ secrets.PLANE_EE_CHECKOUT_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
   build-lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plane-node-sdk
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: plane-node-sdk
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -36,9 +53,53 @@ jobs:
       - name: Run build
         run: pnpm run build
 
-      - name: Run tests
+      - name: Run unit tests
+        run: pnpm run test:unit
+
+      - name: Run e2e tests
         run: pnpm run test:e2e
         env:
           PLANE_API_KEY: ${{ secrets.PLANE_API_KEY }}
           PLANE_BASE_URL: ${{ secrets.PLANE_BASE_URL }}
           TEST_WORKSPACE_SLUG: ${{ vars.TEST_WORKSPACE_SLUG }}
+
+  v2-golden-drift:
+    needs: check-secrets
+    if: ${{ needs.check-secrets.outputs.has_token == 'true' }}
+    runs-on: ubuntu-latest
+    # Runs inside plane-node-sdk/ with plane-ee as a sibling dir: the generator records
+    # its golden path in the output header, so the relative spelling must match the
+    # committed one (`../plane-ee/apps/api/plane/api_v2/core/schema/openapi`).
+    defaults:
+      run:
+        working-directory: plane-node-sdk
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plane-node-sdk
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+      - name: Enable corepack
+        run: corepack enable pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Checkout plane-ee (api_v2 OpenAPI golden)
+        # PLANE_EE_CHECKOUT_TOKEN: fine-grained PAT with read access to makeplane/plane-ee.
+        # Without it this job is skipped (visibly), not failed.
+        uses: actions/checkout@v4
+        with:
+          repository: makeplane/plane-ee
+          ref: preview
+          token: ${{ secrets.PLANE_EE_CHECKOUT_TOKEN }}
+          sparse-checkout: apps/api/plane/api_v2/core/schema/openapi
+          sparse-checkout-cone-mode: false
+          path: plane-ee
+
+      - name: Check generated v2 constants against the api_v2 golden
+        run: |
+          pnpm codegen:v2 ../plane-ee/apps/api/plane/api_v2/core/schema/openapi
+          git diff --exit-code src/api/v2/generated/constants.ts

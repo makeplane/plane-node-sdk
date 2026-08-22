@@ -42,6 +42,24 @@ Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (
 - `AgentRuns/` → Activities
 - `WorkItemProperties/` → Options, Values
 
+**API v2** (`src/api/v2/`): the v2 surface, reached as `client.v2`. The bound/chained
+form is the only public shape — `client.v2.workspace(slug)` returns a `Workspace`
+locator (`src/api/v2/Workspace.ts`), `.project(key)` off of that returns a `Project`
+locator (`src/api/v2/Project.ts`); both do zero I/O. `Wiki.ts` is `Workspace.wiki`'s
+container (`.pages`/`.collections`). `kernel/` holds the shared machinery (transport,
+pagination, generic `V2Resource`, bulk helpers); `generated/constants.ts` is produced
+by `pnpm codegen:v2` from the api_v2 OpenAPI golden and must never be hand-edited.
+Resources are thin declarations over `V2Resource`, constructed with a `scope`
+(`{ slug }` / `{ slug, project_id }`) a locator already bound — `V2Resource`'s
+`urlFor` resolves path placeholders from `{...scope, ...pathParams}`, explicit
+`pathParams` winning. No public v2 method takes `workspaceSlug`/`project` — the
+locator supplies both; leaf ids (`workItemId`, `releaseId`, ...) stay as the first
+positional argument. Models live in `src/models/v2/`; read models mark every
+field except `id` optional, because `?fields=` and collection deferral can omit any
+of them. The wiki page model is `Page` (`src/models/v2/Page.ts`) — files that also
+need the pagination envelope `Page<T>` (`models/v2/common.ts`) import it under a
+local `WikiPage` alias to keep both in scope.
+
 **Models** (`src/models/`): TypeScript interfaces for each entity with separate Create/Update DTOs. Uses `Pick`, `Omit`, and `Partial` for DTO derivation. Notable: `WorkItem` uses a generic expandable fields pattern (`WorkItem<E extends WorkItemExpandableFieldName = never>`).
 
 **Errors** (`src/errors/`): `PlaneError` (base) → `HttpError` (HTTP-specific with status code and response data).

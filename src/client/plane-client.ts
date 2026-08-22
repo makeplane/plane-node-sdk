@@ -1,4 +1,5 @@
 import { Configuration } from "../Configuration";
+import { V2Namespace } from "../api/v2";
 import { Projects } from "../api/Projects";
 import { WorkItems } from "../api/WorkItems";
 import { WorkItemTypes } from "../api/WorkItemTypes";
@@ -41,6 +42,8 @@ import { WorkItemTypeGovernance } from "../api/WorkItemTypeGovernance";
  */
 export class PlaneClient {
   public config: Configuration;
+  /** api_v2 surface. The v1 resources on this client are unchanged. */
+  public v2: V2Namespace;
   public workItems: WorkItems;
   public workItemTypes: WorkItemTypes;
   public workItemProperties: WorkItemProperties;
@@ -87,6 +90,8 @@ export class PlaneClient {
 
     // Validate configuration
     this.config.validate();
+
+    this.v2 = new V2Namespace(this.config);
 
     // Initialize API resources
     this.workItems = new WorkItems(this.config);

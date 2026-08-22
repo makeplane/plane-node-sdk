@@ -1,6 +1,6 @@
 {
   "name": "@makeplane/plane-node-sdk",
-  "version": "0.2.13",
+  "version": "0.3.0",
   "description": "Node SDK for Plane",
   "author": "Plane <engineering@plane.so>",
   "repository": {
@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build:types-bundle": "dts-bundle-generator --no-check -o dist/types.bundle.d.ts dist/index.d.ts",
-    "build": "tsc && pnpm run build:types-bundle",
+    "build": "tsc && pnpm run build:types-bundle && node scripts/check-types-bundle.mjs",
     "dev": "tsc --watch",
     "test": "jest",
     "test:unit": "jest --testPathPattern=tests/unit",
@@ -27,7 +27,9 @@
     "check:lint": "oxlint",
     "fix:lint": "oxlint --fix",
     "check:format": "oxfmt --check",
-    "fix:format": "oxfmt"
+    "fix:format": "oxfmt",
+    "codegen:v2": "node scripts/generate-v2-constants.mjs",
+    "check:types-bundle": "node scripts/check-types-bundle.mjs"
   },
   "keywords": [
     "plane",
@@ -47,6 +49,7 @@
     "dotenv": "^17.4.2",
     "dts-bundle-generator": "^9.5.1",
     "jest": "^29.0.0",
+    "nock": "^14.0.17",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0",
     "ts-node": "^10.9.0",
