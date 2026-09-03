@@ -21,5 +21,8 @@ maybe("Roles (v2 live)", () => {
     const [first] = page.data;
     const fetched = await resource.retrieve(first.id);
     expect(fetched.id).toBe(first.id);
+
+    const bySlug = await resource.findBySlug(fetched.slug!, { namespace: fetched.namespace });
+    expect(bySlug.id).toBe(fetched.id);
   });
 });

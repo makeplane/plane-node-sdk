@@ -78,6 +78,11 @@ export class WorkspaceWorkItemProperties extends V2Resource<
     return this.doRetrieve({ pk: propertyId }, params as Record<string, unknown>);
   }
 
+  /** The one property with this `name`, server-side via `?name=`. `name` is the property key (e.g. `story-points`, hyphen-slugified), not the UI label. */
+  findByName(name: string): Promise<WorkItemProperty> {
+    return this.doFindOne({ name }, {});
+  }
+
   create(data: CreateWorkItemProperty): Promise<WorkItemProperty> {
     return this.doCreate(data, {});
   }

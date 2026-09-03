@@ -64,6 +64,11 @@ export class WorkspaceWorkItemPropertyOptions extends V2Resource<
     return this.doRetrieve(this.pk(propertyId, optionId));
   }
 
+  /** The one option with this `name` on the workspace property, server-side via `?name=`; throws if none or several match. */
+  findByName(propertyId: string, name: string): Promise<WorkItemPropertyOptionLite> {
+    return this.doFindOne({ name }, this.pk(propertyId));
+  }
+
   create(propertyId: string, data: CreateWorkItemPropertyOption): Promise<WorkItemPropertyOptionLite> {
     return this.doCreate(data, this.pk(propertyId));
   }

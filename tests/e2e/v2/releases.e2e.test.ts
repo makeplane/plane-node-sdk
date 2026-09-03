@@ -164,19 +164,19 @@ maybe("v2 releases (live)", () => {
     });
   });
 
-  describe("manageLabels / manageWorkItems", () => {
-    it("attaches and detaches a release label definition via manageLabels", async () => {
+  describe("labels.add/remove / workItems.add/remove", () => {
+    it("adds and removes a release label definition via labels.add/remove", async () => {
       const release = await releases().create({ name: uniqueName("rel-mgmt-labels") });
       const label = await releases().labels.create({ name: uniqueName("rel-mgmt-label") });
       try {
-        const added = await releases().manageLabels(release.id, { add: [label.id] });
-        expect(added.added).toContain(label.id);
+        const added = await releases().labels.add(release.id, [label.id]);
+        expect(added).toContain(label.id);
 
         const afterAdd = await releases().retrieve(release.id);
         expect(afterAdd.label_ids).toContain(label.id);
 
-        const removed = await releases().manageLabels(release.id, { remove: [label.id] });
-        expect(removed.removed).toContain(label.id);
+        const removed = await releases().labels.remove(release.id, [label.id]);
+        expect(removed).toContain(label.id);
 
         const afterRemove = await releases().retrieve(release.id);
         expect(afterRemove.label_ids ?? []).not.toContain(label.id);
@@ -190,14 +190,14 @@ maybe("v2 releases (live)", () => {
       }
     });
 
-    it("attaches a work item via manageWorkItems", async () => {
+    it("adds a work item via workItems.add", async () => {
       const release = await releases().create({ name: uniqueName("rel-mgmt-wi") });
       const workItem = await workItems().create({
         name: uniqueName("rel-mgmt-wi-item"),
       });
       try {
-        const result = await releases().manageWorkItems(release.id, { add: [workItem.id] });
-        expect(result.added).toContain(workItem.id);
+        const result = await releases().workItems.add(release.id, [workItem.id]);
+        expect(result).toContain(workItem.id);
       } finally {
         await workItems()
           .delete(workItem.id)

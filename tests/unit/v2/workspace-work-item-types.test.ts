@@ -69,7 +69,7 @@ describe("WorkspaceWorkItemTypes.properties (v2)", () => {
   const workspaceCollection = `/api/v2/workspaces/${SLUG}/work-item-types/${TYPE}/properties/`;
   const make = () => new WorkspaceWorkItemTypeProperties(makeTransport(), { slug: SLUG });
 
-  it("lists, retrieves, attaches, and detaches at the workspace path", async () => {
+  it("lists, retrieves, links, and unlinks at the workspace path", async () => {
     nock(BASE)
       .get(workspaceCollection)
       .reply(200, { data: [{ id: "p1" }], pagination: { style: "offset" } });
@@ -79,13 +79,13 @@ describe("WorkspaceWorkItemTypes.properties (v2)", () => {
     nock(BASE).get(`${workspaceCollection}p1/`).reply(200, { id: "p1", display_name: "Severity" });
     expect((await make().retrieve(TYPE, "p1")).display_name).toBe("Severity");
 
-    const attachScope = nock(BASE)
+    const linkScope = nock(BASE)
       .post(workspaceCollection, { properties: ["p1"] })
       .reply(200, { properties: ["p1"] });
-    await make().attach(TYPE, ["p1"]);
-    expect(attachScope.isDone()).toBe(true);
+    await make().link(TYPE, ["p1"]);
+    expect(linkScope.isDone()).toBe(true);
 
     nock(BASE).delete(`${workspaceCollection}p1/`).reply(204);
-    await expect(make().detach(TYPE, "p1")).resolves.toBeUndefined();
+    await expect(make().unlink(TYPE, "p1")).resolves.toBeUndefined();
   });
 });

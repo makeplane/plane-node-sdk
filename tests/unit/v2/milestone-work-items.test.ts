@@ -1,5 +1,7 @@
 /**
- * `manageWorkItems` is folded directly onto `Milestones`, not a standalone resource.
+ * Work-item membership of a milestone lives on `Milestones.workItems`, a
+ * `MilestoneWorkItems` bridge sub-resource — not a `manageWorkItems` method folded
+ * onto `Milestones` itself.
  */
 import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
@@ -8,7 +10,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeManager = () =>
+const makeMilestones = () =>
   new Milestones(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
     slug: "acme",
     project_id: "ENG",
@@ -16,42 +18,56 @@ const makeManager = () =>
 
 afterEach(() => nock.cleanAll());
 
-describe("Milestones.manageWorkItems (v2)", () => {
-  it("posts the add/remove body to the work-items/ action route and returns what actually changed", async () => {
+describe("Milestones.workItems (v2)", () => {
+  it("posts { add } to the work-items/ route and resolves to the added ids", async () => {
     let capturedBody: unknown;
     const scope = nock(BASE)
       .post("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/work-items/", (body: unknown) => {
         capturedBody = body;
         return true;
       })
-      .reply(200, { added: ["wi-1", "wi-2"], removed: ["wi-3"] });
+      .reply(200, { added: ["wi-1", "wi-2"] });
 
-    const result = await makeManager().manageWorkItems("ms-1", { add: ["wi-1", "wi-2"], remove: ["wi-3"] });
+    const result = await makeMilestones().workItems.add("ms-1", ["wi-1", "wi-2"]);
 
     expect(scope.isDone()).toBe(true);
     // Assert the fully parsed body, not a substring — see bulk.test.ts's own rationale
     // for why a leaked extra key or a dropped field must fail this, not silently pass.
-    expect(capturedBody).toEqual({ add: ["wi-1", "wi-2"], remove: ["wi-3"] });
-    expect(result).toEqual({ added: ["wi-1", "wi-2"], removed: ["wi-3"] });
+    expect(capturedBody).toEqual({ add: ["wi-1", "wi-2"] });
+    expect(result).toEqual(["wi-1", "wi-2"]);
+  });
+
+  it("posts { remove } (no add key) and resolves to the removed ids", async () => {
+    let capturedBody: unknown;
+    const scope = nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/work-items/", (body: unknown) => {
+        capturedBody = body;
+        return true;
+      })
+      .reply(200, { removed: ["wi-3"] });
+
+    const result = await makeMilestones().workItems.remove("ms-1", ["wi-3"]);
+
+    expect(scope.isDone()).toBe(true);
+    expect(capturedBody).toEqual({ remove: ["wi-3"] });
+    expect(result).toEqual(["wi-3"]);
   });
 
   it("percent-encodes the milestone id in the URL", async () => {
     const scope = nock(BASE)
       .post("/api/v2/workspaces/acme/projects/ENG/milestones/ms%2Fslash/work-items/")
-      .reply(200, { added: [], removed: [] });
+      .reply(200, { added: ["wi-1"] });
 
-    await makeManager().manageWorkItems("ms/slash", { add: [] });
+    await makeMilestones().workItems.add("ms/slash", ["wi-1"]);
 
     expect(scope.isDone()).toBe(true);
   });
 
   it("omits idempotent no-ops from the response rather than echoing every requested id back", async () => {
-    nock(BASE)
-      .post("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/work-items/")
-      .reply(200, { added: [], removed: [] });
+    nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/work-items/").reply(200, { added: [] });
 
-    const result = await makeManager().manageWorkItems("ms-1", { add: ["already-there"] });
+    const result = await makeMilestones().workItems.add("ms-1", ["already-there"]);
 
-    expect(result.added).toEqual([]);
+    expect(result).toEqual([]);
   });
 });

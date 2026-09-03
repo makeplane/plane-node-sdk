@@ -1,8 +1,4 @@
-import {
-  CollectionPageSearch,
-  CollectionPagesManageRequest,
-  CollectionPagesManageResponse,
-} from "../../../models/v2/Collection";
+import { CollectionPageSearch } from "../../../models/v2/Collection";
 import { FIELDS } from "../generated/constants";
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 
@@ -10,7 +6,7 @@ export type CollectionPageSearchField = (typeof FIELDS)["collections_pages_searc
 
 const PAGES_SEARCH_PATH = "/workspaces/{slug}/collections/{pk}/pages-search/";
 
-/** Bulk page membership of a collection, at `...wiki.collections.pages` — `{add, remove}` id arrays, plus `search`. */
+/** Page membership of a collection, at `...wiki.collections.pages` — `add`/`remove` by page id, plus `search`. */
 export class CollectionPages extends V2Resource<never, never, never> {
   protected path = "/workspaces/{slug}/collections/{pk}/pages/";
   protected operations: Record<string, AnyOperationId> = {
@@ -18,11 +14,14 @@ export class CollectionPages extends V2Resource<never, never, never> {
     manage: "collections_pages",
   };
 
-  /** Attach/detach pages by id. */
-  async manage(collectionId: string, data: CollectionPagesManageRequest): Promise<CollectionPagesManageResponse> {
-    return this.transport.request<CollectionPagesManageResponse>("POST", this.collectionUrl({ pk: collectionId }), {
-      data,
-    });
+  /** Move pages into the collection (1..100 ids); resolves to the ids actually added. */
+  add(collectionId: string, pageIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("add", pageIds, { pk: collectionId });
+  }
+
+  /** Take pages out of the collection (1..100 ids); resolves to the ids actually removed. */
+  remove(collectionId: string, pageIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("remove", pageIds, { pk: collectionId });
   }
 
   /**

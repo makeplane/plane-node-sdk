@@ -100,6 +100,29 @@ await ws.workItems.retrieveByIdentifier("ENG-12"); // by human key, no project n
 await ws.releases.comments.list(releaseId);
 ```
 
+**Memberships** are `add`/`remove` on a sub-resource named for the thing being added
+(parent id first, then 1..100 ids — an empty or oversized list throws before any
+request). Each call sends only its own verb and resolves to the ids the server
+actually changed. Properties on a work item type use `link`/`unlink` instead, matching
+the web app; `unlink` deletes that property's values on every work item of the type.
+
+```ts
+await eng.cycles.workItems.add(cycleId, [item.id]); // -> ["<item id>"]
+await eng.modules.workItems.remove(moduleId, [item.id]);
+await ws.releases.labels.add(releaseId, [labelId]); // `labels.create` defines, `labels.add` applies
+await ws.initiatives.projects.add(initiativeId, [projectId]);
+await ws.wiki.collections.members.add(collectionId, [{ member_id: userId, access: 1 }]);
+await eng.workItemTypes.properties.link(typeId, [propertyId]);
+await eng.workItemTypes.properties.unlink(typeId, propertyId);
+```
+
+**Lookups by human key** resolve exactly one row server-side (`NoMatchFoundError` /
+`MultipleMatchesFoundError` otherwise): `findByName` wherever the API filters on
+`name`, plus `ws.roles.findBySlug("admin", { namespace })`,
+`eng.estimates.points.findByKey(estimateId, 3)`, and `findByName(propertyId, name)` on
+property options and contexts. On custom properties `name` is the machine key (e.g.
+`story_points`), not the label shown in the app.
+
 A field list built at runtime (not a literal) must be typed `StateField[]` /
 `LabelField[]` — plain `string[]` is **not** assignable to `readonly StateField[]` and
 fails with a long overload-mismatch error:

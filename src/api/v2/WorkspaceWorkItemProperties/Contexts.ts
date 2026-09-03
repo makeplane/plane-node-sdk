@@ -76,6 +76,11 @@ export class WorkItemPropertyContexts extends V2Resource<
     return this.doRetrieve(this.pk(propertyId, contextId), params as Record<string, unknown>);
   }
 
+  /** The one context with this `name` on the property, server-side via `?name=`; throws if none or several match. */
+  findByName(propertyId: string, name: string): Promise<WorkItemPropertyContext> {
+    return this.doFindOne({ name }, this.pk(propertyId));
+  }
+
   create(propertyId: string, data: CreateWorkItemPropertyContext): Promise<WorkItemPropertyContext> {
     return this.doCreate(data, this.pk(propertyId));
   }

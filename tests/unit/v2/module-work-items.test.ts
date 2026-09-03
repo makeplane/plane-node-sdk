@@ -1,5 +1,6 @@
 /**
- * `manageWorkItems` is folded directly onto `Modules`, not a standalone resource.
+ * Work-item membership of a module lives on `Modules.workItems`, a `ModuleWorkItems`
+ * bridge sub-resource — not a `manageWorkItems` method folded onto `Modules` itself.
  */
 import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
@@ -8,7 +9,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeManager = () =>
+const makeModules = () =>
   new Modules(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
     slug: "acme",
     project_id: "ENG",
@@ -16,45 +17,53 @@ const makeManager = () =>
 
 afterEach(() => nock.cleanAll());
 
-describe("Modules.manageWorkItems (v2)", () => {
-  it("posts the add/remove body to the work-items/ action route and returns what actually changed", async () => {
+describe("Modules.workItems (v2)", () => {
+  it("posts { add } to the work-items/ route and resolves to the added ids", async () => {
     let capturedBody: unknown;
     const scope = nock(BASE)
       .post("/api/v2/workspaces/acme/projects/ENG/modules/mod-1/work-items/", (body: unknown) => {
         capturedBody = body;
         return true;
       })
-      .reply(200, { added: ["wi-1"], removed: [] });
+      .reply(200, { added: ["wi-1"] });
 
-    const result = await makeManager().manageWorkItems("mod-1", { add: ["wi-1"] });
+    const result = await makeModules().workItems.add("mod-1", ["wi-1"]);
 
     expect(scope.isDone()).toBe(true);
     expect(capturedBody).toEqual({ add: ["wi-1"] });
-    expect(result).toEqual({ added: ["wi-1"], removed: [] });
+    expect(result).toEqual(["wi-1"]);
   });
 
   it("percent-encodes the module id in the URL", async () => {
     const scope = nock(BASE)
       .post("/api/v2/workspaces/acme/projects/ENG/modules/mod%2Fslash/work-items/")
-      .reply(200, { added: [], removed: [] });
+      .reply(200, { added: ["wi-1"] });
 
-    await makeManager().manageWorkItems("mod/slash", { remove: [] });
+    await makeModules().workItems.add("mod/slash", ["wi-1"]);
 
     expect(scope.isDone()).toBe(true);
   });
 
-  it("removes work items independently of add, in the same call", async () => {
+  it("posts { remove } (no add key) and resolves to the removed ids", async () => {
     let capturedBody: unknown;
     nock(BASE)
       .post("/api/v2/workspaces/acme/projects/ENG/modules/mod-1/work-items/", (body: unknown) => {
         capturedBody = body;
         return true;
       })
-      .reply(200, { added: [], removed: ["wi-9"] });
+      .reply(200, { removed: ["wi-9"] });
 
-    const result = await makeManager().manageWorkItems("mod-1", { remove: ["wi-9"] });
+    const result = await makeModules().workItems.remove("mod-1", ["wi-9"]);
 
     expect(capturedBody).toEqual({ remove: ["wi-9"] });
-    expect(result.removed).toEqual(["wi-9"]);
+    expect(result).toEqual(["wi-9"]);
+  });
+
+  it("resolves to [] when the response omits added/removed", async () => {
+    nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/modules/mod-1/work-items/").reply(200, {});
+
+    const result = await makeModules().workItems.add("mod-1", ["wi-1"]);
+
+    expect(result).toEqual([]);
   });
 });

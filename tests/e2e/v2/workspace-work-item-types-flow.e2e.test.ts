@@ -99,8 +99,8 @@ maybe("v2 workspace work item types flow (live)", () => {
       });
       const goldId = (context.options ?? []).find((o) => o.name === "Gold")!.id;
 
-      // 7. attach both properties to the workspace type
-      const result = await ws().workItemTypes.properties.attach(typeId, [textProp.id, optionProp.id]);
+      // 7. link both properties to the workspace type
+      const result = await ws().workItemTypes.properties.link(typeId, [textProp.id, optionProp.id]);
       attached.push(textProp.id, optionProp.id);
       expect(result.properties).toEqual(expect.arrayContaining([textProp.id, optionProp.id]));
 
@@ -126,7 +126,7 @@ maybe("v2 workspace work item types flow (live)", () => {
     } finally {
       if (!KEEP) {
         for (const id of createdWorkItems) await swallow(proj().workItems.delete(id));
-        for (const id of attached) await swallow(ws().workItemTypes.properties.detach(typeId ?? "", id));
+        for (const id of attached) await swallow(ws().workItemTypes.properties.unlink(typeId ?? "", id));
         for (const id of properties) await swallow(ws().workItemProperties.delete(id));
         if (typeId) await swallow(ws().workItemTypes.delete(typeId));
       }

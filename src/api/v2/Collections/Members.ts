@@ -1,8 +1,4 @@
-import {
-  CollectionMember,
-  CollectionMembersManageRequest,
-  CollectionMembersManageResponse,
-} from "../../../models/v2/Collection";
+import { CollectionMember, CollectionMemberAddItem } from "../../../models/v2/Collection";
 import { EXPAND, FIELDS } from "../generated/constants";
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 
@@ -14,7 +10,7 @@ export interface ListCollectionMembersParams {
   expand?: readonly CollectionMemberExpand[];
 }
 
-/** Collection membership, at `...collections.members`. Returns a raw `CollectionMember[]`, not `Page<T>` — no pagination. */
+/** Collection membership, at `...collections.members` — `list` (raw array, no pagination) plus `add`/`remove`. */
 export class CollectionMembers extends V2Resource<CollectionMember, never, never> {
   protected path = "/workspaces/{slug}/collections/{pk}/members/";
   protected operations: Record<string, AnyOperationId> = {
@@ -29,10 +25,13 @@ export class CollectionMembers extends V2Resource<CollectionMember, never, never
     });
   }
 
-  /** Bulk add/remove members. Re-adding an existing member with a different `access` updates that row. */
-  async manage(collectionId: string, data: CollectionMembersManageRequest): Promise<CollectionMembersManageResponse> {
-    return this.transport.request<CollectionMembersManageResponse>("POST", this.collectionUrl({ pk: collectionId }), {
-      data,
-    });
+  /** Add members (1..100); re-adding an existing member with a different `access` updates that row. Resolves to the user ids added/updated. */
+  add(collectionId: string, members: readonly CollectionMemberAddItem[]): Promise<string[]> {
+    return this.doBridge("add", members, { pk: collectionId });
+  }
+
+  /** Remove members by user id (1..100); resolves to the user ids actually removed. */
+  remove(collectionId: string, userIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("remove", userIds, { pk: collectionId });
   }
 }

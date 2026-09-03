@@ -1,5 +1,5 @@
 /**
- * Workspace-scoped; uses `useV2Project` only to exercise `manageProjects`/`manageWorkItems`. No feature-flag gate needed.
+ * Workspace-scoped; uses `useV2Project` only to exercise `projects.add/remove`/`workItems.add/remove`. No feature-flag gate needed.
  */
 import { Initiatives } from "../../../src/api/v2/Initiatives";
 import { v2Env } from "./support/env";
@@ -41,17 +41,13 @@ maybe("v2 initiatives (live)", () => {
     expect(page.data.some((i) => i.id === initiativeId)).toBe(true);
   });
 
-  describe("child manage tails", () => {
+  describe("child bridge sub-resources", () => {
     it("adds then removes a project", async () => {
-      const added = await initiatives.manageProjects(initiativeId, {
-        add: [suite.projectId],
-      });
-      expect(added.added).toContain(suite.projectId);
+      const added = await initiatives.projects.add(initiativeId, [suite.projectId]);
+      expect(added).toContain(suite.projectId);
 
-      const removed = await initiatives.manageProjects(initiativeId, {
-        remove: [suite.projectId],
-      });
-      expect(removed.removed).toContain(suite.projectId);
+      const removed = await initiatives.projects.remove(initiativeId, [suite.projectId]);
+      expect(removed).toContain(suite.projectId);
     });
 
     it("adds then removes a work item", async () => {
@@ -60,13 +56,11 @@ maybe("v2 initiatives (live)", () => {
         name: uniqueName("init-linked-wi"),
       });
 
-      const added = await initiatives.manageWorkItems(initiativeId, { add: [workItem.id] });
-      expect(added.added).toContain(workItem.id);
+      const added = await initiatives.workItems.add(initiativeId, [workItem.id]);
+      expect(added).toContain(workItem.id);
 
-      const removed = await initiatives.manageWorkItems(initiativeId, {
-        remove: [workItem.id],
-      });
-      expect(removed.removed).toContain(workItem.id);
+      const removed = await initiatives.workItems.remove(initiativeId, [workItem.id]);
+      expect(removed).toContain(workItem.id);
 
       await workItems.delete(workItem.id).catch(() => undefined);
     });
@@ -74,11 +68,11 @@ maybe("v2 initiatives (live)", () => {
     it("adds then removes a workspace initiative label", async () => {
       const label = await initiatives.labels.create({ name: uniqueName("init-label") });
 
-      const added = await initiatives.manageLabels(initiativeId, { add: [label.id] });
-      expect(added.added).toContain(label.id);
+      const added = await initiatives.labels.add(initiativeId, [label.id]);
+      expect(added).toContain(label.id);
 
-      const removed = await initiatives.manageLabels(initiativeId, { remove: [label.id] });
-      expect(removed.removed).toContain(label.id);
+      const removed = await initiatives.labels.remove(initiativeId, [label.id]);
+      expect(removed).toContain(label.id);
 
       await initiatives.labels.delete(label.id);
     });

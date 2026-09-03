@@ -1,13 +1,10 @@
-import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
-import { Cycle, UpdateCycle, CreateCycle } from "../../models/v2/Cycle";
-import {
-  CycleTransferRequest,
-  CycleTransferResult,
-  CycleWorkItemManageRequest,
-  CycleWorkItemManageResponse,
-} from "../../models/v2/CycleTransfer";
-import { CycleField, CycleOrderBy, EXPAND } from "./generated/constants";
-import { AnyOperationId, V2Resource } from "./kernel/resource";
+import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
+import { Cycle, UpdateCycle, CreateCycle } from "../../../models/v2/Cycle";
+import { CycleTransferRequest, CycleTransferResult } from "../../../models/v2/CycleTransfer";
+import { CycleField, CycleOrderBy, EXPAND } from "../generated/constants";
+import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { V2Transport } from "../kernel/transport";
+import { CycleWorkItems } from "./WorkItems";
 
 /** `cycles_list`'s only expand target — the cycle's owner as a full object instead of `owned_by_id`. */
 export type CycleExpand = (typeof EXPAND)["cycles_list"][number];
@@ -28,7 +25,7 @@ export interface ListCyclesParams {
   count?: boolean;
 }
 
-/** Project cycles, reached bound to a project. `transfer`/`manageWorkItems` are hand-written since `doAction` only issues a bodiless POST. */
+/** Project cycles, reached bound to a project. `transfer` is hand-written since `doAction` only issues a bodiless POST; membership is `workItems`. */
 export class Cycles extends V2Resource<Cycle, CreateCycle, UpdateCycle> {
   protected path = "/workspaces/{slug}/projects/{project_id}/cycles/";
   protected operations: Record<string, AnyOperationId> = {
@@ -42,8 +39,15 @@ export class Cycles extends V2Resource<Cycle, CreateCycle, UpdateCycle> {
     bulkUpdate: "cycles_bulk_update",
     bulkDelete: "cycles_bulk_delete",
     transfer: "cycles_transfer",
-    manageWorkItems: "cycles_work_items_manage",
   };
+
+  /** `add`/`remove` work items on a cycle — see {@link CycleWorkItems}. */
+  public workItems: CycleWorkItems;
+
+  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
+    super(transport, scope);
+    this.workItems = new CycleWorkItems(transport, scope);
+  }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<CycleField, "all"> & keyof Cycle>(
@@ -114,13 +118,6 @@ export class Cycles extends V2Resource<Cycle, CreateCycle, UpdateCycle> {
       data,
     });
   }
-
-  /** Bulk add/remove work items from `cycleId`'s membership (each of `data.add`/`data.remove` caps at 100 ids). */
-  async manageWorkItems(cycleId: string, data: CycleWorkItemManageRequest): Promise<CycleWorkItemManageResponse> {
-    return this.transport.request<CycleWorkItemManageResponse>(
-      "POST",
-      `${this.detailUrl({ pk: cycleId })}work-items/`,
-      { data }
-    );
-  }
 }
+
+export { CycleWorkItems } from "./WorkItems";

@@ -1,16 +1,11 @@
 import { Page } from "../../../models/v2/common";
-import {
-  Customer,
-  UpdateCustomer,
-  CustomerWorkItemManageRequest,
-  CustomerWorkItemManageResponse,
-  CreateCustomer,
-} from "../../../models/v2/Customer";
+import { Customer, UpdateCustomer, CreateCustomer } from "../../../models/v2/Customer";
 import { FIELDS, ORDER_BY } from "../generated/constants";
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
 import { CustomerPropertyValues } from "./PropertyValues";
 import { CustomerRequests } from "./Requests";
+import { CustomerWorkItems } from "./WorkItems";
 
 export type CustomerField = (typeof FIELDS)["customers_list"][number];
 export type CustomerOrderBy = (typeof ORDER_BY)["customers_list"][number];
@@ -32,7 +27,7 @@ export interface ListCustomersParams {
   count?: boolean;
 }
 
-/** Workspace CRM customers, at `...customers` — CRUD, `upsert`, and sub-resources `requests`/`propertyValues`. */
+/** Workspace CRM customers, at `...customers` — CRUD, `upsert`, and sub-resources `requests`/`propertyValues`/`workItems`. */
 export class Customers extends V2Resource<Customer, CreateCustomer, UpdateCustomer> {
   protected path = "/workspaces/{slug}/customers/";
   protected operations: Record<string, AnyOperationId> = {
@@ -42,16 +37,18 @@ export class Customers extends V2Resource<Customer, CreateCustomer, UpdateCustom
     update: "customers_partial_update",
     upsert: "customers_upsert",
     delete: "customers_destroy",
-    manageWorkItems: "customers_work_items",
   };
 
   public requests: CustomerRequests;
   public propertyValues: CustomerPropertyValues;
+  /** `add`/`remove` work items linked to a customer — see {@link CustomerWorkItems}. */
+  public workItems: CustomerWorkItems;
 
   constructor(transport: V2Transport, scope: Record<string, string> = {}) {
     super(transport, scope);
     this.requests = new CustomerRequests(transport, scope);
     this.propertyValues = new CustomerPropertyValues(transport, scope);
+    this.workItems = new CustomerWorkItems(transport, scope);
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
@@ -98,20 +95,9 @@ export class Customers extends V2Resource<Customer, CreateCustomer, UpdateCustom
   upsert(data: CreateCustomer): Promise<Customer> {
     return this.doUpsert(data, {});
   }
-
-  /** Bulk add/remove work items linked directly to this customer. Invalid/archived ids are silently skipped. */
-  async manageWorkItems(
-    customerId: string,
-    data: CustomerWorkItemManageRequest
-  ): Promise<CustomerWorkItemManageResponse> {
-    return this.transport.request<CustomerWorkItemManageResponse>(
-      "POST",
-      `${this.detailUrl({ pk: customerId })}work-items/`,
-      { data }
-    );
-  }
 }
 
 export { CustomerPropertyValues } from "./PropertyValues";
+export { CustomerWorkItems } from "./WorkItems";
 export { CustomerRequests } from "./Requests";
 export type { ListCustomerRequestsParams, CustomerRequestField, CustomerRequestOrderBy } from "./Requests";

@@ -233,8 +233,8 @@ maybe("v2 work item types (live)", () => {
     });
   });
 
-  describe("properties (attach/detach)", () => {
-    it("attaches then detaches a property", async () => {
+  describe("properties (link/unlink)", () => {
+    it("links then unlinks a property", async () => {
       const type = await createAccessibleType(uniqueName("wit-prop"));
       const property =
         mode === "workspace"
@@ -247,11 +247,11 @@ maybe("v2 work item types (live)", () => {
               property_type: "TEXT",
             });
       try {
-        const attached =
+        const linked =
           mode === "workspace"
-            ? await ws().workItemTypes.properties.attach(type.id, [property.id])
-            : await proj().workItemTypes.properties.attach(type.id, [property.id]);
-        expect(attached.properties).toContain(property.id);
+            ? await ws().workItemTypes.properties.link(type.id, [property.id])
+            : await proj().workItemTypes.properties.link(type.id, [property.id]);
+        expect(linked.properties).toContain(property.id);
 
         const page =
           mode === "workspace"
@@ -260,15 +260,15 @@ maybe("v2 work item types (live)", () => {
         expect(page.data.some((row) => row.id === property.id)).toBe(true);
 
         if (mode === "workspace") {
-          await ws().workItemTypes.properties.detach(type.id, property.id);
+          await ws().workItemTypes.properties.unlink(type.id, property.id);
         } else {
-          await proj().workItemTypes.properties.detach(type.id, property.id);
+          await proj().workItemTypes.properties.unlink(type.id, property.id);
         }
-        const afterDetach =
+        const afterUnlink =
           mode === "workspace"
             ? await ws().workItemTypes.properties.list(type.id)
             : await proj().workItemTypes.properties.list(type.id);
-        expect(afterDetach.data.some((row) => row.id === property.id)).toBe(false);
+        expect(afterUnlink.data.some((row) => row.id === property.id)).toBe(false);
       } finally {
         if (mode === "workspace") {
           await ws()

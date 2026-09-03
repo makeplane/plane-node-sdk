@@ -20,7 +20,7 @@ export interface Initiative {
   created_by_id?: string | null;
 }
 
-/** POST body. `name` is required; `project_ids` is a full-replace write (see {@link Initiatives.manageProjects} for add/remove). */
+/** POST body. `name` is required; `project_ids` is a full-replace write (see `Initiatives.projects.add`/`.remove` for incremental changes). */
 export interface CreateInitiative {
   name: string;
   description?: string | null;
@@ -36,15 +36,3 @@ export interface CreateInitiative {
 
 /** PATCH body — every field optional. v2 has no PUT. */
 export type UpdateInitiative = Partial<CreateInitiative>;
-
-/** `POST .../initiatives/{pk}/labels|projects|work-items/` body. */
-export interface InitiativeChildManageRequest {
-  add?: string[];
-  remove?: string[];
-}
-
-/** The ids actually added/removed — invalid or out-of-workspace ids are silently skipped. */
-export interface InitiativeChildManageResponse {
-  added: string[];
-  removed: string[];
-}

@@ -1,5 +1,6 @@
 /**
- * `transfer`/`manageWorkItems` need a JSON body, so both are hand-rolled on `Cycles`, not bodiless `doAction` calls.
+ * `transfer` needs a JSON body, so it's hand-rolled on `Cycles`, not a bodiless `doAction` call.
+ * Work-item membership lives on `Cycles.workItems`, a `CycleWorkItems` bridge sub-resource.
  */
 import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
@@ -15,7 +16,7 @@ const makeResource = () =>
 
 afterEach(() => nock.cleanAll());
 
-describe("Cycles.transfer/manageWorkItems (v2)", () => {
+describe("Cycles.transfer/workItems (v2)", () => {
   it("transfers a completed cycle's incomplete work items into another cycle", async () => {
     const scope = nock(BASE)
       .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/transfer/", { new_cycle_id: "cyc-2" })
@@ -27,17 +28,26 @@ describe("Cycles.transfer/manageWorkItems (v2)", () => {
     expect(result.new_cycle_id).toBe("cyc-2");
   });
 
-  it("manages cycle work-item membership with add/remove", async () => {
-    const body = { add: ["wi-1", "wi-2"], remove: ["wi-3"] };
+  it("adds cycle work items via workItems.add", async () => {
     const scope = nock(BASE)
-      .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/", body)
-      .reply(200, { added: ["wi-1", "wi-2"], removed: ["wi-3"] });
+      .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/", { add: ["wi-1", "wi-2"] })
+      .reply(200, { added: ["wi-1", "wi-2"] });
 
-    const result = await makeResource().manageWorkItems("cyc-1", body);
+    const result = await makeResource().workItems.add("cyc-1", ["wi-1", "wi-2"]);
 
     expect(scope.isDone()).toBe(true);
-    expect(result.added).toEqual(["wi-1", "wi-2"]);
-    expect(result.removed).toEqual(["wi-3"]);
+    expect(result).toEqual(["wi-1", "wi-2"]);
+  });
+
+  it("removes cycle work items via workItems.remove", async () => {
+    const scope = nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/", { remove: ["wi-3"] })
+      .reply(200, { removed: ["wi-3"] });
+
+    const result = await makeResource().workItems.remove("cyc-1", ["wi-3"]);
+
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual(["wi-3"]);
   });
 
   it("actually sends the body — proof the request isn't a bodiless doAction call", async () => {

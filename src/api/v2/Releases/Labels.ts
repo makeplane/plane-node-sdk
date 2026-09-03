@@ -1,7 +1,7 @@
 import { Page } from "../../../models/v2/common";
 import { ReleaseLabel, UpdateReleaseLabel, CreateReleaseLabel } from "../../../models/v2/ReleaseLabel";
 import { FIELDS, ORDER_BY } from "../generated/constants";
-import { OperationId, V2Resource } from "../kernel/resource";
+import { AnyOperationId, V2Resource } from "../kernel/resource";
 
 export type ReleaseLabelField = (typeof FIELDS)["release_labels_list"][number];
 export type ReleaseLabelOrderBy = (typeof ORDER_BY)["release_labels_list"][number];
@@ -18,15 +18,18 @@ export interface ListReleaseLabelsParams {
   count?: boolean;
 }
 
-/** Workspace-level release label definitions at `client.v2.workspace(slug).releases.labels`; attach via `Releases.manageLabels`. */
+const RELEASE_LABELS_BRIDGE_PATH = "/workspaces/{slug}/releases/{release_id}/labels/";
+
+/** Release label catalog at `ws.releases.labels` — `create` defines a label, `add`/`remove` put one on / take one off a release. */
 export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, UpdateReleaseLabel> {
   protected path = "/workspaces/{slug}/releases/labels/";
-  protected operations: Record<string, OperationId> = {
+  protected operations: Record<string, AnyOperationId> = {
     list: "release_labels_list",
     retrieve: "release_labels_retrieve",
     create: "release_labels_create",
     update: "release_labels_partial_update",
     delete: "release_labels_destroy",
+    manage: "releases_labels",
   };
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
@@ -71,5 +74,15 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
 
   delete(labelId: string): Promise<void> {
     return this.doDelete({ pk: labelId });
+  }
+
+  /** Put catalog labels on a release (1..100 ids); resolves to the ids actually added. */
+  add(releaseId: string, labelIds: readonly string[]): Promise<string[]> {
+    return this.doBridgeAt(this.urlFor(RELEASE_LABELS_BRIDGE_PATH, { release_id: releaseId }), "add", labelIds);
+  }
+
+  /** Take labels off a release (1..100 ids); the catalog entries stay. Resolves to the ids actually removed. */
+  remove(releaseId: string, labelIds: readonly string[]): Promise<string[]> {
+    return this.doBridgeAt(this.urlFor(RELEASE_LABELS_BRIDGE_PATH, { release_id: releaseId }), "remove", labelIds);
   }
 }

@@ -115,16 +115,26 @@ describe("Collections.members (v2)", () => {
     expect(members[1].access).toBe(2);
   });
 
-  it("manages members: add + remove in one call", async () => {
-    const body = { add: [{ member_id: "u3", access: 1 as const }], remove: ["u4"] };
-    nock(BASE)
-      .post(membersUrl, body)
-      .reply(200, { added: ["u3"], removed: ["u4"] });
+  it("adds members with an access level", async () => {
+    const scope = nock(BASE)
+      .post(membersUrl, { add: [{ member_id: "u3", access: 1 }] })
+      .reply(200, { added: ["u3"] });
 
-    const result = await makeCollections().members.manage(COLLECTION, body);
+    const result = await makeCollections().members.add(COLLECTION, [{ member_id: "u3", access: 1 }]);
 
-    expect(result.added).toEqual(["u3"]);
-    expect(result.removed).toEqual(["u4"]);
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual(["u3"]);
+  });
+
+  it("removes members by user id", async () => {
+    const scope = nock(BASE)
+      .post(membersUrl, { remove: ["u4"] })
+      .reply(200, { removed: ["u4"] });
+
+    const result = await makeCollections().members.remove(COLLECTION, ["u4"]);
+
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual(["u4"]);
   });
 
   it("rejects an unknown field on list before making the request", async () => {
@@ -137,16 +147,26 @@ describe("Collections.pages (v2, bulk page membership)", () => {
   const makeCollections = () =>
     new Collections(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: SLUG });
 
-  it("manages page membership: add + remove in one call", async () => {
-    const body = { add: ["p1"], remove: ["p2"] };
-    nock(BASE)
-      .post(pagesUrl, body)
-      .reply(200, { added: ["p1"], removed: ["p2"] });
+  it("adds pages to the collection", async () => {
+    const scope = nock(BASE)
+      .post(pagesUrl, { add: ["p1"] })
+      .reply(200, { added: ["p1"] });
 
-    const result = await makeCollections().pages.manage(COLLECTION, body);
+    const result = await makeCollections().pages.add(COLLECTION, ["p1"]);
 
-    expect(result.added).toEqual(["p1"]);
-    expect(result.removed).toEqual(["p2"]);
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual(["p1"]);
+  });
+
+  it("removes pages from the collection", async () => {
+    const scope = nock(BASE)
+      .post(pagesUrl, { remove: ["p2"] })
+      .reply(200, { removed: ["p2"] });
+
+    const result = await makeCollections().pages.remove(COLLECTION, ["p2"]);
+
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual(["p2"]);
   });
 
   it("search returns a raw array, not a Page envelope, and forwards the undocumented search param", async () => {

@@ -74,14 +74,20 @@ describe("Customers (v2)", () => {
     expect((await makeCustomers().findByName("Acme Corp")).id).toBe("cust1");
   });
 
-  it("manages linked work items", async () => {
-    nock(BASE)
-      .post("/api/v2/workspaces/acme/customers/cust1/work-items/", { add: ["wi1"], remove: ["wi2"] })
-      .reply(200, { added: ["wi1"], removed: ["wi2"] });
+  it("links then unlinks work items via workItems.add/remove", async () => {
+    const addScope = nock(BASE)
+      .post("/api/v2/workspaces/acme/customers/cust1/work-items/", { add: ["wi1"] })
+      .reply(200, { added: ["wi1"] });
+    const added = await makeCustomers().workItems.add("cust1", ["wi1"]);
+    expect(addScope.isDone()).toBe(true);
+    expect(added).toEqual(["wi1"]);
 
-    const result = await makeCustomers().manageWorkItems("cust1", { add: ["wi1"], remove: ["wi2"] });
-
-    expect(result).toEqual({ added: ["wi1"], removed: ["wi2"] });
+    const removeScope = nock(BASE)
+      .post("/api/v2/workspaces/acme/customers/cust1/work-items/", { remove: ["wi2"] })
+      .reply(200, { removed: ["wi2"] });
+    const removed = await makeCustomers().workItems.remove("cust1", ["wi2"]);
+    expect(removeScope.isDone()).toBe(true);
+    expect(removed).toEqual(["wi2"]);
   });
 
   it("rejects an unknown field before making the request", async () => {

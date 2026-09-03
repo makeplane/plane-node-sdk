@@ -35,7 +35,7 @@ maybe("v2 collections (live)", () => {
   });
 
   describe("pages membership + pages.search", () => {
-    it("attaches/detaches a wiki page and pages.search reflects addable pages", async () => {
+    it("adds/removes a wiki page and pages.search reflects addable pages", async () => {
       const collection = await wiki().collections.create({
         name: uniqueName("collection-pages"),
       });
@@ -46,15 +46,11 @@ maybe("v2 collections (live)", () => {
           name: uniqueName("page-for-collection"),
         });
       try {
-        const attach = await wiki().collections.pages.manage(collection.id, {
-          add: [page.id],
-        });
-        expect(attach.added).toContain(page.id);
+        const added = await wiki().collections.pages.add(collection.id, [page.id]);
+        expect(added).toContain(page.id);
 
-        const detach = await wiki().collections.pages.manage(collection.id, {
-          remove: [page.id],
-        });
-        expect(detach.removed).toContain(page.id);
+        const removed = await wiki().collections.pages.remove(collection.id, [page.id]);
+        expect(removed).toContain(page.id);
       } finally {
         await suite.client.v2
           .workspace(suite.workspaceSlug)

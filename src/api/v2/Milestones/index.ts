@@ -1,11 +1,9 @@
-import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
-import { Milestone, UpdateMilestone, CreateMilestone } from "../../models/v2/Milestone";
-import {
-  MilestoneWorkItemManageRequest,
-  MilestoneWorkItemManageResponse,
-} from "../../models/v2/MilestoneWorkItemManage";
-import { MilestoneField, MilestoneOrderBy } from "./generated/constants";
-import { AnyOperationId, V2Resource } from "./kernel/resource";
+import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
+import { Milestone, UpdateMilestone, CreateMilestone } from "../../../models/v2/Milestone";
+import { MilestoneField, MilestoneOrderBy } from "../generated/constants";
+import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { V2Transport } from "../kernel/transport";
+import { MilestoneWorkItems } from "./WorkItems";
 
 export interface ListMilestonesParams {
   fields?: readonly MilestoneField[];
@@ -25,7 +23,7 @@ export interface ListMilestonesParams {
   count?: boolean;
 }
 
-/** Project milestones, reached bound to a project. `manageWorkItems` is hand-written since `doAction` only issues a bodiless POST. */
+/** Project milestones, reached bound to a project; membership is `workItems`. */
 export class Milestones extends V2Resource<Milestone, CreateMilestone, UpdateMilestone> {
   protected path = "/workspaces/{slug}/projects/{project_id}/milestones/";
   protected operations: Record<string, AnyOperationId> = {
@@ -38,8 +36,15 @@ export class Milestones extends V2Resource<Milestone, CreateMilestone, UpdateMil
     bulkCreate: "milestones_bulk_create",
     bulkUpdate: "milestones_bulk_update",
     bulkDelete: "milestones_bulk_delete",
-    manageWorkItems: "milestones_work_items",
   };
+
+  /** `add`/`remove` work items on a milestone — see {@link MilestoneWorkItems}. */
+  public workItems: MilestoneWorkItems;
+
+  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
+    super(transport, scope);
+    this.workItems = new MilestoneWorkItems(transport, scope);
+  }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
@@ -97,13 +102,6 @@ export class Milestones extends V2Resource<Milestone, CreateMilestone, UpdateMil
   bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
     return this.doBulkDelete(ids, {}, allOrNone);
   }
-
-  /** Bulk add/remove work items on `milestoneId`'s membership in one call. */
-  async manageWorkItems(
-    milestoneId: string,
-    data: MilestoneWorkItemManageRequest
-  ): Promise<MilestoneWorkItemManageResponse> {
-    const url = `${this.detailUrl({ pk: milestoneId })}work-items/`;
-    return this.transport.request<MilestoneWorkItemManageResponse>("POST", url, { data });
-  }
 }
+
+export { MilestoneWorkItems } from "./WorkItems";

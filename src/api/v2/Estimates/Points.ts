@@ -75,6 +75,11 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     return this.doRetrieve(this.pk(estimateId, pointId), params as Record<string, unknown>);
   }
 
+  /** The one point with this numeric `key` on the estimate's scale, server-side via `?key=`; throws if none or several match. */
+  findByKey(estimateId: string, key: number): Promise<EstimatePoint> {
+    return this.doFindOne({ key }, this.pk(estimateId));
+  }
+
   create(estimateId: string, data: CreateEstimatePoint): Promise<EstimatePoint> {
     return this.doCreate(data, this.pk(estimateId));
   }

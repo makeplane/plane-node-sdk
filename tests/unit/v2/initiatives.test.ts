@@ -73,35 +73,49 @@ describe("Initiatives (v2)", () => {
     );
   });
 
-  describe("child manage tails", () => {
-    it("manages projects", async () => {
-      nock(BASE)
-        .post("/api/v2/workspaces/acme/initiatives/init1/projects/", { add: ["proj1"], remove: [] })
-        .reply(200, { added: ["proj1"], removed: [] });
+  describe("bridge sub-resources", () => {
+    it("adds projects via projects.add", async () => {
+      const scope = nock(BASE)
+        .post("/api/v2/workspaces/acme/initiatives/init1/projects/", { add: ["proj1"] })
+        .reply(200, { added: ["proj1"] });
 
-      const result = await makeInitiatives().manageProjects("init1", { add: ["proj1"], remove: [] });
+      const result = await makeInitiatives().projects.add("init1", ["proj1"]);
 
-      expect(result).toEqual({ added: ["proj1"], removed: [] });
+      expect(scope.isDone()).toBe(true);
+      expect(result).toEqual(["proj1"]);
     });
 
-    it("manages work items", async () => {
-      nock(BASE)
+    it("removes projects via projects.remove", async () => {
+      const scope = nock(BASE)
+        .post("/api/v2/workspaces/acme/initiatives/init1/projects/", { remove: ["proj1"] })
+        .reply(200, { removed: ["proj1"] });
+
+      const result = await makeInitiatives().projects.remove("init1", ["proj1"]);
+
+      expect(scope.isDone()).toBe(true);
+      expect(result).toEqual(["proj1"]);
+    });
+
+    it("adds work items via workItems.add", async () => {
+      const scope = nock(BASE)
         .post("/api/v2/workspaces/acme/initiatives/init1/work-items/", { add: ["wi1"] })
-        .reply(200, { added: ["wi1"], removed: [] });
+        .reply(200, { added: ["wi1"] });
 
-      const result = await makeInitiatives().manageWorkItems("init1", { add: ["wi1"] });
+      const result = await makeInitiatives().workItems.add("init1", ["wi1"]);
 
-      expect(result.added).toEqual(["wi1"]);
+      expect(scope.isDone()).toBe(true);
+      expect(result).toEqual(["wi1"]);
     });
 
-    it("manages labels", async () => {
-      nock(BASE)
+    it("removes labels via labels.remove", async () => {
+      const scope = nock(BASE)
         .post("/api/v2/workspaces/acme/initiatives/init1/labels/", { remove: ["lbl1"] })
-        .reply(200, { added: [], removed: ["lbl1"] });
+        .reply(200, { removed: ["lbl1"] });
 
-      const result = await makeInitiatives().manageLabels("init1", { remove: ["lbl1"] });
+      const result = await makeInitiatives().labels.remove("init1", ["lbl1"]);
 
-      expect(result.removed).toEqual(["lbl1"]);
+      expect(scope.isDone()).toBe(true);
+      expect(result).toEqual(["lbl1"]);
     });
   });
 

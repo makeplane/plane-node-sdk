@@ -54,7 +54,13 @@ Resources are thin declarations over `V2Resource`, constructed with a `scope`
 `urlFor` resolves path placeholders from `{...scope, ...pathParams}`, explicit
 `pathParams` winning. No public v2 method takes `workspaceSlug`/`project` — the
 locator supplies both; leaf ids (`workItemId`, `releaseId`, ...) stay as the first
-positional argument. Models live in `src/models/v2/`; read models mark every
+positional argument. Membership bridges (`{add}`/`{remove}` POSTs answering
+`{added}`/`{removed}`) are never `manage*` methods: they are `add(parentId, ids)` /
+`remove(parentId, ids)` on a sub-resource named for the noun (`cycles.workItems`,
+`initiatives.projects`, `releases.labels`, `wiki.collections.members`), each built on
+`V2Resource.doBridge`/`doBridgeAt`, which sends one verb per call, enforces 1..100 ids
+client-side and resolves to the plain id array. A bridge verb copies the web app CTA —
+properties on a work item type are `link`/`unlink`. Models live in `src/models/v2/`; read models mark every
 field except `id` optional, because `?fields=` and collection deferral can omit any
 of them. The wiki page model is `Page` (`src/models/v2/Page.ts`) — files that also
 need the pagination envelope `Page<T>` (`models/v2/common.ts`) import it under a

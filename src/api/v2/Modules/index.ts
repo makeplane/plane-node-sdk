@@ -1,8 +1,9 @@
-import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
-import { Module, UpdateModule, ModuleStatus, CreateModule } from "../../models/v2/Module";
-import { ModuleWorkItemManageRequest, ModuleWorkItemManageResponse } from "../../models/v2/ModuleWorkItemManage";
-import { EXPAND, ModuleField, ModuleOrderBy } from "./generated/constants";
-import { AnyOperationId, V2Resource } from "./kernel/resource";
+import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
+import { Module, UpdateModule, ModuleStatus, CreateModule } from "../../../models/v2/Module";
+import { EXPAND, ModuleField, ModuleOrderBy } from "../generated/constants";
+import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { V2Transport } from "../kernel/transport";
+import { ModuleWorkItems } from "./WorkItems";
 
 /** `modules_list`'s expand targets — the module's lead and members as full objects instead of `*_id(s)`. */
 export type ModuleExpand = (typeof EXPAND)["modules_list"][number];
@@ -25,7 +26,7 @@ export interface ListModulesParams {
   count?: boolean;
 }
 
-/** Project modules, reached bound to a project. `manageWorkItems` is hand-written since `doAction` only issues a bodiless POST. */
+/** Project modules, reached bound to a project; membership is `workItems`. */
 export class Modules extends V2Resource<Module, CreateModule, UpdateModule> {
   protected path = "/workspaces/{slug}/projects/{project_id}/modules/";
   protected operations: Record<string, AnyOperationId> = {
@@ -38,8 +39,15 @@ export class Modules extends V2Resource<Module, CreateModule, UpdateModule> {
     bulkCreate: "modules_bulk_create",
     bulkUpdate: "modules_bulk_update",
     bulkDelete: "modules_bulk_delete",
-    manageWorkItems: "modules_work_items_manage",
   };
+
+  /** `add`/`remove` work items on a module — see {@link ModuleWorkItems}. */
+  public workItems: ModuleWorkItems;
+
+  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
+    super(transport, scope);
+    this.workItems = new ModuleWorkItems(transport, scope);
+  }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ModuleField, "all"> & keyof Module>(
@@ -103,10 +111,6 @@ export class Modules extends V2Resource<Module, CreateModule, UpdateModule> {
   bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
     return this.doBulkDelete(ids, {}, allOrNone);
   }
-
-  /** Bulk add/remove work items on `moduleId`'s membership in one call. */
-  async manageWorkItems(moduleId: string, data: ModuleWorkItemManageRequest): Promise<ModuleWorkItemManageResponse> {
-    const url = `${this.detailUrl({ pk: moduleId })}work-items/`;
-    return this.transport.request<ModuleWorkItemManageResponse>("POST", url, { data });
-  }
 }
+
+export { ModuleWorkItems } from "./WorkItems";

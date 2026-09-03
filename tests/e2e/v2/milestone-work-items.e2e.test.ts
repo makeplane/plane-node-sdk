@@ -1,5 +1,5 @@
 /**
- * `manageWorkItems` is reached as `proj.milestones.manageWorkItems`, folded onto `Milestones`, not a standalone resource.
+ * `add`/`remove` is reached as `proj.milestones.workItems.add`/`.remove`, a bridge sub-resource on `Milestones`.
  */
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -35,10 +35,10 @@ maybe("v2 milestone work-item management (live)", () => {
   it("adds then removes a work item", async () => {
     const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
 
-    const added = await proj.milestones.manageWorkItems(milestoneId, { add: [workItemId] });
-    expect(added.added).toContain(workItemId);
+    const added = await proj.milestones.workItems.add(milestoneId, [workItemId]);
+    expect(added).toContain(workItemId);
 
-    const removed = await proj.milestones.manageWorkItems(milestoneId, { remove: [workItemId] });
-    expect(removed.removed).toContain(workItemId);
+    const removed = await proj.milestones.workItems.remove(milestoneId, [workItemId]);
+    expect(removed).toContain(workItemId);
   });
 });

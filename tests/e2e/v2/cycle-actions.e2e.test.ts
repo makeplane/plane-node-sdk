@@ -8,7 +8,7 @@ import { useV2Project } from "./support/suite";
 const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
 
-maybe("Cycles.transfer/manageWorkItems (v2 live)", () => {
+maybe("Cycles.transfer/workItems.add/remove (v2 live)", () => {
   const suite = useV2Project("cycAct", env);
   const proj = () => suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
 
@@ -22,15 +22,15 @@ maybe("Cycles.transfer/manageWorkItems (v2 live)", () => {
 
     const workItem = await proj().workItems.create({ name: uniqueName("cycAct-wi") });
 
-    // manageWorkItems.add is itself blocked once the cycle is "completed" (mirrors
+    // workItems.add is itself blocked once the cycle is "completed" (mirrors
     // `roles.py`'s own "already completed" guard) — exercise add/remove on a fresh,
     // not-yet-completed cycle instead, then transfer separately below.
     const openCycle = await proj().cycles.create({ name: uniqueName("cyc-open") });
-    const added = await proj().cycles.manageWorkItems(openCycle.id, { add: [workItem.id] });
-    expect(added.added).toContain(workItem.id);
+    const added = await proj().cycles.workItems.add(openCycle.id, [workItem.id]);
+    expect(added).toContain(workItem.id);
 
-    const removed = await proj().cycles.manageWorkItems(openCycle.id, { remove: [workItem.id] });
-    expect(removed.removed).toContain(workItem.id);
+    const removed = await proj().cycles.workItems.remove(openCycle.id, [workItem.id]);
+    expect(removed).toContain(workItem.id);
 
     // Populate the still-open source cycle directly via the work item's own
     // `cycle_id` — this would 400 (`cycle_id`: "This cycle is already completed;

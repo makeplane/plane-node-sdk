@@ -6,6 +6,7 @@ import { Configuration } from "../../../src/Configuration";
 import { WorkItemProperties } from "../../../src/api/v2/WorkItemProperties";
 import { WorkItemPropertyContexts, WorkspaceWorkItemProperties } from "../../../src/api/v2/WorkspaceWorkItemProperties";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
+import { MultipleMatchesFoundError, NoMatchFoundError } from "../../../src/errors/PlaneApiError";
 
 const BASE = "https://api.example.com";
 const SLUG = "acme";
@@ -86,6 +87,34 @@ describe("WorkItemProperties (project-scoped, v2)", () => {
       /Unknown field\(s\) for work_item_properties_list: nope/
     );
   });
+
+  describe("findByName()", () => {
+    it("resolves the one project property with this name (the property key) via the server-side ?name= filter", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ name: "story-points", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "p1", name: "story-points" }], pagination: { style: "offset" } });
+
+      const found = await make().findByName("story-points");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("p1");
+    });
+
+    it("throws NoMatchFoundError on 0 matches and MultipleMatchesFoundError on 2", async () => {
+      nock(BASE)
+        .get(collection)
+        .query({ name: "nope", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+      await expect(make().findByName("nope")).rejects.toBeInstanceOf(NoMatchFoundError);
+
+      nock(BASE)
+        .get(collection)
+        .query({ name: "dup", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "p1" }, { id: "p2" }], pagination: { style: "offset" } });
+      await expect(make().findByName("dup")).rejects.toBeInstanceOf(MultipleMatchesFoundError);
+    });
+  });
 });
 
 describe("WorkItemProperties.options (project-scoped, v2)", () => {
@@ -150,6 +179,29 @@ describe("WorkItemProperties.options (project-scoped, v2)", () => {
       /Unknown order_by 'name' for work_item_property_options_list/
     );
   });
+
+  describe("findByName()", () => {
+    it("resolves the one option with this name via the server-side ?name= filter", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ name: "High", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "o1", name: "High" }], pagination: { style: "offset" } });
+
+      const found = await make().findByName(propertyId, "High");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("o1");
+    });
+
+    it("throws NoMatchFoundError when no option matches the name", async () => {
+      nock(BASE)
+        .get(collection)
+        .query({ name: "Nope", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await expect(make().findByName(propertyId, "Nope")).rejects.toThrow(/No WorkItemPropertyOptions matched/);
+    });
+  });
 });
 
 describe("WorkspaceWorkItemProperties (workspace-scoped, v2)", () => {
@@ -186,6 +238,34 @@ describe("WorkspaceWorkItemProperties (workspace-scoped, v2)", () => {
     const properties = make();
     expect(properties.contexts).toBeInstanceOf(WorkItemPropertyContexts);
     expect(properties.options).toBeDefined();
+  });
+
+  describe("findByName()", () => {
+    it("resolves the one workspace property with this name (the property key) via the server-side ?name= filter", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ name: "story-points", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "p1", name: "story-points" }], pagination: { style: "offset" } });
+
+      const found = await make().findByName("story-points");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("p1");
+    });
+
+    it("throws NoMatchFoundError on 0 matches and MultipleMatchesFoundError on 2", async () => {
+      nock(BASE)
+        .get(collection)
+        .query({ name: "nope", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+      await expect(make().findByName("nope")).rejects.toBeInstanceOf(NoMatchFoundError);
+
+      nock(BASE)
+        .get(collection)
+        .query({ name: "dup", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "p1" }, { id: "p2" }], pagination: { style: "offset" } });
+      await expect(make().findByName("dup")).rejects.toBeInstanceOf(MultipleMatchesFoundError);
+    });
   });
 });
 
@@ -228,12 +308,47 @@ describe("WorkspaceWorkItemProperties.contexts (v2)", () => {
       /Unknown field\(s\) for work_item_property_contexts_list: nope/
     );
   });
+
+  describe("findByName()", () => {
+    it("resolves the one context with this name via the server-side ?name= filter", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ name: "Engineering rollout", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "c1", name: "Engineering rollout" }], pagination: { style: "offset" } });
+
+      const found = await make().findByName(propertyId, "Engineering rollout");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("c1");
+    });
+
+    it("throws NoMatchFoundError when no context matches the name", async () => {
+      nock(BASE)
+        .get(collection)
+        .query({ name: "Nope", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await expect(make().findByName(propertyId, "Nope")).rejects.toThrow(/No WorkItemPropertyContexts matched/);
+    });
+  });
 });
 
 describe("WorkspaceWorkItemProperties.options (v2)", () => {
   const propertyId = "wp1";
   const collection = `/api/v2/workspaces/${SLUG}/work-item-properties/${propertyId}/options/`;
   const make = () => new WorkspaceWorkItemProperties(makeTransport(), { slug: SLUG }).options;
+
+  it("findByName resolves the one option with this name via the server-side ?name= filter", async () => {
+    const scope = nock(BASE)
+      .get(collection)
+      .query({ name: "P0", per_page: "2", count: "false" })
+      .reply(200, { data: [{ id: "o1", name: "P0" }], pagination: { style: "offset" } });
+
+    const found = await make().findByName(propertyId, "P0");
+
+    expect(scope.isDone()).toBe(true);
+    expect(found.id).toBe("o1");
+  });
 
   it("creates, retrieves, updates, deletes an option", async () => {
     const write = { name: "P0" };

@@ -38,7 +38,7 @@ maybe("v2 project work item types flow (live)", () => {
     mode = await resolveWorkItemTypeMode(suite.client, suite.workspaceSlug);
   });
 
-  it("enables, creates a type + properties, attaches, writes custom_fields, marks default", async () => {
+  it("enables, creates a type + properties, links them, writes custom_fields, marks default", async () => {
     if (skipUnlessMode(mode, "project", "this flow needs project-managed work item types")) return;
 
     const suffix = uniqueName("").slice(1);
@@ -95,8 +95,8 @@ maybe("v2 project work item types flow (live)", () => {
         proj().workItemProperties.options.create(optionProp.id, { name: "Platinum", is_default: true })
       ).rejects.toMatchObject<Partial<PlaneApiError>>({ status: 400 });
 
-      // 8. attach both properties to the type
-      const result = await proj().workItemTypes.properties.attach(typeId, [textProp.id, optionProp.id]);
+      // 8. link both properties to the type
+      const result = await proj().workItemTypes.properties.link(typeId, [textProp.id, optionProp.id]);
       attached.push(textProp.id, optionProp.id);
       expect(result.properties).toEqual(expect.arrayContaining([textProp.id, optionProp.id]));
       const listed = (await proj().workItemTypes.properties.list(typeId)).data.map((p) => p.id);
@@ -125,7 +125,7 @@ maybe("v2 project work item types flow (live)", () => {
     } finally {
       if (!KEEP) {
         for (const id of createdWorkItems) await swallow(proj().workItems.delete(id));
-        for (const id of attached) await swallow(proj().workItemTypes.properties.detach(typeId ?? "", id));
+        for (const id of attached) await swallow(proj().workItemTypes.properties.unlink(typeId ?? "", id));
         for (const id of properties) await swallow(proj().workItemProperties.delete(id));
       }
     }

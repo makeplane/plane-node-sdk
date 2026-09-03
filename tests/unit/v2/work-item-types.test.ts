@@ -115,15 +115,15 @@ describe("WorkItemTypes.properties (v2, project-scoped)", () => {
     expect((await make().retrieve(TYPE, "p1")).id).toBe("p1");
   });
 
-  it("attaches then detaches a property", async () => {
+  it("links then unlinks a property", async () => {
     const scope = nock(BASE)
       .post(projectCollection, { properties: ["p1", "p2"] })
       .reply(200, { properties: ["p1", "p2"] });
-    const attached = await make().attach(TYPE, ["p1", "p2"]);
+    const linked = await make().link(TYPE, ["p1", "p2"]);
     expect(scope.isDone()).toBe(true);
-    expect(attached.properties).toEqual(["p1", "p2"]);
+    expect(linked.properties).toEqual(["p1", "p2"]);
 
     nock(BASE).delete(`${projectCollection}p1/`).reply(204);
-    await expect(make().detach(TYPE, "p1")).resolves.toBeUndefined();
+    await expect(make().unlink(TYPE, "p1")).resolves.toBeUndefined();
   });
 });

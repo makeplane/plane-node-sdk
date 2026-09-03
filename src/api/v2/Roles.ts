@@ -69,4 +69,9 @@ export class Roles extends V2Resource<Role, never, never> {
     }
     return matches[0];
   }
+
+  /** The one role with this `slug` (e.g. `"admin"`), server-side via `?slug=`; pass `namespace` to disambiguate a slug reused across namespaces. */
+  findBySlug(slug: string, params?: { namespace?: RoleNamespace }): Promise<Role> {
+    return this.doFindOne(params?.namespace ? { slug, namespace: params.namespace } : { slug }, {});
+  }
 }

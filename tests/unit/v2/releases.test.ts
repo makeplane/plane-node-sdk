@@ -70,24 +70,30 @@ describe("Releases (v2)", () => {
     await expect(releases.delete("rel-1")).resolves.toBeUndefined();
   });
 
-  it("manages release labels (add/remove) and posts the body to .../labels/", async () => {
-    const body = { add: ["lbl-1"], remove: ["lbl-2"] };
-    nock(BASE)
-      .post(`${collection}rel-1/labels/`, body)
-      .reply(200, { added: ["lbl-1"], removed: ["lbl-2"] });
+  it("adds then removes release labels via labels.add/remove, posting to .../labels/", async () => {
+    const addScope = nock(BASE)
+      .post(`${collection}rel-1/labels/`, { add: ["lbl-1"] })
+      .reply(200, { added: ["lbl-1"] });
+    const added = await make().labels.add("rel-1", ["lbl-1"]);
+    expect(addScope.isDone()).toBe(true);
+    expect(added).toEqual(["lbl-1"]);
 
-    const result = await make().manageLabels("rel-1", body);
-    expect(result).toEqual({ added: ["lbl-1"], removed: ["lbl-2"] });
+    const removeScope = nock(BASE)
+      .post(`${collection}rel-1/labels/`, { remove: ["lbl-2"] })
+      .reply(200, { removed: ["lbl-2"] });
+    const removed = await make().labels.remove("rel-1", ["lbl-2"]);
+    expect(removeScope.isDone()).toBe(true);
+    expect(removed).toEqual(["lbl-2"]);
   });
 
-  it("manages release work items (add/remove) and posts the body to .../work-items/", async () => {
-    const body = { add: ["wi-1"] };
-    nock(BASE)
-      .post(`${collection}rel-1/work-items/`, body)
-      .reply(200, { added: ["wi-1"], removed: [] });
+  it("adds release work items via workItems.add, posting to .../work-items/", async () => {
+    const scope = nock(BASE)
+      .post(`${collection}rel-1/work-items/`, { add: ["wi-1"] })
+      .reply(200, { added: ["wi-1"] });
 
-    const result = await make().manageWorkItems("rel-1", body);
-    expect(result.added).toEqual(["wi-1"]);
+    const result = await make().workItems.add("rel-1", ["wi-1"]);
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual(["wi-1"]);
   });
 
   it("finds by name", async () => {

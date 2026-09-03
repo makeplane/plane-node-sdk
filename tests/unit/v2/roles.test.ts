@@ -92,4 +92,45 @@ describe("Roles (v2)", () => {
       expect(found.id).toBe("3");
     });
   });
+
+  describe("findBySlug()", () => {
+    it("resolves the one role with this slug via the server-side ?slug= filter", async () => {
+      const scope = nock(BASE)
+        .get("/api/v2/workspaces/acme/roles/")
+        .query({ slug: "admin", per_page: "2", count: "false" })
+        .reply(200, {
+          data: [{ id: "1", name: "Admin", slug: "admin", namespace: "workspace" }],
+          pagination: { style: "offset" },
+        });
+
+      const found = await makeResource().findBySlug("admin");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("1");
+    });
+
+    it("forwards namespace alongside slug to disambiguate a slug reused across namespaces", async () => {
+      const scope = nock(BASE)
+        .get("/api/v2/workspaces/acme/roles/")
+        .query({ slug: "admin", namespace: "project", per_page: "2", count: "false" })
+        .reply(200, {
+          data: [{ id: "3", name: "Admin", slug: "admin", namespace: "project" }],
+          pagination: { style: "offset" },
+        });
+
+      const found = await makeResource().findBySlug("admin", { namespace: "project" });
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("3");
+    });
+
+    it("throws NoMatchFoundError when no role matches the slug", async () => {
+      nock(BASE)
+        .get("/api/v2/workspaces/acme/roles/")
+        .query({ slug: "nope", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await expect(makeResource().findBySlug("nope")).rejects.toBeInstanceOf(NoMatchFoundError);
+    });
+  });
 });

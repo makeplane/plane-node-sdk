@@ -164,4 +164,27 @@ describe("Estimates.points (v2)", () => {
       /Unknown order_by 'value' for estimate_points_list/
     );
   });
+
+  describe("findByKey()", () => {
+    it("resolves the one point with this numeric key via the server-side ?key= filter", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ key: "3", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "p3", key: 3, value: "L" }], pagination: { style: "offset" } });
+
+      const found = await make().findByKey(ESTIMATE, 3);
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("p3");
+    });
+
+    it("throws NoMatchFoundError when no point matches the key", async () => {
+      nock(BASE)
+        .get(collection)
+        .query({ key: "99", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await expect(make().findByKey(ESTIMATE, 99)).rejects.toThrow(/No EstimatePoints matched/);
+    });
+  });
 });

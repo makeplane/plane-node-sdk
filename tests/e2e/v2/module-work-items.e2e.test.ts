@@ -1,5 +1,5 @@
 /**
- * `manageWorkItems` is reached as `proj.modules.manageWorkItems`, folded onto `Modules`, not a standalone resource.
+ * `add`/`remove` is reached as `proj.modules.workItems.add`/`.remove`, a bridge sub-resource on `Modules`.
  */
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -35,10 +35,10 @@ maybe("v2 module work-item management (live)", () => {
   it("adds then removes a work item", async () => {
     const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
 
-    const added = await proj.modules.manageWorkItems(moduleId, { add: [workItemId] });
-    expect(added.added).toContain(workItemId);
+    const added = await proj.modules.workItems.add(moduleId, [workItemId]);
+    expect(added).toContain(workItemId);
 
-    const removed = await proj.modules.manageWorkItems(moduleId, { remove: [workItemId] });
-    expect(removed.removed).toContain(workItemId);
+    const removed = await proj.modules.workItems.remove(moduleId, [workItemId]);
+    expect(removed).toContain(workItemId);
   });
 });

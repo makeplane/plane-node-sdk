@@ -42,15 +42,3 @@ export interface CreateCustomer {
 
 /** PATCH body — every field optional. v2 has no PUT. */
 export type UpdateCustomer = Partial<CreateCustomer>;
-
-/** `POST .../customers/{pk}/work-items/` body — direct customer<->work item links. */
-export interface CustomerWorkItemManageRequest {
-  add?: string[];
-  remove?: string[];
-}
-
-/** The ids actually added/removed — invalid or out-of-workspace ids are silently skipped. */
-export interface CustomerWorkItemManageResponse {
-  added: string[];
-  removed: string[];
-}

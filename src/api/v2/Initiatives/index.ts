@@ -1,16 +1,11 @@
 import { Page } from "../../../models/v2/common";
-import {
-  Initiative,
-  InitiativeChildManageRequest,
-  InitiativeChildManageResponse,
-  UpdateInitiative,
-  InitiativeState,
-  CreateInitiative,
-} from "../../../models/v2/Initiative";
+import { Initiative, UpdateInitiative, InitiativeState, CreateInitiative } from "../../../models/v2/Initiative";
 import { EXPAND, FIELDS, ORDER_BY } from "../generated/constants";
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
 import { InitiativeLabels } from "./Labels";
+import { InitiativeProjects } from "./Projects";
+import { InitiativeWorkItems } from "./WorkItems";
 
 export type InitiativeField = (typeof FIELDS)["initiatives_list"][number];
 export type InitiativeOrderBy = (typeof ORDER_BY)["initiatives_list"][number];
@@ -33,7 +28,7 @@ export interface ListInitiativesParams {
   count?: boolean;
 }
 
-/** Workspace initiatives — workspace-scoped, not project-scoped (no `project_id` path segment). */
+/** Workspace initiatives — workspace-scoped (no `project_id` segment); `labels`/`projects`/`workItems` carry the memberships. */
 export class Initiatives extends V2Resource<Initiative, CreateInitiative, UpdateInitiative> {
   protected path = "/workspaces/{slug}/initiatives/";
   protected operations: Record<string, AnyOperationId> = {
@@ -42,16 +37,20 @@ export class Initiatives extends V2Resource<Initiative, CreateInitiative, Update
     create: "initiatives_create",
     update: "initiatives_partial_update",
     delete: "initiatives_destroy",
-    manageLabels: "initiatives_labels",
-    manageProjects: "initiatives_projects",
-    manageWorkItems: "initiatives_work_items",
   };
 
+  /** Label catalog plus `add`/`remove` of labels on an initiative — see {@link InitiativeLabels}. */
   public labels: InitiativeLabels;
+  /** `add`/`remove` projects on an initiative — see {@link InitiativeProjects}. */
+  public projects: InitiativeProjects;
+  /** `add`/`remove` work items on an initiative — see {@link InitiativeWorkItems}. */
+  public workItems: InitiativeWorkItems;
 
   constructor(transport: V2Transport, scope: Record<string, string> = {}) {
     super(transport, scope);
     this.labels = new InitiativeLabels(transport, scope);
+    this.projects = new InitiativeProjects(transport, scope);
+    this.workItems = new InitiativeWorkItems(transport, scope);
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
@@ -103,34 +102,9 @@ export class Initiatives extends V2Resource<Initiative, CreateInitiative, Update
   delete(initiativeId: string): Promise<void> {
     return this.doDelete({ pk: initiativeId });
   }
-
-  private async manageChild(
-    initiativeId: string,
-    action: "projects" | "work-items" | "labels",
-    data: InitiativeChildManageRequest
-  ): Promise<InitiativeChildManageResponse> {
-    return this.transport.request<InitiativeChildManageResponse>(
-      "POST",
-      `${this.detailUrl({ pk: initiativeId })}${action}/`,
-      { data }
-    );
-  }
-
-  /** Bulk add/remove projects; invalid/out-of-workspace ids are silently skipped. */
-  manageProjects(initiativeId: string, data: InitiativeChildManageRequest): Promise<InitiativeChildManageResponse> {
-    return this.manageChild(initiativeId, "projects", data);
-  }
-
-  /** Bulk add/remove work items (any type, including epics); replaces v1 `/epics/`. */
-  manageWorkItems(initiativeId: string, data: InitiativeChildManageRequest): Promise<InitiativeChildManageResponse> {
-    return this.manageChild(initiativeId, "work-items", data);
-  }
-
-  /** Bulk add/remove workspace initiative labels ({@link InitiativeLabels}) on this initiative. */
-  manageLabels(initiativeId: string, data: InitiativeChildManageRequest): Promise<InitiativeChildManageResponse> {
-    return this.manageChild(initiativeId, "labels", data);
-  }
 }
 
 export { InitiativeLabels } from "./Labels";
+export { InitiativeProjects } from "./Projects";
+export { InitiativeWorkItems } from "./WorkItems";
 export type { InitiativeLabelField, InitiativeLabelOrderBy, ListInitiativeLabelsParams } from "./Labels";

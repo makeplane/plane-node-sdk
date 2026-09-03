@@ -4,7 +4,7 @@ import { AttachedWorkItemTypeProperties } from "../../../models/v2/WorkItemType"
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 import { ListWorkItemTypePropertiesParams, WorkItemTypePropertyField } from "../WorkItemTypes/Properties";
 
-/** A read + attach/detach link resource; property definitions live on `WorkspaceWorkItemProperties`. */
+/** Properties linked to a workspace-scoped type — `link`/`unlink` plus reads; definitions live on `WorkspaceWorkItemProperties`. */
 export class WorkspaceWorkItemTypeProperties extends V2Resource<WorkItemProperty, never, never> {
   protected path = "/workspaces/{slug}/work-item-types/{type_id}/properties/";
   protected operations: Record<string, AnyOperationId> = {
@@ -24,7 +24,7 @@ export class WorkspaceWorkItemTypeProperties extends V2Resource<WorkItemProperty
     return this.doList({ type_id: typeId }, params as Record<string, unknown>);
   }
 
-  /** Every property attached to the workspace-scoped type, following pages automatically. */
+  /** Every property linked to the workspace-scoped type, following pages automatically. */
   iterate(typeId: string, params?: ListWorkItemTypePropertiesParams): AsyncGenerator<WorkItemProperty> {
     return this.doIterate({ type_id: typeId }, params as Record<string, unknown>);
   }
@@ -47,15 +47,15 @@ export class WorkspaceWorkItemTypeProperties extends V2Resource<WorkItemProperty
     return this.doRetrieve({ type_id: typeId, pk: propertyId }, params as Record<string, unknown>);
   }
 
-  /** Attach already-defined workspace properties to the workspace-scoped type. */
-  async attach(typeId: string, propertyIds: string[]): Promise<AttachedWorkItemTypeProperties> {
+  /** Link already-defined workspace properties to the workspace-scoped type. */
+  async link(typeId: string, propertyIds: string[]): Promise<AttachedWorkItemTypeProperties> {
     return this.transport.request<AttachedWorkItemTypeProperties>("POST", this.collectionUrl({ type_id: typeId }), {
       data: { properties: propertyIds },
     });
   }
 
-  /** Detach one property from the workspace-scoped type. Does not delete the property definition itself. */
-  detach(typeId: string, propertyId: string): Promise<void> {
+  /** Unlink one property from the workspace-scoped type. Deletes that property's values on every work item of the type; the definition itself stays. */
+  unlink(typeId: string, propertyId: string): Promise<void> {
     return this.doDelete({ type_id: typeId, pk: propertyId });
   }
 }

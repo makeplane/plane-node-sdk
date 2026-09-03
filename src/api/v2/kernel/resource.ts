@@ -1,8 +1,12 @@
 import { MultipleMatchesFoundError, NoMatchFoundError } from "../../../errors/PlaneApiError";
+import { BridgeRequest, BridgeResponse } from "../../../models/v2/Bridge";
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
 import { BULK_MAX_ITEMS, EXPAND, FIELDS, OPERATION_IDS, ORDER_BY } from "../generated/constants";
 import { iterate } from "./pagination";
 import { V2Transport } from "./transport";
+
+/** Ids per `add`/`remove` bridge call — the API caps each array at 100. */
+export const BRIDGE_MAX_IDS = 100;
 
 /** Every operation id `FIELDS`/`ORDER_BY` knows how to validate against. */
 export type OperationId = keyof typeof FIELDS;
@@ -254,6 +258,33 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
   ): Promise<BulkWriteResponse> {
     this.checkCap(ids.length, "Provide a non-empty list of ids.");
     return this.batch("bulk-delete", { ids, all_or_none: allOrNone }, pathParams);
+  }
+
+  /**
+   * One side of a membership bridge: POST `{ [verb]: items }` to `url` and resolve to the ids the server reports
+   * under `added`/`removed` (empty when absent). 1..`BRIDGE_MAX_IDS` items, else a `RangeError` before any request.
+   */
+  protected async doBridgeAt<TItem>(url: string, verb: "add" | "remove", items: readonly TItem[]): Promise<string[]> {
+    if (!Array.isArray(items)) {
+      throw new TypeError(`Expected an array of ids to ${verb} (received ${typeof items}).`);
+    }
+    if (items.length === 0 || items.length > BRIDGE_MAX_IDS) {
+      throw new RangeError(
+        `Provide between 1 and ${BRIDGE_MAX_IDS} ids to ${verb} per call (received ${items.length}).`
+      );
+    }
+    const body: BridgeRequest<TItem> = { [verb]: [...items] };
+    const response = await this.transport.request<BridgeResponse | undefined>("POST", url, { data: body });
+    return response?.[verb === "add" ? "added" : "removed"] ?? [];
+  }
+
+  /** `doBridgeAt` against this resource's own collection URL — for resources whose `path` *is* the bridge. */
+  protected doBridge<TItem>(
+    verb: "add" | "remove",
+    items: readonly TItem[],
+    pathParams: Record<string, string>
+  ): Promise<string[]> {
+    return this.doBridgeAt(this.collectionUrl(pathParams), verb, items);
   }
 
   /** Resolve exactly one row by identity filter, or throw; asks for two to detect ambiguity. */

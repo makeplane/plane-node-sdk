@@ -122,6 +122,9 @@ maybe("v2 estimates (live)", () => {
         const fetched = await points().retrieve(estimate.id, created.id);
         expect(fetched.value).toBe("M");
 
+        const byKey = await points().findByKey(estimate.id, 1);
+        expect(byKey.id).toBe(created.id);
+
         const updated = await points().update(estimate.id, created.id, { value: "L" });
         expect(updated.value).toBe("L");
 

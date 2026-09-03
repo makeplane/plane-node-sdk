@@ -44,22 +44,10 @@ export interface CollectionMember {
   source?: CollectionMemberSource;
 }
 
-/** One `add` entry for `CollectionMembers.manage` — `member_id` plus optional access level (defaults to `0`, View). */
+/** One `CollectionMembers.add` entry — `member_id` plus optional access level (defaults to `0`, View). */
 export interface CollectionMemberAddItem {
   member_id: string;
   access?: CollectionMemberAccess;
-}
-
-/** Bulk membership body for `POST …/collections/{id}/members/`. Both arrays cap at 100. */
-export interface CollectionMembersManageRequest {
-  add?: CollectionMemberAddItem[];
-  remove?: string[];
-}
-
-/** Member user ids actually added/updated and removed (idempotent no-ops omitted from `removed`). */
-export interface CollectionMembersManageResponse {
-  added: string[];
-  removed: string[];
 }
 
 /** Lite page shape returned by `GET …/collections/{id}/pages-search/`. Every field except `id` is optional. */
@@ -67,16 +55,4 @@ export interface CollectionPageSearch {
   id: string;
   logo_props?: unknown;
   name?: string;
-}
-
-/** Body for `POST …/collections/{id}/pages/` — attach/detach pages by id. */
-export interface CollectionPagesManageRequest {
-  add?: string[];
-  remove?: string[];
-}
-
-/** Page ids actually added and removed. */
-export interface CollectionPagesManageResponse {
-  added: string[];
-  removed: string[];
 }

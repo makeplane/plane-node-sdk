@@ -39,15 +39,3 @@ export interface CreateRelease {
 
 /** PATCH body — every field optional. v2 has no PUT. */
 export type UpdateRelease = Partial<CreateRelease>;
-
-/** Body for `releases_labels`/`releases_work_items`: `{add: [uuid...], remove: [uuid...]}`. */
-export interface ReleaseChildManageRequest {
-  add?: string[];
-  remove?: string[];
-}
-
-/** Response from `releases_labels`/`releases_work_items` — the ids actually changed. */
-export interface ReleaseChildManageResponse {
-  added: string[];
-  removed: string[];
-}

@@ -22,10 +22,10 @@ export class V2Namespace {
   }
 }
 
-export { Cycles } from "./Cycles";
+export { Cycles, CycleWorkItems } from "./Cycles";
 export { Labels } from "./Labels";
-export { Milestones } from "./Milestones";
-export { Modules } from "./Modules";
+export { Milestones, MilestoneWorkItems } from "./Milestones";
+export { Modules, ModuleWorkItems } from "./Modules";
 export { States } from "./States";
 export { Workspace } from "./Workspace";
 export { Project } from "./Project";
@@ -130,6 +130,7 @@ export type { ListReleasesParams, ReleaseExpand, ReleaseField, ReleaseOrderBy, R
 export { ReleaseLabels } from "./Releases/Labels";
 export type { ListReleaseLabelsParams, ReleaseLabelField, ReleaseLabelOrderBy } from "./Releases/Labels";
 export { ReleaseTags } from "./Releases/Tags";
+export { ReleaseWorkItems } from "./Releases/WorkItems";
 export type { ListReleaseTagsParams, ReleaseTagField, ReleaseTagOrderBy } from "./Releases/Tags";
 export type { ListReleaseCommentsParams, ReleaseCommentField, ReleaseCommentOrderBy } from "./Releases/Comments";
 export type { ListReleaseLinksParams, ReleaseLinkField, ReleaseLinkOrderBy } from "./Releases/Links";

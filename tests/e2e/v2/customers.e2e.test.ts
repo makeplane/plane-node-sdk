@@ -91,11 +91,11 @@ maybe("v2 customers (live)", () => {
         name: uniqueName("cust-linked-wi"),
       });
 
-      const added = await customers.manageWorkItems(customerId, { add: [workItem.id] });
-      expect(added.added).toContain(workItem.id);
+      const added = await customers.workItems.add(customerId, [workItem.id]);
+      expect(added).toContain(workItem.id);
 
-      const removed = await customers.manageWorkItems(customerId, { remove: [workItem.id] });
-      expect(removed.removed).toContain(workItem.id);
+      const removed = await customers.workItems.remove(customerId, [workItem.id]);
+      expect(removed).toContain(workItem.id);
 
       await workItems.delete(workItem.id).catch(() => undefined);
     });

@@ -36,8 +36,8 @@ maybe("v2 full scenario (live)", () => {
           severity = await ws.workItemProperties.create({ display_name: `Severity ${tag}`, property_type: "TEXT" });
           const propertyId = severity.id;
           cleanup.push(["property", () => ws.workItemProperties.delete(propertyId)]);
-          await ws.workItemTypes.properties.attach(typeId, [propertyId]);
-          cleanup.push(["detach", () => ws.workItemTypes.properties.detach(typeId, propertyId)]);
+          await ws.workItemTypes.properties.link(typeId, [propertyId]);
+          cleanup.push(["unlink", () => ws.workItemTypes.properties.unlink(typeId, propertyId)]);
         } else {
           await proj.workItemTypes.enable();
           bugType = await proj.workItemTypes.create({ name: `Bug ${tag}` });
@@ -46,8 +46,8 @@ maybe("v2 full scenario (live)", () => {
           severity = await proj.workItemProperties.create({ display_name: `Severity ${tag}`, property_type: "TEXT" });
           const propertyId = severity.id;
           cleanup.push(["property", () => proj.workItemProperties.delete(propertyId)]);
-          await proj.workItemTypes.properties.attach(typeId, [propertyId]);
-          cleanup.push(["detach", () => proj.workItemTypes.properties.detach(typeId, propertyId)]);
+          await proj.workItemTypes.properties.link(typeId, [propertyId]);
+          cleanup.push(["unlink", () => proj.workItemTypes.properties.unlink(typeId, propertyId)]);
         }
       } catch (error) {
         if (error instanceof PlaneApiError && error.status === 402) {
@@ -91,8 +91,8 @@ maybe("v2 full scenario (live)", () => {
       cleanup.push(["sub-task", () => proj.workItems.delete(subtask.id)]);
       expect(subtask.parent_id).toBe(item.id);
 
-      await proj.cycles.manageWorkItems(sprint.id, { add: [item.id, subtask.id] });
-      await proj.modules.manageWorkItems(auth.id, { add: [item.id] });
+      await proj.cycles.workItems.add(sprint.id, [item.id, subtask.id]);
+      await proj.modules.workItems.add(auth.id, [item.id]);
       const inSprint = (await proj.workItems.list({ cycle_id: sprint.id })).data.map((row) => row.id);
       expect(inSprint).toEqual(expect.arrayContaining([item.id, subtask.id]));
 
