@@ -1,39 +1,49 @@
 /**
- * Each band must arrive at its flat root as it migrates — a ratchet, not a hole.
+ * Each band must be complete at its flat root — in both directions, and derived from
+ * something other than the tree it is checking.
  *
  * There are two bands, and they have the same shape. `Workspaces` is the root of the
  * workspace band (`v2.workspaces`); `Projects` is the root of the project band
- * (`v2.projects`). A family only becomes reachable from a fetched row once it is attached
- * to its root. The retiring locators (`src/api/v2/Workspace.ts`, `src/api/v2/Project.ts`)
- * are the complete list of what each band contains — they are what holds the families that
- * have not moved yet, and the last task of the variant-F plan deletes them — so they are
- * the enumeration this sweep derives from. Nothing here is tabulated: there is no list of
- * "families still to come" to keep in step, only each locator's own attributes and each
- * class's migration status.
+ * (`v2.projects`). A family is only reachable from a fetched row once it is attached to
+ * its root.
  *
- * The rule has two halves, and both matter:
+ * **Where the expected membership comes from, and why it changed.** This sweep used to
+ * enumerate each band from the retiring `Workspace`/`Project` locators: they held the
+ * families, so they were the list. That worked while they were being emptied, but it
+ * makes the sweep derive its expectations *from* the very wiring the last task deletes —
+ * delete the locators and the assertions would have compared two shrinking sets and
+ * passed by agreeing with themselves, which is the one failure mode every sweep in this
+ * suite exists to refuse.
  *
- * 1. **Migrated means attached.** A class that has left `UNMIGRATED_RESOURCES` and still
- *    hangs only off its locator is unreachable from the flat root and from every fetched
- *    row of it. This is the ratchet: `UNMIGRATED_RESOURCES` may only shrink, and every name
- *    that leaves it lands here as a failure until the family is attached — at which point
- *    `loaded-navigation.test.ts` demands the navigation property in the same change. A
- *    family cannot be migrated and quietly skipped on the root.
- * 2. **Attached means migrated.** A pre-flat class attached to a root would read its path
- *    ids from the retired locator scope, which the flat root does not supply — so
+ * So membership is now derived from each resource's **URL template**, which is generated
+ * from the api_v2 golden and knows nothing about how the SDK is wired:
+ *
+ * - a resource whose path is `/workspaces/{slug}/` + one collection segment and **no
+ *   further `{...}` placeholder** consumes exactly the workspace's own id, so a fetched
+ *   workspace row can supply everything it needs: it belongs on `v2.workspaces`;
+ * - the same test one level down (`/workspaces/{slug}/projects/{project_id}/` + no
+ *   further placeholder) is the project band;
+ * - anything with a further placeholder needs an id only its own parent row carries, so
+ *   it is a child of a band member rather than a member — `loaded-navigation.test.ts`
+ *   owns that rule.
+ *
+ * That derivation is independent of the constructors: the templates would still name all
+ * 51 band members — 32 workspace-level, 19 project-level — if `Workspaces` and `Projects`
+ * attached nothing at all.
+ *
+ * The rule then has three halves, and all three matter:
+ *
+ * 1. **Every band member is attached.** A migrated class that is not on its root is
+ *    unreachable from the flat root and from every fetched row of it. This is the
+ *    direction that caught eight orphaned project families when the project band first
+ *    got a sweep — the same defect the Python port shipped, where a fetched project
+ *    reached 3 of its 15 children.
+ * 2. **Everything attached is a band member.** A resource whose path takes ids the root's
+ *    rows do not carry would have `owned()` prepend a slug where a project id belongs and
+ *    build a well-formed, wrong URL.
+ * 3. **Nothing attached is still pre-flat.** A pre-flat class on a flat root reads its
+ *    path ids from the retired locator scope, which the root does not supply, so
  *    `v2.workspaces.customers.list()` would raise `MissingPathIdError` rather than work.
- *    Attaching a band early to make the tree "look done" is refused.
- *
- * The count of families still pending is ratcheted per band, so the sweep says out loud how
- * much of each band is left rather than only failing once somebody moves one.
- *
- * **Why both bands, and why the project band was added before task 3 rather than after.**
- * This file began as `workspace-band.test.ts` and covered one root. The project band had
- * the identical shape and no sweep, and `Projects` was attaching 3 of the 16 families its
- * locator held — which is, precisely, the defect the Python port shipped and the
- * navigation sweep's own doc comment cites (a fetched project reaching 3 of its 15
- * children). Generalising afterwards would have flagged eight families at once instead of
- * obliging each to attach as it migrated.
  */
 
 import { V2Namespace } from "../../../src/api/v2";
@@ -42,7 +52,15 @@ import { Workspaces } from "../../../src/api/v2/Workspaces";
 import { LoadsNavigableRows } from "../../../src/api/v2/kernel/loaded";
 import { V2Resource } from "../../../src/api/v2/kernel/resource";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
-import { AnyResource, UNMIGRATED_RESOURCES, WALK_CONFIG, resourceEntries } from "./tree-walk";
+import {
+  AnyResource,
+  ResourceEntry,
+  UNMIGRATED_RESOURCES,
+  WALK_CONFIG,
+  instantiate,
+  pathOf,
+  resourceEntries,
+} from "./tree-walk";
 
 /**
  * The pre-flat resources reachable under a flat root, keyed `<band>.<attribute path>`,
@@ -63,60 +81,101 @@ export const PREFLAT_UNDER_ROOT: Readonly<Record<string, string>> = {};
 export const PREFLAT_UNDER_ROOT_CEILING = 0;
 
 /**
+ * Band members that hang off a sibling resource instead of directly off the band root,
+ * keyed by resource entry, each with why.
+ *
+ * Both entries are the same thing: **one class holding two routes.** `ReleaseLabels` and
+ * `InitiativeLabels` each own a workspace-level catalog (`/workspaces/{slug}/releases/
+ * labels/`, which is why the path derivation calls them workspace-band members) *and* the
+ * per-parent bridge that adds and removes labels on one release or initiative. The bridge
+ * is what a fetched row binds, so the class lives with the noun it belongs to and is
+ * reached flat as `v2.workspaces.releases.labels.list(slug)`.
+ *
+ * `loaded-navigation.test.ts` records the same two under `CATALOG_SIBLINGS` and asserts
+ * the consequence from the other end: `Owned<…>` maps a method that does not open with
+ * the bound tuple to `never`, so `release.labels.list()` does not type-check, and at
+ * runtime `assertLeadingParameters` throws naming the method rather than building a URL
+ * with the release id where the slug belongs.
+ *
+ * The counter-example is deliberately *not* in here: `ReleaseTags` has no per-release
+ * route at all — a release points at a tag through its own `tag_id` — so it was fixed at
+ * the attachment (`v2.workspaces.releaseTags`) rather than exempted. Python shipped a
+ * `release.tags` property whose every call raised, kept alive only to satisfy its own
+ * navigation sweep.
+ */
+export const NESTED_BAND_MEMBERS: Readonly<Record<string, string>> = {
+  "Releases/Labels#ReleaseLabels":
+    "one class, two routes: the workspace release-label catalog and the per-release bridge. " +
+    "The bridge is what a fetched release binds, so it is attached at v2.workspaces.releases.labels.",
+  "Initiatives/Labels#InitiativeLabels":
+    "one class, two routes: the workspace initiative-label catalog and the per-initiative bridge, " +
+    "attached at v2.workspaces.initiatives.labels for the same reason as ReleaseLabels.",
+};
+
+/** How large {@link NESTED_BAND_MEMBERS} is allowed to be. A ratchet: lower it, never raise it. */
+export const NESTED_BAND_MEMBERS_CEILING = 2;
+
+/**
  * Families not yet on their flat root, because their classes are still pre-flat.
  *
- * A ratchet on the *count*, derived — the names come from the locators and the opt-out
- * list, never from a list written here, so this cannot drift. Both are 0: task 3 migrated
- * every family in both bands, so every family a locator holds is also on its flat root.
- * Never raised.
+ * A ratchet on the *count*, derived — the names come from the URL templates and the
+ * opt-out list, never from a list written here, so this cannot drift. Both are 0: every
+ * band member is migrated.
  */
 export const BAND_PENDING_CEILING: Readonly<Record<string, number>> = { workspace: 0, project: 0 };
 
 const namespace = new V2Namespace(WALK_CONFIG);
-const workspaceLocator = namespace.workspace("acme");
 
 interface Band {
   /** The band's own name, and the key into {@link BAND_PENDING_CEILING}. */
   readonly name: string;
-  /** The retiring locator: the complete list of what the band contains. */
-  readonly locator: object;
   /** The flat root the band must arrive at. */
   readonly root: AnyResource;
   /** How the root is spelled in a failure message. */
   readonly rootPath: string;
   /** The URL prefix every member of the band shares — one id per level above it. */
   readonly prefix: string;
-  /** A floor on how many resources the root must reach, raised as the band arrives. */
-  readonly rootFloor: number;
+  /** A floor on how many members the derivation must find, so it cannot go vacuous. */
+  readonly memberFloor: number;
 }
 
 const BANDS: readonly Band[] = [
   {
     name: "workspace",
-    locator: workspaceLocator,
     root: namespace.workspaces,
     rootPath: "v2.workspaces",
     prefix: "/workspaces/{slug}/",
-    rootFloor: 15,
+    memberFloor: 30,
   },
   {
     name: "project",
-    locator: workspaceLocator.project("ENG"),
     root: namespace.projects,
     rootPath: "v2.projects",
     prefix: "/workspaces/{slug}/projects/{project_id}/",
-    rootFloor: 15,
+    memberFloor: 18,
   },
 ];
 
-/** `Customers#Customers` for a resource instance, or `undefined` if the scan never saw it. */
-function keyOf(resource: AnyResource): string | undefined {
-  return resourceEntries().find((entry) => entry.cls === resource.constructor)?.key;
+/**
+ * The band a resource's URL template puts it in: the prefix, one collection segment, and
+ * no further placeholder.
+ *
+ * Read off `path` — generated from the golden — so the answer owes nothing to what any
+ * constructor attached.
+ */
+function membersByPath(band: Band): ResourceEntry[] {
+  return resourceEntries().filter((entry) => {
+    const template = pathOf(instantiate(entry));
+    if (!template.startsWith(band.prefix)) return false;
+    const rest = template.slice(band.prefix.length);
+    // The root itself (`/workspaces/{slug}/`) is not a member of its own band, and a
+    // resource that names a further id is a child of a member rather than a member.
+    return rest.length > 0 && !rest.includes("{");
+  });
 }
 
-function isMigrated(resource: AnyResource): boolean {
-  const key = keyOf(resource);
-  return key !== undefined && !UNMIGRATED_RESOURCES.has(key);
+function isMigrated(entry: ResourceEntry): boolean {
+  return !UNMIGRATED_RESOURCES.has(entry.key);
 }
 
 /**
@@ -126,7 +185,8 @@ function isMigrated(resource: AnyResource): boolean {
  * Grouping nodes (`wiki`, `groupSync`) are descended into rather than skipped: they hold no
  * `V2Resource` base of their own, so a name-level comparison would miss `wiki.pages`
  * entirely — which is exactly the resource whose migration status decided whether `wiki`
- * could move to the flat root at all.
+ * could move to the flat root at all. A `V2Resource` is *not* descended into: its own
+ * children belong to a fetched row of it, not to the band.
  */
 function bandOf(node: object, prefix = ""): Map<string, AnyResource> {
   const found = new Map<string, AnyResource>();
@@ -142,6 +202,11 @@ function bandOf(node: object, prefix = ""): Map<string, AnyResource> {
     }
   }
   return found;
+}
+
+/** `Customers#Customers` for a resource instance, or `undefined` if the scan never saw it. */
+function keyOf(resource: AnyResource): string | undefined {
+  return resourceEntries().find((entry) => entry.cls === resource.constructor)?.key;
 }
 
 describe("the roots of the two bands", () => {
@@ -167,7 +232,8 @@ describe("the roots of the two bands", () => {
       // An entry for a class that *has* migrated reads as a gap that was never closed.
       migrated: named.filter((dotted) => {
         const resource = reachable.get(dotted);
-        return resource !== undefined && isMigrated(resource);
+        const key = resource === undefined ? undefined : keyOf(resource);
+        return key !== undefined && !UNMIGRATED_RESOURCES.has(key);
       }),
       // Every entry states why. A blank reason is not a reason.
       unreasoned: named.filter((dotted) => PREFLAT_UNDER_ROOT[dotted].trim().length === 0),
@@ -176,37 +242,106 @@ describe("the roots of the two bands", () => {
     // The ratchet. Lower `PREFLAT_UNDER_ROOT_CEILING` as these migrate; never raise it.
     expect(named.length).toBeLessThanOrEqual(PREFLAT_UNDER_ROOT_CEILING);
   });
+
+  it("keeps every nested-band-member exemption real, band-shaped, and reachable", () => {
+    const byKey = new Map(resourceEntries().map((entry) => [entry.key, entry]));
+    const memberKeys = new Set(BANDS.flatMap((band) => membersByPath(band).map((entry) => entry.key)));
+    // Reachable from *somewhere* under a root, at any depth — which is the claim an
+    // exemption makes: not on the root, but still reachable flat.
+    const reachableAnywhere = new Set<unknown>();
+    const walk = (node: object): void => {
+      for (const [name, child] of Object.entries(node)) {
+        if (name.startsWith("_")) continue;
+        if (typeof child !== "object" || child === null) continue;
+        if (child instanceof V2Transport) continue;
+        if (child instanceof V2Resource) {
+          if (reachableAnywhere.has(child.constructor)) continue;
+          reachableAnywhere.add(child.constructor);
+        }
+        if (child.constructor?.name === "Object" || child.constructor?.name === "Array") continue;
+        walk(child);
+      }
+    };
+    for (const band of BANDS) walk(band.root);
+    const onARoot = new Set(BANDS.flatMap((band) => [...bandOf(band.root).values()].map((r) => r.constructor)));
+
+    const named = Object.keys(NESTED_BAND_MEMBERS).sort();
+
+    expect({
+      // An entry naming a class the source scan never saw describes nothing.
+      unknown: named.filter((key) => !byKey.has(key)),
+      // An entry for a class that is not band-shaped by its own URL is not an exemption
+      // from this rule at all — the rule would never have asked about it.
+      notABandMember: named.filter((key) => !memberKeys.has(key)),
+      // An entry for a class nothing under a root reaches is the Python `release.tags`
+      // defect: an exemption keeping an unreachable resource looking accounted for.
+      unreachable: named.filter((key) => {
+        const entry = byKey.get(key);
+        return entry !== undefined && !reachableAnywhere.has(entry.cls);
+      }),
+      // An entry for a class that *is* on a root is stale: the rule it exempts from is
+      // already satisfied, and the exemption only hides the next one.
+      alreadyAttached: named.filter((key) => {
+        const entry = byKey.get(key);
+        return entry !== undefined && onARoot.has(entry.cls);
+      }),
+      // Every entry states why. A blank reason is not a reason.
+      unreasoned: named.filter((key) => NESTED_BAND_MEMBERS[key].trim().length === 0),
+    }).toEqual({ unknown: [], notABandMember: [], unreachable: [], alreadyAttached: [], unreasoned: [] });
+
+    expect(named.length).toBeLessThanOrEqual(NESTED_BAND_MEMBERS_CEILING);
+  });
 });
 
 describe.each(BANDS.map((band) => [band.name, band] as const))("the %s band", (_name, band) => {
-  const locatorBand = bandOf(band.locator);
+  const members = membersByPath(band);
   const rootBand = bandOf(band.root);
+  const attachedClasses = new Set([...rootBand.values()].map((resource) => resource.constructor));
 
-  it("finds a band to check at all", () => {
-    // A floor, not a pin. If the walk breaks, the assertions below pass by comparing two
-    // empty sets — the failure mode every sweep in this suite exists to refuse.
-    expect(locatorBand.size).toBeGreaterThanOrEqual(15);
-    expect(rootBand.size).toBeGreaterThanOrEqual(band.rootFloor);
+  it("derives a band to check at all", () => {
+    // A floor, not a pin. If the derivation breaks, the assertions below pass by comparing
+    // two empty sets — the failure mode every sweep in this suite exists to refuse.
+    expect(members.length).toBeGreaterThanOrEqual(band.memberFloor);
+    expect(rootBand.size).toBeGreaterThanOrEqual(band.memberFloor - Object.keys(NESTED_BAND_MEMBERS).length);
   });
 
-  it("attaches every family whose class has been migrated", () => {
-    const attached = new Set([...rootBand.values()].map((resource) => resource.constructor));
-    const orphans = [...locatorBand.entries()]
-      .filter(([, resource]) => isMigrated(resource) && !attached.has(resource.constructor))
+  it("attaches every resource whose own URL puts it in this band", () => {
+    const missing = members
+      .filter((entry) => !attachedClasses.has(entry.cls) && !(entry.key in NESTED_BAND_MEMBERS))
       .map(
-        ([dotted, resource]) =>
-          `the ${band.name} locator's .${dotted} is ${resource.constructor.name}, which is migrated but is not ` +
-          `attached to ${band.root.constructor.name} — so it is unreachable from ${band.rootPath} and from every ` +
-          `fetched ${band.name} row`
+        (entry) =>
+          `${entry.key} takes ${band.prefix} and nothing further, so it is a ${band.name}-band resource — ` +
+          `but it is not attached to ${band.root.constructor.name}, so it is unreachable from ${band.rootPath} ` +
+          `and from every fetched ${band.name} row`
       )
       .sort();
 
-    expect(orphans).toEqual([]);
+    expect(missing).toEqual([]);
+  });
+
+  it("attaches nothing that belongs to another band", () => {
+    const memberClasses = new Set(members.map((entry) => entry.cls));
+    const foreign = [...rootBand.entries()]
+      .filter(([, resource]) => !memberClasses.has(resource.constructor as never))
+      .map(([dotted, resource]) => {
+        const template = (resource as unknown as { path: string }).path;
+        return (
+          `${band.rootPath}.${dotted} is ${resource.constructor.name}, whose path is ${template} — it does not ` +
+          `take ${band.prefix} and nothing further, so binding this root's ids into it builds a well-formed ` +
+          `wrong URL`
+        );
+      })
+      .sort();
+
+    expect(foreign).toEqual([]);
   });
 
   it("attaches nothing that is still pre-flat", () => {
     const premature = [...rootBand.entries()]
-      .filter(([dotted, resource]) => !isMigrated(resource) && !(`${band.name}.${dotted}` in PREFLAT_UNDER_ROOT))
+      .filter(([dotted, resource]) => {
+        const key = keyOf(resource);
+        return key !== undefined && UNMIGRATED_RESOURCES.has(key) && !(`${band.name}.${dotted}` in PREFLAT_UNDER_ROOT);
+      })
       .map(
         ([dotted, resource]) =>
           `${band.rootPath}.${dotted} is ${resource.constructor.name}, which still reads its path ids from the ` +
@@ -218,19 +353,8 @@ describe.each(BANDS.map((band) => [band.name, band] as const))("the %s band", (_
   });
 
   it("counts what is left against a ratchet", () => {
-    const pending = [...locatorBand.values()].filter((resource) => !isMigrated(resource));
-    const distinct = new Set(pending.map((resource) => resource.constructor.name));
+    const pending = members.filter((entry) => !isMigrated(entry));
 
-    expect([...distinct].sort().length).toBeLessThanOrEqual(BAND_PENDING_CEILING[band.name]);
-  });
-
-  it("routes the whole flat root through the band's own path ids, and only those", () => {
-    // Every child of a root binds exactly the ids the root's rows carry. If one needed
-    // more, `owned()` would prepend a slug where a project id belongs and build a
-    // well-formed wrong URL.
-    for (const [dotted, resource] of rootBand) {
-      const template = (resource as unknown as { path: string }).path;
-      expect([dotted, template.startsWith(band.prefix)]).toEqual([dotted, true]);
-    }
+    expect(pending.map((entry) => entry.key).sort().length).toBeLessThanOrEqual(BAND_PENDING_CEILING[band.name]);
   });
 });

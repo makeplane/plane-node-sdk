@@ -29,12 +29,17 @@ import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
 /**
  * A workspace, bound once; no I/O on construction.
  *
- * **Retired in all but name**, exactly as `Project` is. *Everything* it holds is now on
- * the flat shape and takes its ids per call — `workspace(slug).roles.list(slug)` — so the
- * binding buys nothing at all, and every one of these families is also on `v2.workspaces`,
- * which `tests/unit/v2/bands.test.ts` requires. The class survives only so the last task
- * of the variant-F plan can delete it (and the `scope` constructor parameter with it) in
- * one change rather than mid-migration.
+ * @deprecated Use the flat form (`v2.workspaces.roles.list(slug)`) or a fetched row
+ * (`(await v2.workspaces.retrieve(slug)).roles.list()`). This class binds nothing: every
+ * family it holds takes its ids per call, so `workspace(slug).roles.list(slug)` passes the
+ * slug twice, and every one of them is also on `v2.workspaces`, which
+ * `tests/unit/v2/bands.test.ts` requires.
+ *
+ * **Why it is still here.** Its only remaining consumer is `tests/e2e/`, whose ~30 call
+ * sites are a declared pre-PR pass; deleting the class now would leave that suite unable
+ * to compile. Nothing else depends on it any more — in particular `bands.test.ts` used to
+ * derive both bands *from* these locators and no longer does, so removing this file and
+ * `Project.ts` (with `V2Namespace.workspace()`) is now a deletion, not a redesign.
  */
 export class Workspace {
   public readonly members: WorkspaceMembers;

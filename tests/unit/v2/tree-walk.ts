@@ -238,10 +238,12 @@ export function childResources(resource: AnyResource): Map<string, AnyResource> 
  * Every resource class reachable by attribute access from a constructed `V2Namespace`,
  * mapped to the dotted path it was first reached by (`v2.projects.states`).
  *
- * The locator chain is seeded explicitly because `workspace(slug)`/`project(key)` are
- * *methods*, not attributes: an unmigrated family is still only reachable through them.
- * The seeds go away with the locators in the last task of the plan, and this becomes a
- * plain attribute walk from the root.
+ * The deprecated locator chain is seeded explicitly, because `workspace(slug)`/
+ * `project(key)` are *methods*, not attributes, and a plain walk would never enter them.
+ * It adds no class today — every family is on a flat root — but the seeds stay while the
+ * locators do, so a resource attached *only* there is still enumerated rather than
+ * vanishing from every sweep; `bands.test.ts` is what would then fail it, by name. Seeds
+ * and locators go together when the e2e call sites move off them.
  */
 export function reachableResources(): Map<unknown, string> {
   const namespace = new V2Namespace(WALK_CONFIG);

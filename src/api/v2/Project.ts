@@ -19,12 +19,12 @@ import { V2Transport } from "./kernel/transport";
 /**
  * A project locator, bound once.
  *
- * **Retired in all but name.** Every family listed here is flat and also hangs off
- * `Projects`, so each is reachable as `v2.projects.cycles.list(slug, project)` and from a
- * fetched project as `project.cycles.list()` — `tests/unit/v2/bands.test.ts` requires
- * both. `states`, `labels` and `workItems` left this list first; the rest followed in task
- * 3. What is left is a holder nothing reads, kept so the last task of the plan can delete
- * it and the `scope` constructor parameter together.
+ * @deprecated Use the flat form (`v2.projects.cycles.list(slug, project)`) or a fetched
+ * project row (`project.cycles.list()`). Every family here is flat and also hangs off
+ * `Projects`, which `tests/unit/v2/bands.test.ts` requires, so this binds nothing.
+ *
+ * Kept for the same reason as {@link Workspace}: the e2e suite is its last consumer and
+ * that migration is a separate pass.
  */
 export class Project {
   public readonly cycles: Cycles;

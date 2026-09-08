@@ -14,8 +14,8 @@ import { V2Transport } from "./kernel/transport";
  * those ids, so `(await v2.projects.retrieve(slug, "ENG")).states.list()` needs nothing
  * repeated.
  *
- * `workspace(slug)` is the pre-flat locator chain, shrinking as each family migrates;
- * the last task of the variant-F plan removes it.
+ * `workspace(slug)` is the retired locator chain — deprecated, binding nothing, and kept
+ * only until the e2e suite stops calling it. See {@link Workspace}.
  */
 export class V2Namespace {
   public transport: V2Transport;
@@ -36,7 +36,12 @@ export class V2Namespace {
     this.workspaces = new Workspaces(this.transport);
   }
 
-  /** Bind a workspace. Makes no request. */
+  /**
+   * Bind a workspace. Makes no request.
+   *
+   * @deprecated Reach resources flat (`v2.workspaces.roles.list(slug)`) or from a fetched
+   * workspace row. See {@link Workspace} for why this still exists.
+   */
   workspace(workspaceSlug: string): Workspace {
     return new Workspace(this.transport, workspaceSlug);
   }

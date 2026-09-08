@@ -54,9 +54,10 @@ export interface WorkspaceFieldsParams {
  * the point of implementing this resource at all — "get workspace detail by slug" is what
  * plane-ee shipped PR #9389 for, and the row it answers is what reaches everything else.
  *
- * The band still on the pre-flat shape is not attached here yet; see
- * `loaded/Workspace.ts` and `tests/unit/v2/bands.test.ts`, which requires every
- * migrated member of the band to be attached and ratchets the rest.
+ * The whole workspace band is attached here. `tests/unit/v2/bands.test.ts` derives that
+ * band from the resources' own URL templates — every path that is `/workspaces/{slug}/`
+ * plus one collection segment — and requires each of them to be on this class, so a
+ * family cannot be added to the SDK and quietly left off the root.
  */
 export class Workspaces extends LoadsNavigableRows<Workspace, never, never, WorkspaceNavigation> {
   protected path = "/workspaces/{slug}/";
@@ -102,8 +103,8 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
   public groupSync: GroupSync;
   /**
    * The workspace wiki. A grouping node like {@link groupSync}, so not a navigation
-   * property either. `wiki.pages` is flat and works here; `wiki.collections` is still
-   * pre-flat and needs `v2.workspace(slug).wiki.collections` until task 3 migrates it.
+   * property either. Both children are flat: `v2.workspaces.wiki.pages.list(slug)` and
+   * `v2.workspaces.wiki.collections.list(slug)`.
    */
   public wiki: Wiki;
 

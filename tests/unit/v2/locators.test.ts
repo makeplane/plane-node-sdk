@@ -9,14 +9,16 @@ const makeClient = () => new PlaneClient({ baseUrl: BASE, apiKey: "secret" });
 beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
 
-// Two shapes coexist while the variant-F migration runs: the flat tree, which each
-// migrated family joins, and the `workspace(slug).project(key)` locator chain, which a
-// family leaves once the flat tree has somewhere to put it. Those two events are not
-// simultaneous: `states`/`labels`/`workItems` moved together because `Projects` was
-// already there to hold them, while the workspace band is migrated but still hangs off
-// the locator, because its flat attachment point arrives with the tree wiring. So what
-// this file pins is not "migrated implies gone from the locator" — it is that whatever
-// the locator still holds behaves the migrated way, taking its ids per call.
+// The flat tree is the surface; the `workspace(slug).project(key)` locator chain is
+// deprecated and holds nothing the flat roots do not (`bands.test.ts` requires every
+// resource whose URL puts it in a band to be on that band's root, derived from the URL
+// templates rather than from these locators). The chain survives only because the e2e
+// suite still calls it, and its call sites are a separate pass.
+//
+// So what this file pins is not "migrated implies gone from the locator" — it is that
+// whatever the locator still hands back behaves the flat way, taking its ids per call and
+// sharing the namespace's transport, so a caller on the old spelling gets the same
+// requests as a caller on the new one.
 
 describe("flat tree (v2)", () => {
   it("builds without making a single request", () => {
@@ -57,7 +59,7 @@ describe("flat tree (v2)", () => {
   });
 });
 
-describe("chain locators (Workspace/Project) — being retired", () => {
+describe("chain locators (Workspace/Project) — deprecated, kept for the e2e call sites", () => {
   it("build the whole chain without making a single request", () => {
     const spy = jest.spyOn(V2Transport.prototype, "request");
     try {
@@ -74,7 +76,7 @@ describe("chain locators (Workspace/Project) — being retired", () => {
     }
   });
 
-  it("Workspace still exposes every workspace-level family that has not migrated", () => {
+  it("Workspace still hands back every workspace-level family an existing caller reaches", () => {
     const ws = makeClient().v2.workspace("acme");
 
     const expected = [
@@ -112,7 +114,7 @@ describe("chain locators (Workspace/Project) — being retired", () => {
     expect(typeof ws.project).toBe("function");
   });
 
-  it("Project still exposes every project-level family that has not migrated", () => {
+  it("Project still hands back every project-level family an existing caller reaches", () => {
     const proj = makeClient().v2.workspace("acme").project("ENG");
 
     const expected = [
