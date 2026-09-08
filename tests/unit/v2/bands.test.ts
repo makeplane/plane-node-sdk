@@ -48,35 +48,29 @@ import { AnyResource, UNMIGRATED_RESOURCES, WALK_CONFIG, resourceEntries } from 
  * The pre-flat resources reachable under a flat root, keyed `<band>.<attribute path>`,
  * each with why it cannot be excluded.
  *
- * There is exactly one, and it exists because `wiki` is a grouping node whose two children
- * are at different stages: `WikiPages` is migrated, so rule 1 requires `wiki` on the flat
- * root, and `Collections` is not, so it comes along. Leaving `wiki` off the root instead
- * would make a migrated resource unreachable from a fetched workspace — the silent hole
- * this file exists to refuse — so the reachable-but-not-yet-callable child is recorded
- * rather than hidden, and ratcheted so nothing joins it.
+ * **Empty.** It held one entry while `wiki.collections` was pre-flat: `wiki` is a grouping
+ * node whose sibling `wiki.pages` was already migrated, so rule 1 required `wiki` on the
+ * flat root and `Collections` came along — reachable, but raising `MissingPathIdError` on
+ * every call. That was recorded rather than hidden precisely so it could not be forgotten;
+ * task 3 migrated `Collections` and it emptied.
  *
- * Calling one is not a silent failure: `formatPath` raises `MissingPathIdError` naming the
- * resource, the method, the template and the missing `slug`, and
- * `v2.workspace(slug).wiki.collections` works today. Task 3 migrates `Collections` and this
- * empties.
+ * The mechanism stays, ratcheted at 0, for the next grouping node that straddles a
+ * migration.
  */
-export const PREFLAT_UNDER_ROOT: Readonly<Record<string, string>> = {
-  "workspace.wiki.collections":
-    "`wiki` must be on the flat root because its sibling `wiki.pages` (WikiPages) is migrated, " +
-    "and a grouping node moves whole; `Collections` migrates in task 3",
-};
+export const PREFLAT_UNDER_ROOT: Readonly<Record<string, string>> = {};
 
 /** How large {@link PREFLAT_UNDER_ROOT} is allowed to be. A ratchet: lower it, never raise it. */
-export const PREFLAT_UNDER_ROOT_CEILING = 1;
+export const PREFLAT_UNDER_ROOT_CEILING = 0;
 
 /**
  * Families not yet on their flat root, because their classes are still pre-flat.
  *
  * A ratchet on the *count*, derived — the names come from the locators and the opt-out
- * list, never from a list written here, so this cannot drift. Task 3 lowers both to 0 as it
- * migrates the two bands; they are never raised.
+ * list, never from a list written here, so this cannot drift. Both are 0: task 3 migrated
+ * every family in both bands, so every family a locator holds is also on its flat root.
+ * Never raised.
  */
-export const BAND_PENDING_CEILING: Readonly<Record<string, number>> = { workspace: 5, project: 0 };
+export const BAND_PENDING_CEILING: Readonly<Record<string, number>> = { workspace: 0, project: 0 };
 
 const namespace = new V2Namespace(WALK_CONFIG);
 const workspaceLocator = namespace.workspace("acme");

@@ -18,79 +18,89 @@ export interface ListReleaseLabelsParams {
   count?: boolean;
 }
 
-const RELEASE_LABELS_BRIDGE_PATH = "/workspaces/{slug}/releases/{release_id}/labels/";
-
 /** Release label catalog at `ws.releases.labels` — `create` defines a label, `add`/`remove` put one on / take one off a release. */
 export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, UpdateReleaseLabel> {
   protected path = "/workspaces/{slug}/releases/labels/";
+  protected extraPaths = {
+    // The per-release bridge, a different route from this catalog's own collection —
+    // `urlFor` picks it for `add`/`remove` and the sweeps read the same template.
+    add: "/workspaces/{slug}/releases/{release_id}/labels/",
+    remove: "/workspaces/{slug}/releases/{release_id}/labels/",
+  };
   protected operations: Record<string, AnyOperationId> = {
     list: "release_labels_list",
     retrieve: "release_labels_retrieve",
     create: "release_labels_create",
     update: "release_labels_partial_update",
     delete: "release_labels_destroy",
-    manage: "releases_labels",
+    // One operation, two verbs — see `CycleWorkItems.operations`.
+    add: "releases_labels",
+    remove: "releases_labels",
   };
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
+    slug: string,
     params: ListReleaseLabelsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseLabel, F | "id">>>;
-  list(params?: ListReleaseLabelsParams): Promise<Page<ReleaseLabel>>;
-  list(params?: ListReleaseLabelsParams): Promise<Page<ReleaseLabel>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListReleaseLabelsParams): Promise<Page<ReleaseLabel>>;
+  list(slug: string, params?: ListReleaseLabelsParams): Promise<Page<ReleaseLabel>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every release label definition, following pages automatically. */
-  iterate(params?: ListReleaseLabelsParams): AsyncGenerator<ReleaseLabel> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
+    slug: string,
+    params: ListReleaseLabelsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<ReleaseLabel, F | "id">>;
+  iterate(slug: string, params?: ListReleaseLabelsParams): AsyncGenerator<ReleaseLabel>;
+  iterate(slug: string, params?: ListReleaseLabelsParams): AsyncGenerator<ReleaseLabel> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
-    labelId: string,
+    slug: string,
+    label: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<ReleaseLabel, F | "id">>;
-  retrieve(labelId: string, params?: { fields?: readonly ReleaseLabelField[] }): Promise<ReleaseLabel>;
-  retrieve(labelId: string, params?: { fields?: readonly ReleaseLabelField[] }): Promise<ReleaseLabel> {
-    return this.doRetrieve({ pk: labelId }, params as Record<string, unknown>);
+  retrieve(slug: string, label: string, params?: { fields?: readonly ReleaseLabelField[] }): Promise<ReleaseLabel>;
+  retrieve(slug: string, label: string, params?: { fields?: readonly ReleaseLabelField[] }): Promise<ReleaseLabel> {
+    return this.doRetrieve({ slug, pk: label }, params as Record<string, unknown>);
   }
 
   /** The one release label with this name; throws if none or several match. */
-  findByName(name: string): Promise<ReleaseLabel> {
-    return this.doFindOne({ name }, {});
+  findByName(slug: string, name: string): Promise<ReleaseLabel> {
+    return this.doFindOne({ name }, { slug });
   }
 
-  create(data: CreateReleaseLabel, params?: { fields?: readonly ReleaseLabelField[] }): Promise<ReleaseLabel> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  create(
+    slug: string,
+    data: CreateReleaseLabel,
+    params?: { fields?: readonly ReleaseLabelField[] }
+  ): Promise<ReleaseLabel> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
   update(
-    labelId: string,
+    slug: string,
+    label: string,
     data: UpdateReleaseLabel,
     params?: { fields?: readonly ReleaseLabelField[] }
   ): Promise<ReleaseLabel> {
-    return this.doUpdate(data, { pk: labelId }, params as Record<string, unknown>);
+    return this.doUpdate(data, { slug, pk: label }, params as Record<string, unknown>);
   }
 
-  delete(labelId: string): Promise<void> {
-    return this.doDelete({ pk: labelId });
+  delete(slug: string, label: string): Promise<void> {
+    return this.doDelete({ slug, pk: label });
   }
 
   /** Put catalog labels on a release (1..100 ids); resolves to the ids actually added. */
-  add(releaseId: string, labelIds: readonly string[]): Promise<string[]> {
-    return this.doBridgeAt(
-      this.urlForTemplate(RELEASE_LABELS_BRIDGE_PATH, "add", { release_id: releaseId }),
-      "add",
-      labelIds
-    );
+  add(slug: string, release: string, labelIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("add", labelIds, { slug, release_id: release });
   }
 
   /** Take labels off a release (1..100 ids); the catalog entries stay. Resolves to the ids actually removed. */
-  remove(releaseId: string, labelIds: readonly string[]): Promise<string[]> {
-    return this.doBridgeAt(
-      this.urlForTemplate(RELEASE_LABELS_BRIDGE_PATH, "remove", { release_id: releaseId }),
-      "remove",
-      labelIds
-    );
+  remove(slug: string, release: string, labelIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("remove", labelIds, { slug, release_id: release });
   }
 }

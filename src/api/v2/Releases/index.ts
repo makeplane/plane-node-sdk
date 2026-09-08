@@ -1,13 +1,14 @@
 import { Release, UpdateRelease, CreateRelease } from "../../../models/v2/Release";
 import { Page } from "../../../models/v2/common";
 import { EXPAND, FIELDS, ORDER_BY } from "../generated/constants";
-import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { RELEASE_ID_NAMES, LoadedRelease, LoadedReleaseRow, ReleaseNavigation } from "../loaded/Release";
 import { Changelog } from "./Changelog";
 import { Comments } from "./Comments";
 import { Links } from "./Links";
 import { ReleaseLabels } from "./Labels";
-import { ReleaseTags } from "./Tags";
 import { ReleaseWorkItems } from "./WorkItems";
 
 export type ReleaseField = (typeof FIELDS)["releases_list"][number];
@@ -37,8 +38,18 @@ export interface ListReleasesParams {
   target_date?: string;
 }
 
-/** Releases at `client.v2.workspace(slug).releases` — CRUD, per-release comments/links/changelog, label/tag catalogs, `workItems` membership. */
-export class Releases extends V2Resource<Release, CreateRelease, UpdateRelease> {
+/**
+ * Releases — CRUD, per-release comments/links/changelog, the label catalog's bridge, and
+ * `workItems` membership.
+ *
+ * Reached flat — `v2.workspaces.releases.list(slug)` — or from a fetched workspace:
+ * `workspace.releases.list()`. Every row-returning method answers a {@link LoadedRelease}.
+ *
+ * The **tag** catalog is deliberately not a child here: every one of its routes takes the
+ * slug alone and a release merely points at a tag through its own `tag_id`, so it hangs off
+ * `Workspaces` as `releaseTags`. See {@link ReleaseNavigation} for the whole reasoning.
+ */
+export class Releases extends LoadsNavigableRows<Release, CreateRelease, UpdateRelease, ReleaseNavigation> {
   protected path = "/workspaces/{slug}/releases/";
   protected operations: Record<string, AnyOperationId> = {
     list: "releases_list",
@@ -47,77 +58,103 @@ export class Releases extends V2Resource<Release, CreateRelease, UpdateRelease> 
     update: "releases_partial_update",
     delete: "releases_destroy",
   };
+  protected loadedIdNames = RELEASE_ID_NAMES;
 
   /** Label catalog plus `add`/`remove` of labels on a release — see {@link ReleaseLabels}. */
   public labels: ReleaseLabels;
-  public tags: ReleaseTags;
   public comments: Comments;
   public links: Links;
   public changelog: Changelog;
   /** `add`/`remove` work items on a release — see {@link ReleaseWorkItems}. */
   public workItems: ReleaseWorkItems;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.labels = new ReleaseLabels(transport, scope);
-    this.tags = new ReleaseTags(transport, scope);
-    this.comments = new Comments(transport, scope);
-    this.links = new Links(transport, scope);
-    this.changelog = new Changelog(transport, scope);
-    this.workItems = new ReleaseWorkItems(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.labels = new ReleaseLabels(transport);
+    this.comments = new Comments(transport);
+    this.links = new Links(transport);
+    this.changelog = new Changelog(transport);
+    this.workItems = new ReleaseWorkItems(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<ReleaseNavigation> {
+    const ids = meta.ids as [string, string];
+    return {
+      labels: () => owned(this.labels, ids, meta.idNames),
+      comments: () => owned(this.comments, ids, meta.idNames),
+      links: () => owned(this.links, ids, meta.idNames),
+      changelog: () => owned(this.changelog, ids, meta.idNames),
+      workItems: () => owned(this.workItems, ids, meta.idNames),
+    };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ReleaseField, "all"> & keyof Release>(
+    slug: string,
     params: ListReleasesParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Release, F | "id">>>;
-  list(params?: ListReleasesParams): Promise<Page<Release>>;
-  list(params?: ListReleasesParams): Promise<Page<Release>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedReleaseRow<Pick<Release, F | "id">>>>;
+  list(slug: string, params?: ListReleasesParams): Promise<Page<LoadedRelease>>;
+  async list(slug: string, params?: ListReleasesParams): Promise<Page<LoadedRelease>> {
+    const page = await this.doList({ slug }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug], params?.fields);
   }
 
   /** Every release in the workspace, following pages automatically. */
-  iterate(params?: ListReleasesParams): AsyncGenerator<Release> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<ReleaseField, "all"> & keyof Release>(
+    slug: string,
+    params: ListReleasesParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedReleaseRow<Pick<Release, F | "id">>>;
+  iterate(slug: string, params?: ListReleasesParams): AsyncGenerator<LoadedRelease>;
+  iterate(slug: string, params?: ListReleasesParams): AsyncGenerator<LoadedRelease> {
+    return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 
   retrieve<F extends Exclude<ReleaseField, "all"> & keyof Release>(
-    releaseId: string,
+    slug: string,
+    release: string,
     params: { fields: readonly F[]; expand?: readonly ReleaseExpand[] }
-  ): Promise<Pick<Release, F | "id">>;
+  ): Promise<LoadedReleaseRow<Pick<Release, F | "id">>>;
   retrieve(
-    releaseId: string,
+    slug: string,
+    release: string,
     params?: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] }
-  ): Promise<Release>;
-  retrieve(
-    releaseId: string,
+  ): Promise<LoadedRelease>;
+  async retrieve(
+    slug: string,
+    release: string,
     params?: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] }
-  ): Promise<Release> {
-    return this.doRetrieve({ pk: releaseId }, params as Record<string, unknown>);
+  ): Promise<LoadedRelease> {
+    const row = await this.doRetrieve({ slug, pk: release }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** The one release with this name; throws if none or several match. */
-  findByName(name: string): Promise<Release> {
-    return this.doFindOne({ name }, {});
+  async findByName(slug: string, name: string): Promise<LoadedRelease> {
+    const row = await this.doFindOne({ name }, { slug });
+    return this.load(row, [slug]);
   }
 
-  create(
+  async create(
+    slug: string,
     data: CreateRelease,
     params?: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] }
-  ): Promise<Release> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  ): Promise<LoadedRelease> {
+    const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  update(
-    releaseId: string,
+  async update(
+    slug: string,
+    release: string,
     data: UpdateRelease,
     params?: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] }
-  ): Promise<Release> {
-    return this.doUpdate(data, { pk: releaseId }, params as Record<string, unknown>);
+  ): Promise<LoadedRelease> {
+    const row = await this.doUpdate(data, { slug, pk: release }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  delete(releaseId: string): Promise<void> {
-    return this.doDelete({ pk: releaseId });
+  delete(slug: string, release: string): Promise<void> {
+    return this.doDelete({ slug, pk: release });
   }
 }
 

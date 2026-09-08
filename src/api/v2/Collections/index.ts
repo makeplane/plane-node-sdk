@@ -3,8 +3,10 @@ import { Page } from "../../../models/v2/common";
 import { Collection, UpdateCollection, CreateCollection } from "../../../models/v2/Collection";
 import { PageAccess } from "../../../models/v2/Page";
 import { EXPAND, FIELDS, ORDER_BY } from "../generated/constants";
-import { OperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { OperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { COLLECTION_ID_NAMES, LoadedCollection, LoadedCollectionRow, CollectionNavigation } from "../loaded/Collection";
 import { CollectionMembers } from "./Members";
 import { CollectionPages } from "./Pages";
 
@@ -29,7 +31,12 @@ export interface ListCollectionsParams {
 }
 
 /** Wiki collections — CRUD plus `members`/`pages` sub-resources. Golden operation ids are `pages_*` (historical). */
-export class Collections extends V2Resource<Collection, CreateCollection, UpdateCollection> {
+export class Collections extends LoadsNavigableRows<
+  Collection,
+  CreateCollection,
+  UpdateCollection,
+  CollectionNavigation
+> {
   protected path = "/workspaces/{slug}/collections/";
   protected operations: Record<string, OperationId> = {
     list: "pages_list",
@@ -38,49 +45,69 @@ export class Collections extends V2Resource<Collection, CreateCollection, Update
     update: "pages_partial_update",
     delete: "pages_destroy",
   };
+  protected loadedIdNames = COLLECTION_ID_NAMES;
 
   public members: CollectionMembers;
   public pages: CollectionPages;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.members = new CollectionMembers(transport, scope);
-    this.pages = new CollectionPages(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.members = new CollectionMembers(transport);
+    this.pages = new CollectionPages(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<CollectionNavigation> {
+    const ids = meta.ids as [string, string];
+    return {
+      members: () => owned(this.members, ids, meta.idNames),
+      pages: () => owned(this.pages, ids, meta.idNames),
+    };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<CollectionField, "all"> & keyof Collection>(
+    slug: string,
     params: ListCollectionsParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Collection, F | "id">>>;
-  list(params?: ListCollectionsParams): Promise<Page<Collection>>;
-  list(params?: ListCollectionsParams): Promise<Page<Collection>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedCollectionRow<Pick<Collection, F | "id">>>>;
+  list(slug: string, params?: ListCollectionsParams): Promise<Page<LoadedCollection>>;
+  async list(slug: string, params?: ListCollectionsParams): Promise<Page<LoadedCollection>> {
+    const page = await this.doList({ slug }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug], params?.fields);
   }
 
   /** Every collection in the workspace, following pages automatically. */
-  iterate(params?: ListCollectionsParams): AsyncGenerator<Collection> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<CollectionField, "all"> & keyof Collection>(
+    slug: string,
+    params: ListCollectionsParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedCollectionRow<Pick<Collection, F | "id">>>;
+  iterate(slug: string, params?: ListCollectionsParams): AsyncGenerator<LoadedCollection>;
+  iterate(slug: string, params?: ListCollectionsParams): AsyncGenerator<LoadedCollection> {
+    return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 
   retrieve<F extends Exclude<CollectionField, "all"> & keyof Collection>(
-    collectionId: string,
+    slug: string,
+    collection: string,
     params: { fields: readonly F[]; expand?: readonly CollectionExpand[] }
-  ): Promise<Pick<Collection, F | "id">>;
+  ): Promise<LoadedCollectionRow<Pick<Collection, F | "id">>>;
   retrieve(
-    collectionId: string,
+    slug: string,
+    collection: string,
     params?: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] }
-  ): Promise<Collection>;
-  retrieve(
-    collectionId: string,
+  ): Promise<LoadedCollection>;
+  async retrieve(
+    slug: string,
+    collection: string,
     params?: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] }
-  ): Promise<Collection> {
-    return this.doRetrieve({ pk: collectionId }, params as Record<string, unknown>);
+  ): Promise<LoadedCollection> {
+    const row = await this.doRetrieve({ slug, pk: collection }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** The one collection with this name; throws if none or several match. Filters client-side — no `?name=` filter exists. */
-  async findByName(name: string): Promise<Collection> {
-    const matches: Collection[] = [];
-    for await (const row of this.iterate()) {
+  async findByName(slug: string, name: string): Promise<LoadedCollection> {
+    const matches: LoadedCollection[] = [];
+    for await (const row of this.iterate(slug)) {
       if (row.name === name) matches.push(row);
     }
     if (matches.length === 0) {
@@ -94,28 +121,33 @@ export class Collections extends V2Resource<Collection, CreateCollection, Update
     return matches[0];
   }
 
-  create(
+  async create(
+    slug: string,
     data: CreateCollection,
     params?: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] }
-  ): Promise<Collection> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  ): Promise<LoadedCollection> {
+    const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  update(
-    collectionId: string,
+  async update(
+    slug: string,
+    collection: string,
     data: UpdateCollection,
     params?: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] }
-  ): Promise<Collection> {
-    return this.doUpdate(data, { pk: collectionId }, params as Record<string, unknown>);
+  ): Promise<LoadedCollection> {
+    const row = await this.doUpdate(data, { slug, pk: collection }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  delete(collectionId: string): Promise<void> {
-    return this.doDelete({ pk: collectionId });
+  delete(slug: string, collection: string): Promise<void> {
+    return this.doDelete({ slug, pk: collection });
   }
 
   /** The workspace's default ("General") collection — the one with `is_default: true`. Every workspace has exactly one. */
-  default(): Promise<Collection> {
-    return this.doFindOne({ is_default: true }, {});
+  async default(slug: string): Promise<LoadedCollection> {
+    const row = await this.doFindOne({ is_default: true }, { slug });
+    return this.load(row, [slug]);
   }
 }
 

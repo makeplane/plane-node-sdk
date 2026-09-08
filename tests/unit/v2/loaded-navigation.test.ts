@@ -68,6 +68,45 @@ export const NAVIGATION_ALIASES: Readonly<Record<string, Record<string, string>>
   WorkspaceWorkItemProperties: { options: "propertyOptions" },
 };
 
+/**
+ * Children whose method set is only *partly* bindable into the parent's ids, with why.
+ *
+ * Keyed `ParentClass.attribute`. One shape needs this and only one: a **catalog sibling**
+ * — a resource whose CRUD is workspace-scoped (`/workspaces/{slug}/releases/labels/`, one
+ * id) while its membership bridge hangs off the parent row
+ * (`/workspaces/{slug}/releases/{release_id}/labels/`, two). Both belong to the same class
+ * because they are the same catalog; the parent row can bind the bridge and cannot bind the
+ * CRUD.
+ *
+ * **This is not a hole.** The unbindable methods are unreachable from the owned view *in
+ * the type system already*: `Owned<TResource, TIds>` maps a method whose parameters do not
+ * open with the bound tuple to `never`, so `release.labels.list()` does not type-check, and
+ * at runtime `assertLeadingParameters` throws naming the method rather than building a URL
+ * with the release id where the slug belongs. Reach the catalog flat —
+ * `v2.workspaces.releases.labels.list(slug)`.
+ *
+ * The guards below refuse the two ways this could rot. An entry whose child is *fully*
+ * bindable is unnecessary. An entry whose child has *no* bindable method at all is worse
+ * than unnecessary: the attachment is not a per-row child in the first place, and the fix
+ * is to move it to the scope it belongs to, not to exempt it. That is exactly what
+ * `ReleaseTags` turned out to be — a workspace-level catalog a release merely points at
+ * through its own `tag_id` — so it hangs off `Workspaces` as `releaseTags` rather than off
+ * `Releases`. The Python SDK shipped it the other way first and had a `release.tags`
+ * property whose every call raised, kept alive only to satisfy its own navigation sweep;
+ * that is the mistake this ratchet exists to make impossible.
+ */
+export const CATALOG_SIBLINGS: Readonly<Record<string, string>> = {
+  "Releases.labels":
+    "`ReleaseLabels` is one class holding two routes: the workspace-level label catalog " +
+    "(`/releases/labels/`, binds `slug` alone) and the per-release bridge " +
+    "(`/releases/{release_id}/labels/`, binds both). A fetched release binds the bridge; " +
+    "the catalog is reached flat as `v2.workspaces.releases.labels.list(slug)`",
+  "Initiatives.labels":
+    "`InitiativeLabels` has the identical two-route shape as `Releases.labels` — a " +
+    "workspace-level catalog at `/initiatives/labels/` plus a per-initiative bridge at " +
+    "`/initiatives/{initiative_id}/labels/` — and the same split applies",
+};
+
 const NAVIGABLE = navigableEntries();
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -161,6 +200,22 @@ describe("loaded navigation", () => {
     expect(NAVIGABLE.length).toBeGreaterThanOrEqual(2);
   });
 
+  it("names a real attachment in every catalog-sibling exemption", () => {
+    // The fourth guard, and the one that has to live outside the per-entry block: an entry
+    // for `Parent.attribute` where no such attachment exists describes nothing.
+    const attachments = new Set(
+      migratedEntries().flatMap((candidate) =>
+        [...childResources(instantiate(candidate)).keys()].map((attribute) => `${candidate.name}.${attribute}`)
+      )
+    );
+
+    expect(
+      Object.keys(CATALOG_SIBLINGS)
+        .filter((qualified) => !attachments.has(qualified))
+        .sort()
+    ).toEqual([]);
+  });
+
   it("makes every migrated resource that attaches a migrated child navigable in the first place", () => {
     // The assertion that turns the sweep below from a *selection* into an *enumeration*.
     //
@@ -232,6 +287,7 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     const offenders: string[] = [];
 
     for (const [attribute, child] of migratedChildren(resource)) {
+      if (`${entry.name}.${attribute}` in CATALOG_SIBLINGS) continue;
       const childEntry = entryOf(child);
       if (childEntry === undefined) continue;
       for (const method of publicMethods(childEntry)) {
@@ -248,6 +304,36 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     }
 
     expect(offenders).toEqual([]);
+  });
+
+  it("keeps every catalog-sibling exemption real, necessary, and still a per-row child", () => {
+    // Three ways a `CATALOG_SIBLINGS` entry can be wrong — see that map's own doc comment.
+    const resource = instantiate(entry);
+    const idNames = idNamesOf(resource);
+    const children = migratedChildren(resource);
+    const fullyBindable: string[] = [];
+    const notAChildAtAll: string[] = [];
+    const unreasoned: string[] = [];
+
+    for (const [attribute, child] of children) {
+      const qualified = `${entry.name}.${attribute}`;
+      if (!(qualified in CATALOG_SIBLINGS)) continue;
+      const childEntry = entryOf(child);
+      if (childEntry === undefined) continue;
+      const methods = publicMethods(childEntry);
+      const bindable = methods.filter((method) =>
+        method.signatures.every((signature) => signature.slice(0, idNames.length).join(",") === idNames.join(","))
+      );
+      if (bindable.length === methods.length) fullyBindable.push(qualified);
+      if (bindable.length === 0) notAChildAtAll.push(qualified);
+      if (CATALOG_SIBLINGS[qualified].trim().length === 0) unreasoned.push(qualified);
+    }
+
+    expect({ fullyBindable, notAChildAtAll, unreasoned }).toEqual({
+      fullyBindable: [],
+      notAChildAtAll: [],
+      unreasoned: [],
+    });
   });
 
   it("gives no navigation property a name one of the row's own fields already uses", () => {

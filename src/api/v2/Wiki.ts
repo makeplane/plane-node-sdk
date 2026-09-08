@@ -7,13 +7,13 @@ import { V2Transport } from "./kernel/transport";
  * — see `Collections`.
  *
  * A grouping node, not a resource: it consumes no path id of its own, so it is never a
- * navigation property on a fetched row. Its two children are at different stages of the
- * migration, which is why `slug` is optional. `WikiPages` is flat and takes the slug per
- * call, so `new Wiki(transport)` is what `Workspaces` attaches and
- * `v2.workspaces.wiki.pages.list(slug)` works. `Collections` is still pre-flat and reads
- * `{slug}` from the retired scope, so it only works off the locator
- * (`v2.workspace(slug).wiki.collections`) until task 3 migrates it — recorded, with that
- * reason, in `tests/unit/v2/workspace-band.test.ts`.
+ * navigation property on a fetched row — a row has nothing to bind into it. Both children
+ * are flat and take the slug per call, so `new Wiki(transport)` is what `Workspaces`
+ * attaches and both `v2.workspaces.wiki.pages.list(slug)` and
+ * `v2.workspaces.wiki.collections.list(slug)` work.
+ *
+ * `slug` stays optional only because the retiring `Workspace` locator still passes one;
+ * nothing reads it, and it goes with that class.
  */
 export class Wiki {
   public readonly pages: WikiPages;
@@ -22,6 +22,6 @@ export class Wiki {
   constructor(transport: V2Transport, slug?: string) {
     const scope: Record<string, string> = slug === undefined ? {} : { slug };
     this.pages = new WikiPages(transport, scope);
-    this.collections = new Collections(transport, scope);
+    this.collections = new Collections(transport);
   }
 }

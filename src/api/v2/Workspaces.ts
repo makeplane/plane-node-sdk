@@ -23,6 +23,11 @@ import { WorkspaceWorkItemTemplates } from "./WorkItemTemplates/WorkspaceTemplat
 import { WorkspaceMembers } from "./WorkspaceMembers";
 import { WorkspaceViews } from "./WorkspaceViews";
 import { WorkspaceAutomations } from "./Automations/WorkspaceAutomations";
+import { Customers } from "./Customers";
+import { Initiatives } from "./Initiatives";
+import { Releases } from "./Releases";
+import { ReleaseTags } from "./Releases/Tags";
+import { Webhooks } from "./Webhooks";
 import { WorkspaceWorkItemProperties } from "./WorkspaceWorkItemProperties";
 import { WorkspaceWorkItems } from "./WorkspaceWorkItems";
 import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
@@ -50,7 +55,7 @@ export interface WorkspaceFieldsParams {
  * plane-ee shipped PR #9389 for, and the row it answers is what reaches everything else.
  *
  * The band still on the pre-flat shape is not attached here yet; see
- * `loaded/Workspace.ts` and `tests/unit/v2/workspace-band.test.ts`, which requires every
+ * `loaded/Workspace.ts` and `tests/unit/v2/bands.test.ts`, which requires every
  * migrated member of the band to be attached and ratchets the rest.
  */
 export class Workspaces extends LoadsNavigableRows<Workspace, never, never, WorkspaceNavigation> {
@@ -80,6 +85,15 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
   public workItemTypes: WorkspaceWorkItemTypes;
   public workItemProperties: WorkspaceWorkItemProperties;
   public automations: WorkspaceAutomations;
+  public customers: Customers;
+  public initiatives: Initiatives;
+  public releases: Releases;
+  /**
+   * The workspace-level release-tag catalog. Not a child of `Releases`: a release points
+   * at a tag through its own `tag_id`, and every route here takes the slug alone.
+   */
+  public releaseTags: ReleaseTags;
+  public webhooks: Webhooks;
   /**
    * IdP group sync. A grouping node, not a resource: it consumes no path id of its own, so
    * it is not a navigation property on a fetched row (its children each take `slug`
@@ -115,6 +129,11 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
     this.workItemTypes = new WorkspaceWorkItemTypes(transport);
     this.workItemProperties = new WorkspaceWorkItemProperties(transport);
     this.automations = new WorkspaceAutomations(transport);
+    this.customers = new Customers(transport);
+    this.initiatives = new Initiatives(transport);
+    this.releases = new Releases(transport);
+    this.releaseTags = new ReleaseTags(transport);
+    this.webhooks = new Webhooks(transport);
     this.groupSync = new GroupSync(transport);
     this.wiki = new Wiki(transport);
   }
@@ -142,6 +161,11 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
       workItemTypes: () => owned(this.workItemTypes, ids, meta.idNames),
       workItemProperties: () => owned(this.workItemProperties, ids, meta.idNames),
       automations: () => owned(this.automations, ids, meta.idNames),
+      customers: () => owned(this.customers, ids, meta.idNames),
+      initiatives: () => owned(this.initiatives, ids, meta.idNames),
+      releases: () => owned(this.releases, ids, meta.idNames),
+      releaseTags: () => owned(this.releaseTags, ids, meta.idNames),
+      webhooks: () => owned(this.webhooks, ids, meta.idNames),
     };
   }
 

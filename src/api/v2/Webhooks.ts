@@ -1,8 +1,10 @@
 import { Page } from "../../models/v2/common";
 import { Webhook, WebhookCreateResponse, UpdateWebhook, CreateWebhook } from "../../models/v2/Webhook";
 import { FIELDS, ORDER_BY } from "./generated/constants";
-import { OperationId, V2Resource } from "./kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "./kernel/loaded";
+import { OperationId } from "./kernel/resource";
 import { V2Transport } from "./kernel/transport";
+import { WEBHOOK_ID_NAMES, LoadedWebhook, LoadedWebhookRow, WebhookNavigation } from "./loaded/Webhook";
 import { WebhookLogs } from "./WebhookLogs";
 
 export type WebhookField = (typeof FIELDS)["webhooks_list"][number];
@@ -25,7 +27,7 @@ export interface ListWebhooksParams {
 /**
  * Workspace webhooks; only `create`/`regenerate` return `secret_key`; `.logs` exposes one webhook's delivery history.
  */
-export class Webhooks extends V2Resource<Webhook, CreateWebhook, UpdateWebhook> {
+export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateWebhook, WebhookNavigation> {
   protected path = "/workspaces/{slug}/webhooks/";
   protected operations: Record<string, OperationId> = {
     list: "webhooks_list",
@@ -35,57 +37,89 @@ export class Webhooks extends V2Resource<Webhook, CreateWebhook, UpdateWebhook> 
     regenerate: "webhooks_regenerate",
     delete: "webhooks_destroy",
   };
+  protected loadedIdNames = WEBHOOK_ID_NAMES;
 
   public logs: WebhookLogs;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.logs = new WebhookLogs(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.logs = new WebhookLogs(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<WebhookNavigation> {
+    const ids = meta.ids as [string, string];
+    return {
+      logs: () => owned(this.logs, ids, meta.idNames),
+    };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
+    slug: string,
     params: ListWebhooksParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Webhook, F | "id">>>;
-  list(params?: ListWebhooksParams): Promise<Page<Webhook>>;
-  list(params?: ListWebhooksParams): Promise<Page<Webhook>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedWebhookRow<Pick<Webhook, F | "id">>>>;
+  list(slug: string, params?: ListWebhooksParams): Promise<Page<LoadedWebhook>>;
+  async list(slug: string, params?: ListWebhooksParams): Promise<Page<LoadedWebhook>> {
+    const page = await this.doList({ slug }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug], params?.fields);
   }
 
   /** Every webhook in the workspace, following pages automatically. */
-  iterate(params?: ListWebhooksParams): AsyncGenerator<Webhook> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
+    slug: string,
+    params: ListWebhooksParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedWebhookRow<Pick<Webhook, F | "id">>>;
+  iterate(slug: string, params?: ListWebhooksParams): AsyncGenerator<LoadedWebhook>;
+  iterate(slug: string, params?: ListWebhooksParams): AsyncGenerator<LoadedWebhook> {
+    return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 
   retrieve<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
-    webhookId: string,
+    slug: string,
+    webhook: string,
     params: { fields: readonly F[] }
-  ): Promise<Pick<Webhook, F | "id">>;
-  retrieve(webhookId: string, params?: { fields?: readonly WebhookField[] }): Promise<Webhook>;
-  retrieve(webhookId: string, params?: { fields?: readonly WebhookField[] }): Promise<Webhook> {
-    return this.doRetrieve({ pk: webhookId }, params as Record<string, unknown>);
+  ): Promise<LoadedWebhookRow<Pick<Webhook, F | "id">>>;
+  retrieve(slug: string, webhook: string, params?: { fields?: readonly WebhookField[] }): Promise<LoadedWebhook>;
+  async retrieve(slug: string, webhook: string, params?: { fields?: readonly WebhookField[] }): Promise<LoadedWebhook> {
+    const row = await this.doRetrieve({ slug, pk: webhook }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** The one webhook with this name; throws if none or several match. */
-  findByName(name: string): Promise<Webhook> {
-    return this.doFindOne({ name }, {});
+  async findByName(slug: string, name: string): Promise<LoadedWebhook> {
+    const row = await this.doFindOne({ name }, { slug });
+    return this.load(row, [slug]);
   }
 
   /** Returns `secret_key` once — store it now, it is never shown again outside of `regenerate`. */
-  create(data: CreateWebhook, params?: { fields?: readonly WebhookField[] }): Promise<WebhookCreateResponse> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  create(
+    slug: string,
+    data: CreateWebhook,
+    params?: { fields?: readonly WebhookField[] }
+  ): Promise<WebhookCreateResponse> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(webhookId: string, data: UpdateWebhook, params?: { fields?: readonly WebhookField[] }): Promise<Webhook> {
-    return this.doUpdate(data, { pk: webhookId }, params as Record<string, unknown>);
+  async update(
+    slug: string,
+    webhook: string,
+    data: UpdateWebhook,
+    params?: { fields?: readonly WebhookField[] }
+  ): Promise<LoadedWebhook> {
+    const row = await this.doUpdate(data, { slug, pk: webhook }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  delete(webhookId: string): Promise<void> {
-    return this.doDelete({ pk: webhookId });
+  delete(slug: string, webhook: string): Promise<void> {
+    return this.doDelete({ slug, pk: webhook });
   }
 
   /** Issue a new `secret_key`, invalidating the old one. Returns it once, like `create`. */
-  regenerate(webhookId: string, params?: { fields?: readonly WebhookField[] }): Promise<WebhookCreateResponse> {
-    return this.doAction<WebhookCreateResponse>("regenerate", { pk: webhookId }, params as Record<string, unknown>);
+  regenerate(
+    slug: string,
+    webhook: string,
+    params?: { fields?: readonly WebhookField[] }
+  ): Promise<WebhookCreateResponse> {
+    return this.doAction<WebhookCreateResponse>("regenerate", { slug, pk: webhook }, params as Record<string, unknown>);
   }
 }

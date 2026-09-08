@@ -17,7 +17,12 @@ export interface ListCustomerRequestsParams {
   count?: boolean;
 }
 
-/** Requests raised by a customer, at `...customers.requests`. Nested under a customer via `customerId`. */
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface CustomerRequestShapeParams {
+  fields?: readonly CustomerRequestField[];
+}
+
+/** Requests raised by a customer, at `...customers.requests`. Nested under a customer via `customer`. */
 export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomerRequest, UpdateCustomerRequest> {
   protected path = "/workspaces/{slug}/customers/{customer_id}/requests/";
   protected operations: Record<string, OperationId> = {
@@ -28,54 +33,75 @@ export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomer
     delete: "customer_requests_destroy",
   };
 
-  private pk(customerId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { customer_id: customerId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, customer: string, request?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, customer_id: customer };
+    if (request !== undefined) params.pk = request;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
-    customerId: string,
+    slug: string,
+    customer: string,
     params: ListCustomerRequestsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<CustomerRequest, F | "id">>>;
-  list(customerId: string, params?: ListCustomerRequestsParams): Promise<Page<CustomerRequest>>;
-  list(customerId: string, params?: ListCustomerRequestsParams): Promise<Page<CustomerRequest>> {
-    return this.doList(this.pk(customerId), params as Record<string, unknown>);
+  list(slug: string, customer: string, params?: ListCustomerRequestsParams): Promise<Page<CustomerRequest>>;
+  list(slug: string, customer: string, params?: ListCustomerRequestsParams): Promise<Page<CustomerRequest>> {
+    return this.doList(this._at(slug, customer), params as Record<string, unknown>);
   }
 
   /** Every request, following pages automatically. */
-  iterate(customerId: string, params?: ListCustomerRequestsParams): AsyncGenerator<CustomerRequest> {
-    return this.doIterate(this.pk(customerId), params as Record<string, unknown>);
+  iterate<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
+    slug: string,
+    customer: string,
+    params: ListCustomerRequestsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<CustomerRequest, F | "id">>;
+  iterate(slug: string, customer: string, params?: ListCustomerRequestsParams): AsyncGenerator<CustomerRequest>;
+  iterate(slug: string, customer: string, params?: ListCustomerRequestsParams): AsyncGenerator<CustomerRequest> {
+    return this.doIterate(this._at(slug, customer), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
-    customerId: string,
-    requestId: string,
+    slug: string,
+    customer: string,
+    request: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<CustomerRequest, F | "id">>;
   retrieve(
-    customerId: string,
-    requestId: string,
+    slug: string,
+    customer: string,
+    request: string,
     params?: { fields?: readonly CustomerRequestField[] }
   ): Promise<CustomerRequest>;
   retrieve(
-    customerId: string,
-    requestId: string,
+    slug: string,
+    customer: string,
+    request: string,
     params?: { fields?: readonly CustomerRequestField[] }
   ): Promise<CustomerRequest> {
-    return this.doRetrieve(this.pk(customerId, requestId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, customer, request), params as Record<string, unknown>);
   }
 
-  create(customerId: string, data: CreateCustomerRequest): Promise<CustomerRequest> {
-    return this.doCreate(data, this.pk(customerId));
+  create(
+    slug: string,
+    customer: string,
+    data: CreateCustomerRequest,
+    params?: CustomerRequestShapeParams
+  ): Promise<CustomerRequest> {
+    return this.doCreate(data, this._at(slug, customer), params as Record<string, unknown>);
   }
 
-  update(customerId: string, requestId: string, data: UpdateCustomerRequest): Promise<CustomerRequest> {
-    return this.doUpdate(data, this.pk(customerId, requestId));
+  update(
+    slug: string,
+    customer: string,
+    request: string,
+    data: UpdateCustomerRequest,
+    params?: CustomerRequestShapeParams
+  ): Promise<CustomerRequest> {
+    return this.doUpdate(data, this._at(slug, customer, request), params as Record<string, unknown>);
   }
 
-  delete(customerId: string, requestId: string): Promise<void> {
-    return this.doDelete(this.pk(customerId, requestId));
+  delete(slug: string, customer: string, request: string): Promise<void> {
+    return this.doDelete(this._at(slug, customer, request));
   }
 }

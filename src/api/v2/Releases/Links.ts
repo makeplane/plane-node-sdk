@@ -17,6 +17,11 @@ export interface ListReleaseLinksParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface ReleaseLinkShapeParams {
+  fields?: readonly ReleaseLinkField[];
+}
+
 /** Links attached to a release, at `client.v2.workspace(slug).releases.links`. */
 export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateReleaseLink> {
   protected path = "/workspaces/{slug}/releases/{release_id}/links/";
@@ -28,46 +33,75 @@ export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateRele
     delete: "release_links_destroy",
   };
 
-  private pk(releaseId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { release_id: releaseId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, release: string, link?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, release_id: release };
+    if (link !== undefined) params.pk = link;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
-    releaseId: string,
+    slug: string,
+    release: string,
     params: ListReleaseLinksParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseLink, F | "id">>>;
-  list(releaseId: string, params?: ListReleaseLinksParams): Promise<Page<ReleaseLink>>;
-  list(releaseId: string, params?: ListReleaseLinksParams): Promise<Page<ReleaseLink>> {
-    return this.doList(this.pk(releaseId), params as Record<string, unknown>);
+  list(slug: string, release: string, params?: ListReleaseLinksParams): Promise<Page<ReleaseLink>>;
+  list(slug: string, release: string, params?: ListReleaseLinksParams): Promise<Page<ReleaseLink>> {
+    return this.doList(this._at(slug, release), params as Record<string, unknown>);
   }
 
   /** Every link, following pages automatically. */
-  iterate(releaseId: string, params?: ListReleaseLinksParams): AsyncGenerator<ReleaseLink> {
-    return this.doIterate(this.pk(releaseId), params as Record<string, unknown>);
+  iterate<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
+    slug: string,
+    release: string,
+    params: ListReleaseLinksParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<ReleaseLink, F | "id">>;
+  iterate(slug: string, release: string, params?: ListReleaseLinksParams): AsyncGenerator<ReleaseLink>;
+  iterate(slug: string, release: string, params?: ListReleaseLinksParams): AsyncGenerator<ReleaseLink> {
+    return this.doIterate(this._at(slug, release), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
-    releaseId: string,
-    linkId: string,
+    slug: string,
+    release: string,
+    link: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<ReleaseLink, F | "id">>;
-  retrieve(releaseId: string, linkId: string, params?: { fields?: readonly ReleaseLinkField[] }): Promise<ReleaseLink>;
-  retrieve(releaseId: string, linkId: string, params?: { fields?: readonly ReleaseLinkField[] }): Promise<ReleaseLink> {
-    return this.doRetrieve(this.pk(releaseId, linkId), params as Record<string, unknown>);
+  retrieve(
+    slug: string,
+    release: string,
+    link: string,
+    params?: { fields?: readonly ReleaseLinkField[] }
+  ): Promise<ReleaseLink>;
+  retrieve(
+    slug: string,
+    release: string,
+    link: string,
+    params?: { fields?: readonly ReleaseLinkField[] }
+  ): Promise<ReleaseLink> {
+    return this.doRetrieve(this._at(slug, release, link), params as Record<string, unknown>);
   }
 
-  create(releaseId: string, data: CreateReleaseLink): Promise<ReleaseLink> {
-    return this.doCreate(data, this.pk(releaseId));
+  create(
+    slug: string,
+    release: string,
+    data: CreateReleaseLink,
+    params?: ReleaseLinkShapeParams
+  ): Promise<ReleaseLink> {
+    return this.doCreate(data, this._at(slug, release), params as Record<string, unknown>);
   }
 
-  update(releaseId: string, linkId: string, data: UpdateReleaseLink): Promise<ReleaseLink> {
-    return this.doUpdate(data, this.pk(releaseId, linkId));
+  update(
+    slug: string,
+    release: string,
+    link: string,
+    data: UpdateReleaseLink,
+    params?: ReleaseLinkShapeParams
+  ): Promise<ReleaseLink> {
+    return this.doUpdate(data, this._at(slug, release, link), params as Record<string, unknown>);
   }
 
-  delete(releaseId: string, linkId: string): Promise<void> {
-    return this.doDelete(this.pk(releaseId, linkId));
+  delete(slug: string, release: string, link: string): Promise<void> {
+    return this.doDelete(this._at(slug, release, link));
   }
 }

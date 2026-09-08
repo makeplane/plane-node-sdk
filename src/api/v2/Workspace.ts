@@ -29,12 +29,12 @@ import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
 /**
  * A workspace, bound once; no I/O on construction.
  *
- * **Being retired**, exactly as `Project` is. Most of what it holds is already on the
- * flat shape and takes its ids per call — `workspace(slug).roles.list(slug)` — so
- * binding buys nothing any more; the class survives only because the flat attachment
- * point for the workspace band (`v2.workspaces`) arrives with the tree wiring in the
- * last task of the variant-F plan, and until then this is what keeps these resources
- * reachable. `projects` has already moved to `v2.projects`.
+ * **Retired in all but name**, exactly as `Project` is. *Everything* it holds is now on
+ * the flat shape and takes its ids per call — `workspace(slug).roles.list(slug)` — so the
+ * binding buys nothing at all, and every one of these families is also on `v2.workspaces`,
+ * which `tests/unit/v2/bands.test.ts` requires. The class survives only so the last task
+ * of the variant-F plan can delete it (and the `scope` constructor parameter with it) in
+ * one change rather than mid-migration.
  */
 export class Workspace {
   public readonly members: WorkspaceMembers;
@@ -67,9 +67,9 @@ export class Workspace {
     private transport: V2Transport,
     private slug: string
   ) {
-    // The scope is dead weight for a migrated resource — its methods take every id per
-    // call and `formatPath` lets those win — but it is still what a not-yet-migrated
-    // one reads its `{ slug }` from, so it stays until the last family migrates.
+    // Dead weight, now on every line: each of these takes every id per call and
+    // `formatPath` lets those win. Nothing reads this scope any more; it goes with the
+    // class in the last task of the plan.
     const scope = { slug };
     this.members = new WorkspaceMembers(transport, scope);
     this.invitations = new Invitations(transport, scope);
@@ -88,13 +88,13 @@ export class Workspace {
     this.automations = new WorkspaceAutomations(transport);
     this.assets = new Assets(transport, scope);
     this.artifacts = new Artifacts(transport, scope);
-    this.webhooks = new Webhooks(transport, scope);
+    this.webhooks = new Webhooks(transport);
     this.stickies = new Stickies(transport, scope);
     this.teamspaces = new Teamspaces(transport, scope);
-    this.customers = new Customers(transport, scope);
+    this.customers = new Customers(transport);
     this.customerProperties = new CustomerProperties(transport, scope);
-    this.initiatives = new Initiatives(transport, scope);
-    this.releases = new Releases(transport, scope);
+    this.initiatives = new Initiatives(transport);
+    this.releases = new Releases(transport);
     this.wiki = new Wiki(transport, slug);
   }
 

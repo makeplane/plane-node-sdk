@@ -19,6 +19,11 @@ export interface ListReleaseCommentsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface ReleaseCommentShapeParams {
+  fields?: readonly ReleaseCommentField[];
+}
+
 /** Comments on a release, at `client.v2.workspace(slug).releases.comments`. No `expand`, `upsert`, or bulk actions. */
 export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, UpdateReleaseComment> {
   protected path = "/workspaces/{slug}/releases/{release_id}/comments/";
@@ -30,54 +35,75 @@ export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, U
     delete: "release_comments_destroy",
   };
 
-  private pk(releaseId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { release_id: releaseId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, release: string, comment?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, release_id: release };
+    if (comment !== undefined) params.pk = comment;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
-    releaseId: string,
+    slug: string,
+    release: string,
     params: ListReleaseCommentsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseComment, F | "id">>>;
-  list(releaseId: string, params?: ListReleaseCommentsParams): Promise<Page<ReleaseComment>>;
-  list(releaseId: string, params?: ListReleaseCommentsParams): Promise<Page<ReleaseComment>> {
-    return this.doList(this.pk(releaseId), params as Record<string, unknown>);
+  list(slug: string, release: string, params?: ListReleaseCommentsParams): Promise<Page<ReleaseComment>>;
+  list(slug: string, release: string, params?: ListReleaseCommentsParams): Promise<Page<ReleaseComment>> {
+    return this.doList(this._at(slug, release), params as Record<string, unknown>);
   }
 
   /** Every comment, following pages automatically. */
-  iterate(releaseId: string, params?: ListReleaseCommentsParams): AsyncGenerator<ReleaseComment> {
-    return this.doIterate(this.pk(releaseId), params as Record<string, unknown>);
+  iterate<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
+    slug: string,
+    release: string,
+    params: ListReleaseCommentsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<ReleaseComment, F | "id">>;
+  iterate(slug: string, release: string, params?: ListReleaseCommentsParams): AsyncGenerator<ReleaseComment>;
+  iterate(slug: string, release: string, params?: ListReleaseCommentsParams): AsyncGenerator<ReleaseComment> {
+    return this.doIterate(this._at(slug, release), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
-    releaseId: string,
-    commentId: string,
+    slug: string,
+    release: string,
+    comment: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<ReleaseComment, F | "id">>;
   retrieve(
-    releaseId: string,
-    commentId: string,
+    slug: string,
+    release: string,
+    comment: string,
     params?: { fields?: readonly ReleaseCommentField[] }
   ): Promise<ReleaseComment>;
   retrieve(
-    releaseId: string,
-    commentId: string,
+    slug: string,
+    release: string,
+    comment: string,
     params?: { fields?: readonly ReleaseCommentField[] }
   ): Promise<ReleaseComment> {
-    return this.doRetrieve(this.pk(releaseId, commentId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, release, comment), params as Record<string, unknown>);
   }
 
-  create(releaseId: string, data: CreateReleaseComment): Promise<ReleaseComment> {
-    return this.doCreate(data, this.pk(releaseId));
+  create(
+    slug: string,
+    release: string,
+    data: CreateReleaseComment,
+    params?: ReleaseCommentShapeParams
+  ): Promise<ReleaseComment> {
+    return this.doCreate(data, this._at(slug, release), params as Record<string, unknown>);
   }
 
-  update(releaseId: string, commentId: string, data: UpdateReleaseComment): Promise<ReleaseComment> {
-    return this.doUpdate(data, this.pk(releaseId, commentId));
+  update(
+    slug: string,
+    release: string,
+    comment: string,
+    data: UpdateReleaseComment,
+    params?: ReleaseCommentShapeParams
+  ): Promise<ReleaseComment> {
+    return this.doUpdate(data, this._at(slug, release, comment), params as Record<string, unknown>);
   }
 
-  delete(releaseId: string, commentId: string): Promise<void> {
-    return this.doDelete(this.pk(releaseId, commentId));
+  delete(slug: string, release: string, comment: string): Promise<void> {
+    return this.doDelete(this._at(slug, release, comment));
   }
 }

@@ -19,12 +19,12 @@ import { V2Transport } from "./kernel/transport";
 /**
  * A project locator, bound once.
  *
- * **Being retired.** This is the pre-flat shape. `states`, `labels` and `workItems` have
- * already left, because `Projects` gave them a flat home and a navigable row
- * (`v2.projects.states.list(slug, project)`, or `project.states.list()`). The rest are
- * mostly migrated too and take their ids per call; they are still listed here only
- * because nothing else reaches them until the tree wiring in the last task of the
- * variant-F plan, which then deletes this class.
+ * **Retired in all but name.** Every family listed here is flat and also hangs off
+ * `Projects`, so each is reachable as `v2.projects.cycles.list(slug, project)` and from a
+ * fetched project as `project.cycles.list()` — `tests/unit/v2/bands.test.ts` requires
+ * both. `states`, `labels` and `workItems` left this list first; the rest followed in task
+ * 3. What is left is a holder nothing reads, kept so the last task of the plan can delete
+ * it and the `scope` constructor parameter together.
  */
 export class Project {
   public readonly cycles: Cycles;

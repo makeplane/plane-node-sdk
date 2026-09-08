@@ -18,7 +18,11 @@ export interface ListReleaseTagsParams {
   count?: boolean;
 }
 
-/** Workspace-level release tag definitions at `client.v2.workspace(slug).releases.tags`; a release points at one via `tag_id`. */
+/** Workspace-level release tag definitions at `v2.workspaces.releaseTags`.
+
+ * Deliberately **not** a child of `Releases`: every route here takes the workspace slug
+ * alone, and a release merely points at a tag through its own `tag_id`, so there is nothing
+ * per-release for a fetched row to bind. See `ReleaseNavigation` for the whole reasoning; a release points at one via `tag_id`. */
 export class ReleaseTags extends V2Resource<ReleaseTag, CreateReleaseTag, UpdateReleaseTag> {
   protected path = "/workspaces/{slug}/releases/tags/";
   protected operations: Record<string, OperationId> = {
@@ -31,41 +35,53 @@ export class ReleaseTags extends V2Resource<ReleaseTag, CreateReleaseTag, Update
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
+    slug: string,
     params: ListReleaseTagsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseTag, F | "id">>>;
-  list(params?: ListReleaseTagsParams): Promise<Page<ReleaseTag>>;
-  list(params?: ListReleaseTagsParams): Promise<Page<ReleaseTag>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListReleaseTagsParams): Promise<Page<ReleaseTag>>;
+  list(slug: string, params?: ListReleaseTagsParams): Promise<Page<ReleaseTag>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every release tag definition, following pages automatically. */
-  iterate(params?: ListReleaseTagsParams): AsyncGenerator<ReleaseTag> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
+    slug: string,
+    params: ListReleaseTagsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<ReleaseTag, F | "id">>;
+  iterate(slug: string, params?: ListReleaseTagsParams): AsyncGenerator<ReleaseTag>;
+  iterate(slug: string, params?: ListReleaseTagsParams): AsyncGenerator<ReleaseTag> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
-    tagId: string,
+    slug: string,
+    tag: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<ReleaseTag, F | "id">>;
-  retrieve(tagId: string, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag>;
-  retrieve(tagId: string, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag> {
-    return this.doRetrieve({ pk: tagId }, params as Record<string, unknown>);
+  retrieve(slug: string, tag: string, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag>;
+  retrieve(slug: string, tag: string, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag> {
+    return this.doRetrieve({ slug, pk: tag }, params as Record<string, unknown>);
   }
 
   /** The one release tag with this version; throws if none or several match. */
-  findByVersion(version: string): Promise<ReleaseTag> {
-    return this.doFindOne({ version }, {});
+  findByVersion(slug: string, version: string): Promise<ReleaseTag> {
+    return this.doFindOne({ version }, { slug });
   }
 
-  create(data: CreateReleaseTag, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  create(slug: string, data: CreateReleaseTag, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(tagId: string, data: UpdateReleaseTag, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag> {
-    return this.doUpdate(data, { pk: tagId }, params as Record<string, unknown>);
+  update(
+    slug: string,
+    tag: string,
+    data: UpdateReleaseTag,
+    params?: { fields?: readonly ReleaseTagField[] }
+  ): Promise<ReleaseTag> {
+    return this.doUpdate(data, { slug, pk: tag }, params as Record<string, unknown>);
   }
 
-  delete(tagId: string): Promise<void> {
-    return this.doDelete({ pk: tagId });
+  delete(slug: string, tag: string): Promise<void> {
+    return this.doDelete({ slug, pk: tag });
   }
 }

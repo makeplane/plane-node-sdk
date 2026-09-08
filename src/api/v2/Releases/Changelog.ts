@@ -1,7 +1,7 @@
 import { ReleaseChangelog, UpdateReleaseChangelog } from "../../../models/v2/ReleaseChangelog";
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 
-/** A release's changelog, at `client.v2.workspace(slug).releases.changelog`. A singleton: `GET` auto-creates it empty. */
+/** A release's changelog, reached flat as `v2.workspaces.releases.changelog.retrieve(slug, release)`, or from a fetched release as `release.changelog.retrieve()`. A singleton: `GET` auto-creates it empty. */
 export class Changelog extends V2Resource<ReleaseChangelog, never, UpdateReleaseChangelog> {
   protected path = "/workspaces/{slug}/releases/{release_id}/changelog/";
   protected operations: Record<string, AnyOperationId> = {
@@ -10,14 +10,12 @@ export class Changelog extends V2Resource<ReleaseChangelog, never, UpdateRelease
   };
 
   /** Get (or auto-create empty) the changelog for this release. */
-  async retrieve(releaseId: string): Promise<ReleaseChangelog> {
-    return this.transport.request<ReleaseChangelog>("GET", this.collectionUrl({ release_id: releaseId }));
+  retrieve(slug: string, release: string): Promise<ReleaseChangelog> {
+    return this.doRetrieveSingleton<ReleaseChangelog>({ slug, release_id: release });
   }
 
   /** Update the changelog body for this release. */
-  async update(releaseId: string, data: UpdateReleaseChangelog): Promise<ReleaseChangelog> {
-    return this.transport.request<ReleaseChangelog>("PATCH", this.collectionUrl({ release_id: releaseId }), {
-      data,
-    });
+  update(slug: string, release: string, data: UpdateReleaseChangelog): Promise<ReleaseChangelog> {
+    return this.doUpdateSingleton<ReleaseChangelog>(data, { slug, release_id: release });
   }
 }

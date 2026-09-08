@@ -88,6 +88,61 @@ export { WORK_ITEM_ID_NAMES } from "./loaded/WorkItem";
 export type { LoadedWorkItem, LoadedWorkItemRow, WorkItemIds, WorkItemNavigation } from "./loaded/WorkItem";
 export { WORKSPACE_ID_NAMES } from "./loaded/Workspace";
 export type { LoadedWorkspace, LoadedWorkspaceRow, WorkspaceIds, WorkspaceNavigation } from "./loaded/Workspace";
+// The rows task 3's families answer with — one module per family, both scopes together
+// where a family has two (work item types/properties, automations).
+export { AUTOMATION_ID_NAMES, WORKSPACE_AUTOMATION_ID_NAMES } from "./loaded/Automation";
+export type {
+  AutomationIds,
+  AutomationNavigation,
+  LoadedAutomation,
+  LoadedAutomationRow,
+  LoadedWorkspaceAutomation,
+  LoadedWorkspaceAutomationRow,
+  WorkspaceAutomationIds,
+  WorkspaceAutomationNavigation,
+} from "./loaded/Automation";
+export { COLLECTION_ID_NAMES } from "./loaded/Collection";
+export type { CollectionIds, CollectionNavigation, LoadedCollection, LoadedCollectionRow } from "./loaded/Collection";
+export { CUSTOMER_ID_NAMES } from "./loaded/Customer";
+export type { CustomerIds, CustomerNavigation, LoadedCustomer, LoadedCustomerRow } from "./loaded/Customer";
+export { CYCLE_ID_NAMES } from "./loaded/Cycle";
+export type { CycleIds, CycleNavigation, LoadedCycle, LoadedCycleRow } from "./loaded/Cycle";
+export { ESTIMATE_ID_NAMES } from "./loaded/Estimate";
+export type { EstimateIds, EstimateNavigation, LoadedEstimate, LoadedEstimateRow } from "./loaded/Estimate";
+export { INITIATIVE_ID_NAMES } from "./loaded/Initiative";
+export type { InitiativeIds, InitiativeNavigation, LoadedInitiative, LoadedInitiativeRow } from "./loaded/Initiative";
+export { MILESTONE_ID_NAMES } from "./loaded/Milestone";
+export type { LoadedMilestone, LoadedMilestoneRow, MilestoneIds, MilestoneNavigation } from "./loaded/Milestone";
+export { MODULE_ID_NAMES } from "./loaded/Module";
+export type { LoadedModule, LoadedModuleRow, ModuleIds, ModuleNavigation } from "./loaded/Module";
+export { RELEASE_ID_NAMES } from "./loaded/Release";
+export type { LoadedRelease, LoadedReleaseRow, ReleaseIds, ReleaseNavigation } from "./loaded/Release";
+export { WEBHOOK_ID_NAMES } from "./loaded/Webhook";
+export type { LoadedWebhook, LoadedWebhookRow, WebhookIds, WebhookNavigation } from "./loaded/Webhook";
+export { WORKFLOW_ID_NAMES } from "./loaded/Workflow";
+export type { LoadedWorkflow, LoadedWorkflowRow, WorkflowIds, WorkflowNavigation } from "./loaded/Workflow";
+export { WORK_ITEM_PROPERTY_ID_NAMES, WORKSPACE_WORK_ITEM_PROPERTY_ID_NAMES } from "./loaded/WorkItemProperty";
+export type {
+  LoadedWorkItemProperty,
+  LoadedWorkItemPropertyRow,
+  LoadedWorkspaceWorkItemProperty,
+  LoadedWorkspaceWorkItemPropertyRow,
+  WorkItemPropertyIds,
+  WorkItemPropertyNavigation,
+  WorkspaceWorkItemPropertyIds,
+  WorkspaceWorkItemPropertyNavigation,
+} from "./loaded/WorkItemProperty";
+export { WORK_ITEM_TYPE_ID_NAMES, WORKSPACE_WORK_ITEM_TYPE_ID_NAMES } from "./loaded/WorkItemType";
+export type {
+  LoadedWorkItemType,
+  LoadedWorkItemTypeRow,
+  LoadedWorkspaceWorkItemType,
+  LoadedWorkspaceWorkItemTypeRow,
+  WorkItemTypeIds,
+  WorkItemTypeNavigation,
+  WorkspaceWorkItemTypeIds,
+  WorkspaceWorkItemTypeNavigation,
+} from "./loaded/WorkItemType";
 // Narrow a `Page<T>` to its offset or cursor envelope — see README "API v2".
 export { isCursorPage, isOffsetPage } from "./kernel/pagination";
 // Field-name/order_by unions for dynamically-built `fields`/`order_by` values, and the

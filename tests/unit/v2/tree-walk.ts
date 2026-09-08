@@ -61,36 +61,20 @@ const KERNEL_BASE_NAMES: ReadonlySet<string> = new Set(["V2Resource", "LoadsNavi
 /**
  * Resource classes still on the retired pre-flat shape, excluded from every rule sweep.
  *
- * **This list may only shrink.** `path-id-naming.test.ts` enforces that from both ends: it
- * fails if a name in here turns out to be flat-shaped after all (so a migrated class
- * cannot stay opted out), and its size is ratcheted so the list cannot grow back. Tasks 2
- * and 3 of the variant-F plan empty it; a name comes out as its class is migrated, and if
- * a sweep then fails, the resource is fixed — the name never goes back in.
+ * **Empty, and ratcheted at zero.** Every class under `src/api/v2/` is now swept by every
+ * rule. `path-id-naming.test.ts` enforces that from both ends: it fails if a name in here
+ * turns out to be flat-shaped after all, and `UNMIGRATED_CEILING` refuses any growth — so
+ * the only way to add a name back is to raise a ratchet, in a diff, on purpose.
+ *
+ * Kept rather than deleted because it is the shape of the answer if the SDK ever gains a
+ * resource that genuinely cannot take its ids per call. A name here means "outside every
+ * sweep", which is a large claim; when this emptied it surfaced no violation the list had
+ * been hiding, which is the outcome worth having recorded.
  */
-export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
-  "Collections/Members#CollectionMembers",
-  "Collections/Pages#CollectionPages",
-  "Collections/index#Collections",
-  "Customers/PropertyValues#CustomerPropertyValues",
-  "Customers/Requests#CustomerRequests",
-  "Customers/WorkItems#CustomerWorkItems",
-  "Customers/index#Customers",
-  "Initiatives/Labels#InitiativeLabels",
-  "Initiatives/Projects#InitiativeProjects",
-  "Initiatives/WorkItems#InitiativeWorkItems",
-  "Initiatives/index#Initiatives",
-  "Releases/Changelog#Changelog",
-  "Releases/Comments#Comments",
-  "Releases/Labels#ReleaseLabels",
-  "Releases/Links#Links",
-  "Releases/Tags#ReleaseTags",
-  "Releases/WorkItems#ReleaseWorkItems",
-  "Releases/index#Releases",
-  "Webhooks#Webhooks",
-]);
+export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([]);
 
 /** How large `UNMIGRATED_RESOURCES` is allowed to be. A ratchet: lower it, never raise it. */
-export const UNMIGRATED_CEILING = 19;
+export const UNMIGRATED_CEILING = 0;
 
 // -- Source scan ---------------------------------------------------------------------
 
@@ -523,8 +507,10 @@ export const ACTION_ALIASES: Readonly<Record<string, string>> = { iterate: "list
  * The `operations` key a method's request is actually made under — the correspondence the
  * method→operations sweep in `operations-coverage.test.ts` enforces.
  *
- * Wider than {@link ACTION_ALIASES} by one rule: every `findBy*` lookup is a filtered
- * `list` under the hood (`doFindOne`), so `list`'s key is the one it spends. The two maps
+ * Wider than {@link ACTION_ALIASES} by two rules: every `findBy*` lookup is a filtered
+ * `list` under the hood (`doFindOne`), so `list`'s key is the one it spends — and so is
+ * `Collections.default()`, which is the same call with `is_default: true` and a name chosen
+ * for the caller rather than for this resolver. The two maps
  * are kept apart deliberately. The option sweeps ask "does *this method's own* operation
  * offer `fields`/`expand`", and a `findBy*` is a convenience wrapper that takes the value
  * to match and nothing else — folding it into `ACTION_ALIASES` would make those sweeps
@@ -534,6 +520,9 @@ export const ACTION_ALIASES: Readonly<Record<string, string>> = { iterate: "list
  */
 export function operationActionFor(methodName: string): string {
   if (/^findBy[A-Z]/.test(methodName)) return "list";
+  // `Collections.default()` is `doFindOne({ is_default: true })` — a `findBy*` by any other
+  // name, spelled for the caller rather than for this resolver, so it resolves the same way.
+  if (methodName === "default") return "list";
   return ACTION_ALIASES[methodName] ?? methodName;
 }
 

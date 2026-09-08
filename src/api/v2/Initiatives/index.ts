@@ -1,8 +1,10 @@
 import { Page } from "../../../models/v2/common";
 import { Initiative, UpdateInitiative, InitiativeState, CreateInitiative } from "../../../models/v2/Initiative";
 import { EXPAND, FIELDS, ORDER_BY } from "../generated/constants";
-import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { INITIATIVE_ID_NAMES, LoadedInitiative, LoadedInitiativeRow, InitiativeNavigation } from "../loaded/Initiative";
 import { InitiativeLabels } from "./Labels";
 import { InitiativeProjects } from "./Projects";
 import { InitiativeWorkItems } from "./WorkItems";
@@ -28,8 +30,19 @@ export interface ListInitiativesParams {
   count?: boolean;
 }
 
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface InitiativeShapeParams {
+  fields?: readonly InitiativeField[];
+  expand?: readonly InitiativeExpand[];
+}
+
 /** Workspace initiatives — workspace-scoped (no `project_id` segment); `labels`/`projects`/`workItems` carry the memberships. */
-export class Initiatives extends V2Resource<Initiative, CreateInitiative, UpdateInitiative> {
+export class Initiatives extends LoadsNavigableRows<
+  Initiative,
+  CreateInitiative,
+  UpdateInitiative,
+  InitiativeNavigation
+> {
   protected path = "/workspaces/{slug}/initiatives/";
   protected operations: Record<string, AnyOperationId> = {
     list: "initiatives_list",
@@ -38,6 +51,7 @@ export class Initiatives extends V2Resource<Initiative, CreateInitiative, Update
     update: "initiatives_partial_update",
     delete: "initiatives_destroy",
   };
+  protected loadedIdNames = INITIATIVE_ID_NAMES;
 
   /** Label catalog plus `add`/`remove` of labels on an initiative — see {@link InitiativeLabels}. */
   public labels: InitiativeLabels;
@@ -46,61 +60,77 @@ export class Initiatives extends V2Resource<Initiative, CreateInitiative, Update
   /** `add`/`remove` work items on an initiative — see {@link InitiativeWorkItems}. */
   public workItems: InitiativeWorkItems;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.labels = new InitiativeLabels(transport, scope);
-    this.projects = new InitiativeProjects(transport, scope);
-    this.workItems = new InitiativeWorkItems(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.labels = new InitiativeLabels(transport);
+    this.projects = new InitiativeProjects(transport);
+    this.workItems = new InitiativeWorkItems(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<InitiativeNavigation> {
+    const ids = meta.ids as [string, string];
+    return {
+      labels: () => owned(this.labels, ids, meta.idNames),
+      projects: () => owned(this.projects, ids, meta.idNames),
+      workItems: () => owned(this.workItems, ids, meta.idNames),
+    };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
+    slug: string,
     params: ListInitiativesParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Initiative, F | "id">>>;
-  list(params?: ListInitiativesParams): Promise<Page<Initiative>>;
-  list(params?: ListInitiativesParams): Promise<Page<Initiative>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedInitiativeRow<Pick<Initiative, F | "id">>>>;
+  list(slug: string, params?: ListInitiativesParams): Promise<Page<LoadedInitiative>>;
+  async list(slug: string, params?: ListInitiativesParams): Promise<Page<LoadedInitiative>> {
+    const page = await this.doList({ slug }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug], params?.fields);
   }
 
   /** Every initiative, following pages automatically. */
-  iterate(params?: ListInitiativesParams): AsyncGenerator<Initiative> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
+    slug: string,
+    params: ListInitiativesParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedInitiativeRow<Pick<Initiative, F | "id">>>;
+  iterate(slug: string, params?: ListInitiativesParams): AsyncGenerator<LoadedInitiative>;
+  iterate(slug: string, params?: ListInitiativesParams): AsyncGenerator<LoadedInitiative> {
+    return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 
   retrieve<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
-    initiativeId: string,
+    slug: string,
+    initiative: string,
     params: { fields: readonly F[]; expand?: readonly InitiativeExpand[] }
-  ): Promise<Pick<Initiative, F | "id">>;
-  retrieve(
-    initiativeId: string,
-    params?: { fields?: readonly InitiativeField[]; expand?: readonly InitiativeExpand[] }
-  ): Promise<Initiative>;
-  retrieve(
-    initiativeId: string,
-    params?: { fields?: readonly InitiativeField[]; expand?: readonly InitiativeExpand[] }
-  ): Promise<Initiative> {
-    return this.doRetrieve({ pk: initiativeId }, params as Record<string, unknown>);
+  ): Promise<LoadedInitiativeRow<Pick<Initiative, F | "id">>>;
+  retrieve(slug: string, initiative: string, params?: InitiativeShapeParams): Promise<LoadedInitiative>;
+  async retrieve(slug: string, initiative: string, params?: InitiativeShapeParams): Promise<LoadedInitiative> {
+    const row = await this.doRetrieve({ slug, pk: initiative }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** The one initiative with this name; throws if none or several match. */
-  findByName(name: string): Promise<Initiative> {
-    return this.doFindOne({ name }, {});
+  async findByName(slug: string, name: string): Promise<LoadedInitiative> {
+    const row = await this.doFindOne({ name }, { slug });
+    return this.load(row, [slug]);
   }
 
-  create(data: CreateInitiative, params?: { expand?: readonly InitiativeExpand[] }): Promise<Initiative> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  async create(slug: string, data: CreateInitiative, params?: InitiativeShapeParams): Promise<LoadedInitiative> {
+    const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  update(
-    initiativeId: string,
+  async update(
+    slug: string,
+    initiative: string,
     data: UpdateInitiative,
-    params?: { expand?: readonly InitiativeExpand[] }
-  ): Promise<Initiative> {
-    return this.doUpdate(data, { pk: initiativeId }, params as Record<string, unknown>);
+    params?: InitiativeShapeParams
+  ): Promise<LoadedInitiative> {
+    const row = await this.doUpdate(data, { slug, pk: initiative }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  delete(initiativeId: string): Promise<void> {
-    return this.doDelete({ pk: initiativeId });
+  delete(slug: string, initiative: string): Promise<void> {
+    return this.doDelete({ slug, pk: initiative });
   }
 }
 

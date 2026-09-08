@@ -18,75 +18,98 @@ export interface ListInitiativeLabelsParams {
   count?: boolean;
 }
 
-const INITIATIVE_LABELS_BRIDGE_PATH = "/workspaces/{slug}/initiatives/{initiative_id}/labels/";
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface InitiativeLabelShapeParams {
+  fields?: readonly InitiativeLabelField[];
+}
 
 /** Initiative label catalog at `ws.initiatives.labels` — `create` defines a label, `add`/`remove` put one on / take one off an initiative. */
 export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiativeLabel, UpdateInitiativeLabel> {
   protected path = "/workspaces/{slug}/initiatives/labels/";
+  protected extraPaths = {
+    // The per-initiative bridge, a different route from this catalog's own collection —
+    // `urlFor` picks it for `add`/`remove` and the sweeps read the same template.
+    add: "/workspaces/{slug}/initiatives/{initiative_id}/labels/",
+    remove: "/workspaces/{slug}/initiatives/{initiative_id}/labels/",
+  };
   protected operations: Record<string, AnyOperationId> = {
     list: "initiative_labels_list",
     retrieve: "initiative_labels_retrieve",
     create: "initiative_labels_create",
     update: "initiative_labels_partial_update",
     delete: "initiative_labels_destroy",
-    manage: "initiatives_labels",
+    // One operation, two verbs — see `CycleWorkItems.operations`.
+    add: "initiatives_labels",
+    remove: "initiatives_labels",
   };
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
+    slug: string,
     params: ListInitiativeLabelsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<InitiativeLabel, F | "id">>>;
-  list(params?: ListInitiativeLabelsParams): Promise<Page<InitiativeLabel>>;
-  list(params?: ListInitiativeLabelsParams): Promise<Page<InitiativeLabel>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListInitiativeLabelsParams): Promise<Page<InitiativeLabel>>;
+  list(slug: string, params?: ListInitiativeLabelsParams): Promise<Page<InitiativeLabel>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every initiative label, following pages automatically. */
-  iterate(params?: ListInitiativeLabelsParams): AsyncGenerator<InitiativeLabel> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
+    slug: string,
+    params: ListInitiativeLabelsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<InitiativeLabel, F | "id">>;
+  iterate(slug: string, params?: ListInitiativeLabelsParams): AsyncGenerator<InitiativeLabel>;
+  iterate(slug: string, params?: ListInitiativeLabelsParams): AsyncGenerator<InitiativeLabel> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
-    labelId: string,
+    slug: string,
+    label: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<InitiativeLabel, F | "id">>;
-  retrieve(labelId: string, params?: { fields?: readonly InitiativeLabelField[] }): Promise<InitiativeLabel>;
-  retrieve(labelId: string, params?: { fields?: readonly InitiativeLabelField[] }): Promise<InitiativeLabel> {
-    return this.doRetrieve({ pk: labelId }, params as Record<string, unknown>);
+  retrieve(
+    slug: string,
+    label: string,
+    params?: { fields?: readonly InitiativeLabelField[] }
+  ): Promise<InitiativeLabel>;
+  retrieve(
+    slug: string,
+    label: string,
+    params?: { fields?: readonly InitiativeLabelField[] }
+  ): Promise<InitiativeLabel> {
+    return this.doRetrieve({ slug, pk: label }, params as Record<string, unknown>);
   }
 
   /** The one initiative label with this name; throws if none or several match. */
-  findByName(name: string): Promise<InitiativeLabel> {
-    return this.doFindOne({ name }, {});
+  findByName(slug: string, name: string): Promise<InitiativeLabel> {
+    return this.doFindOne({ name }, { slug });
   }
 
-  create(data: CreateInitiativeLabel): Promise<InitiativeLabel> {
-    return this.doCreate(data, {});
+  create(slug: string, data: CreateInitiativeLabel, params?: InitiativeLabelShapeParams): Promise<InitiativeLabel> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(labelId: string, data: UpdateInitiativeLabel): Promise<InitiativeLabel> {
-    return this.doUpdate(data, { pk: labelId });
+  update(
+    slug: string,
+    label: string,
+    data: UpdateInitiativeLabel,
+    params?: InitiativeLabelShapeParams
+  ): Promise<InitiativeLabel> {
+    return this.doUpdate(data, { slug, pk: label }, params as Record<string, unknown>);
   }
 
-  delete(labelId: string): Promise<void> {
-    return this.doDelete({ pk: labelId });
+  delete(slug: string, label: string): Promise<void> {
+    return this.doDelete({ slug, pk: label });
   }
 
   /** Put catalog labels on an initiative (1..100 ids); resolves to the ids actually added. */
-  add(initiativeId: string, labelIds: readonly string[]): Promise<string[]> {
-    return this.doBridgeAt(
-      this.urlForTemplate(INITIATIVE_LABELS_BRIDGE_PATH, "add", { initiative_id: initiativeId }),
-      "add",
-      labelIds
-    );
+  add(slug: string, initiative: string, labelIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("add", labelIds, { slug, initiative_id: initiative });
   }
 
   /** Take labels off an initiative (1..100 ids); the catalog entries stay. Resolves to the ids actually removed. */
-  remove(initiativeId: string, labelIds: readonly string[]): Promise<string[]> {
-    return this.doBridgeAt(
-      this.urlForTemplate(INITIATIVE_LABELS_BRIDGE_PATH, "remove", { initiative_id: initiativeId }),
-      "remove",
-      labelIds
-    );
+  remove(slug: string, initiative: string, labelIds: readonly string[]): Promise<string[]> {
+    return this.doBridge("remove", labelIds, { slug, initiative_id: initiative });
   }
 }
