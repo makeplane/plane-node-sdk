@@ -26,7 +26,7 @@
  *   the type system nor the URL builder can tell a transposed child from a correct one.
  */
 
-import { LoadedMeta } from "../../../src/api/v2/kernel/loaded";
+import { LoadedMeta, ownedBinding } from "../../../src/api/v2/kernel/loaded";
 import {
   AnyResource,
   ResourceEntry,
@@ -118,8 +118,13 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
       expect(view).toBeDefined();
       // An owned view is a plain object of bound functions; the bare resource would be an
       // instance of the child class and would still demand every id.
-      expect(view).not.toBe(child);
       expect(view instanceof (child.constructor as new () => unknown)).toBe(false);
+
+      // Identity, not method names: sibling resources routinely share a method set, so
+      // `owned(this.states, …)` under `labels` is invisible to any name comparison.
+      const binding = ownedBinding(view);
+      expect(binding?.resource).toBe(child);
+      expect(binding?.idNames).toEqual([...idNamesOf(resource)]);
 
       const childEntry = entryOf(child);
       const childMethods = childEntry === undefined ? [] : publicMethods(childEntry).map((method) => method.name);

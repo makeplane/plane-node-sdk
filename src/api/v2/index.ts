@@ -71,8 +71,8 @@ export type { ListModulesParams, ModuleExpand } from "./Modules";
 export { V2Transport } from "./kernel/transport";
 export { bulkFailures, isBulkFailure, raiseForFailures } from "./kernel/bulk";
 // Navigable rows: the types a fetched row resolves to, and the machinery behind them.
-export { LoadsNavigableRows, loadPage, loadRow, owned } from "./kernel/loaded";
-export type { Loaded, LoadedMeta, NavigationFactories, Owned } from "./kernel/loaded";
+export { LoadsNavigableRows, OWNED, loadPage, loadRow, owned, ownedBinding } from "./kernel/loaded";
+export type { Loaded, LoadedMeta, NavigationFactories, Owned, OwnedBinding } from "./kernel/loaded";
 export { PROJECT_ID_NAMES } from "./loaded/Project";
 export type { LoadedProject, LoadedProjectRow, ProjectIds, ProjectNavigation } from "./loaded/Project";
 export { WORK_ITEM_ID_NAMES } from "./loaded/WorkItem";

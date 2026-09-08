@@ -187,6 +187,29 @@ function assertLeadingParameters(resource: object, name: string, fn: AnyFunction
 }
 
 /**
+ * What an owned view wraps, under a symbol so it can never collide with a method name and
+ * never widens the view's public type.
+ *
+ * Introspection, and the only way to tell two views apart: sibling resources routinely
+ * have identical method names, so a navigation property that wraps the wrong child builds
+ * a perfectly well-formed call to the wrong URL and looks right from the outside.
+ * `loaded-navigation.test.ts` compares this against the child the resource actually
+ * attached — without it, that sweep could not bite, which is what proving it showed.
+ */
+export const OWNED = Symbol("plane.v2.owned");
+
+export interface OwnedBinding {
+  readonly resource: object;
+  readonly ids: readonly string[];
+  readonly idNames: readonly string[];
+}
+
+/** The binding behind an owned view, or `undefined` for anything else. */
+export function ownedBinding(view: object): OwnedBinding | undefined {
+  return (view as Record<symbol, OwnedBinding | undefined>)[OWNED];
+}
+
+/**
  * A view on `resource` with `ids` already supplied: every call prepends them
  * **positionally**, because every flat resource takes its path ids as leading
  * positional parameters.
@@ -204,6 +227,8 @@ export function owned<TResource extends object, TIds extends readonly string[]>(
       return (method as (...callArgs: unknown[]) => unknown).apply(resource, [...ids, ...args]);
     };
   }
+  const binding: OwnedBinding = { resource, ids: [...ids], idNames: [...idNames] };
+  Object.defineProperty(view, OWNED, { value: binding, enumerable: false });
   return view as Owned<TResource, TIds>;
 }
 
