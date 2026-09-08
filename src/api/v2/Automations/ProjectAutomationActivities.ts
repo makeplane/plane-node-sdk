@@ -19,7 +19,11 @@ export interface ListProjectAutomationActivitiesParams {
   count?: boolean;
 }
 
-/** Audit log for a project-scoped automation, at `...automations.activities`. Read-only. */
+/**
+ * Audit log for a project-scoped automation.
+ *
+ * Reached flat — `v2.projects.automations.activities.list(slug, project, automation)` — or from a fetched automation: `automation.activities.list()`. Read-only.
+ */
 export class ProjectAutomationActivities extends V2Resource<AutomationActivity, never, never> {
   protected path = "/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/activities/";
   protected operations: Record<string, OperationId> = {

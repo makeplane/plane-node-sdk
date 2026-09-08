@@ -114,12 +114,17 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     return this.doDelete({ slug, pk: webhook });
   }
 
-  /** Issue a new `secret_key`, invalidating the old one. Returns it once, like `create`. */
-  regenerate(
-    slug: string,
-    webhook: string,
-    params?: { fields?: readonly WebhookField[] }
-  ): Promise<WebhookCreateResponse> {
-    return this.doAction<WebhookCreateResponse>("regenerate", { slug, pk: webhook }, params as Record<string, unknown>);
+  /**
+   * Issue a new `secret_key`, invalidating the old one. Returns it once, like `create`.
+   *
+   * **No `fields` option, deliberately.** `webhooks_regenerate` is the one operation whose
+   * projectable field list includes `secret_key`, so a `fields` that omitted it would ask
+   * the server to withhold the only copy of a secret that is never shown again —
+   * irrecoverable, and silent. `create` keeps its `fields` because the golden does not let
+   * `secret_key` be projected there. Recorded in `ONE_TIME_RESPONSES` in
+   * `tests/unit/v2/fields-coverage.test.ts`.
+   */
+  regenerate(slug: string, webhook: string): Promise<WebhookCreateResponse> {
+    return this.doAction<WebhookCreateResponse>("regenerate", { slug, pk: webhook });
   }
 }

@@ -22,7 +22,12 @@ export interface ReleaseLinkShapeParams {
   fields?: readonly ReleaseLinkField[];
 }
 
-/** Links attached to a release, at `client.v2.workspace(slug).releases.links`. */
+/**
+ * Links attached to a release.
+ *
+ * Reached flat — `v2.workspaces.releases.links.list(slug, release)` — or from a fetched
+ * release: `release.links.list()`.
+ */
 export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateReleaseLink> {
   protected path = "/workspaces/{slug}/releases/{release_id}/links/";
   protected operations: Record<string, OperationId> = {

@@ -34,7 +34,13 @@ export interface CustomerShapeParams {
   fields?: readonly CustomerField[];
 }
 
-/** Workspace CRM customers, at `...customers` — CRUD, `upsert`, and sub-resources `requests`/`propertyValues`/`workItems`. */
+/**
+ * Workspace CRM customers — CRUD, `upsert`, and the `requests`/`propertyValues`/`workItems`
+ * children.
+ *
+ * Reached flat — `v2.workspaces.customers.list(slug)` — or from a fetched workspace:
+ * `workspace.customers.list()`. Every row-returning method answers a {@link LoadedCustomer}.
+ */
 export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, UpdateCustomer, CustomerNavigation> {
   protected path = "/workspaces/{slug}/customers/";
   protected operations: Record<string, AnyOperationId> = {

@@ -19,7 +19,11 @@ export interface ListWorkspaceAutomationActivitiesParams {
   count?: boolean;
 }
 
-/** Audit log for a workspace-scoped (global) automation, at `...automations.activities`. Read-only. */
+/**
+ * Audit log for a workspace-scoped (global) automation.
+ *
+ * Reached flat — `v2.workspaces.automations.activities.list(slug, automation)` — or from a fetched automation: `automation.activities.list()`. Read-only.
+ */
 export class WorkspaceAutomationActivities extends V2Resource<AutomationActivity, never, never> {
   protected path = "/workspaces/{slug}/automations/{automation_id}/activities/";
   protected operations: Record<string, OperationId> = {

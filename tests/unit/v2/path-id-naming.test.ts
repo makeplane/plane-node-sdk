@@ -144,7 +144,7 @@ describe("the enumeration every sweep runs over", () => {
   it("is not empty or tiny", () => {
     // A floor, not a pin: if the enumeration breaks, every sweep built on it passes
     // vacuously, which is the failure mode this derivation exists to prevent.
-    expect(resourceEntries().length).toBeGreaterThanOrEqual(80);
+    expect(resourceEntries().length).toBeGreaterThanOrEqual(90);
   });
 
   it("covers every class that is not explicitly opted out", () => {

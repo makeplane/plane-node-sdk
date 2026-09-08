@@ -23,7 +23,12 @@ export interface InitiativeLabelShapeParams {
   fields?: readonly InitiativeLabelField[];
 }
 
-/** Initiative label catalog at `ws.initiatives.labels` — `create` defines a label, `add`/`remove` put one on / take one off an initiative. */
+/**
+ * The initiative label catalog **and** the per-initiative bridge, in one class — the
+ * identical two-route shape as `ReleaseLabels`, and read that class's doc comment for the
+ * split. The catalog is flat at `v2.workspaces.initiatives.labels.list(slug)`; a fetched
+ * initiative reaches `add`/`remove`.
+ */
 export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiativeLabel, UpdateInitiativeLabel> {
   protected path = "/workspaces/{slug}/initiatives/labels/";
   protected extraPaths = {

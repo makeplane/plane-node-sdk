@@ -22,7 +22,12 @@ export interface CustomerRequestShapeParams {
   fields?: readonly CustomerRequestField[];
 }
 
-/** Requests raised by a customer, at `...customers.requests`. Nested under a customer via `customer`. */
+/**
+ * Requests raised by a customer.
+ *
+ * Reached flat — `v2.workspaces.customers.requests.list(slug, customer)` — or from a
+ * fetched customer: `customer.requests.list()`.
+ */
 export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomerRequest, UpdateCustomerRequest> {
   protected path = "/workspaces/{slug}/customers/{customer_id}/requests/";
   protected operations: Record<string, OperationId> = {

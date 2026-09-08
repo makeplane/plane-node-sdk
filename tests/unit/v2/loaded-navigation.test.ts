@@ -196,8 +196,9 @@ function migratedChildren(resource: AnyResource): Map<string, AnyResource> {
 describe("loaded navigation", () => {
   it("finds navigable resources at all", () => {
     // A floor, not a pin: if `LoadsNavigableRows` discovery breaks, every assertion below
-    // passes by checking nothing. Raise this as tasks 2 and 3 make families navigable.
-    expect(NAVIGABLE.length).toBeGreaterThanOrEqual(2);
+    // passes by checking nothing. Nineteen families own children and are navigable; the
+    // number moves only when a family gains or loses one.
+    expect(NAVIGABLE.length).toBeGreaterThanOrEqual(19);
   });
 
   it("names a real attachment in every catalog-sibling exemption", () => {

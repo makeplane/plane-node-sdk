@@ -29,8 +29,9 @@ const EXPANDABLE = methodsOffering(EXPAND as unknown as Record<string, readonly 
 describe("expand coverage", () => {
   it("finds methods to check at all", () => {
     // A floor, not a pin: if the enumeration or the `operations` lookup breaks, the sweep
-    // below passes by checking nothing. Raise this as tasks 2 and 3 migrate families.
-    expect(EXPANDABLE.length).toBeGreaterThanOrEqual(10);
+    // below passes by checking nothing. Every class is migrated now, so it moves only when
+    // the golden itself grows.
+    expect(EXPANDABLE.length).toBeGreaterThanOrEqual(95);
   });
 
   it("exposes `expand` on every method whose operation offers it", () => {

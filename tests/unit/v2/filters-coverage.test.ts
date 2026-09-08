@@ -155,8 +155,9 @@ function docComments(file: string): string[] {
 describe("filters coverage", () => {
   it("finds methods to check at all", () => {
     // A floor, not a pin: if the enumeration or the `operations` lookup breaks, the sweeps
-    // below pass by checking nothing. Raise this as task 3 migrates families.
-    expect(FILTERABLE.length).toBeGreaterThanOrEqual(20);
+    // below pass by checking nothing. Every class is migrated now, so it moves only when
+    // the golden itself grows.
+    expect(FILTERABLE.length).toBeGreaterThanOrEqual(120);
   });
 
   it("exposes every filter the golden declares for the method's own operation", () => {

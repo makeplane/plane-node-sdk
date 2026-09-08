@@ -18,7 +18,17 @@ export interface ListReleaseLabelsParams {
   count?: boolean;
 }
 
-/** Release label catalog at `ws.releases.labels` — `create` defines a label, `add`/`remove` put one on / take one off a release. */
+/**
+ * The release label catalog **and** the per-release bridge, in one class because they are
+ * one catalog: `create` defines a label at the workspace level, `add`/`remove` put one on
+ * or take one off a release.
+ *
+ * The two halves bind different numbers of ids, which is why a fetched release reaches only
+ * `add`/`remove` through `release.labels` while the catalog stays flat at
+ * `v2.workspaces.releases.labels.list(slug)`. Recorded in `CATALOG_SIBLINGS` in
+ * `tests/unit/v2/loaded-navigation.test.ts`, which refuses the entry if the split ever
+ * stops being real.
+ */
 export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, UpdateReleaseLabel> {
   protected path = "/workspaces/{slug}/releases/labels/";
   protected extraPaths = {

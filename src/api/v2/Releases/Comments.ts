@@ -24,7 +24,12 @@ export interface ReleaseCommentShapeParams {
   fields?: readonly ReleaseCommentField[];
 }
 
-/** Comments on a release, at `client.v2.workspace(slug).releases.comments`. No `expand`, `upsert`, or bulk actions. */
+/**
+ * Comments on a release. No `expand`, `upsert`, or bulk actions.
+ *
+ * Reached flat — `v2.workspaces.releases.comments.list(slug, release)` — or from a fetched
+ * release: `release.comments.list()`.
+ */
 export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, UpdateReleaseComment> {
   protected path = "/workspaces/{slug}/releases/{release_id}/comments/";
   protected operations: Record<string, OperationId> = {

@@ -32,7 +32,11 @@ export interface WorkspaceAutomationNodeShapeParams {
   fields?: readonly WorkspaceAutomationNodeField[];
 }
 
-/** Nodes in a workspace-scoped (global) automation's trigger/action/condition graph, at `...automations.nodes`. */
+/**
+ * Nodes in a workspace-scoped (global) automation's trigger/action/condition graph.
+ *
+ * Reached flat — `v2.workspaces.automations.nodes.list(slug, automation)` — or from a fetched automation: `automation.nodes.list()`.
+ */
 export class WorkspaceAutomationNodes extends V2Resource<AutomationNode, CreateAutomationNode, UpdateAutomationNode> {
   protected path = "/workspaces/{slug}/automations/{automation_id}/nodes/";
   protected extraPaths = {

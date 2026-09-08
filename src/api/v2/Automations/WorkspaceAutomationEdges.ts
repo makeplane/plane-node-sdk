@@ -23,7 +23,11 @@ export interface WorkspaceAutomationEdgeShapeParams {
   fields?: readonly WorkspaceAutomationEdgeField[];
 }
 
-/** Edges between nodes of a workspace-scoped (global) automation's graph, at `...automations.edges`. */
+/**
+ * Edges between nodes of a workspace-scoped (global) automation's graph.
+ *
+ * Reached flat — `v2.workspaces.automations.edges.list(slug, automation)` — or from a fetched automation: `automation.edges.list()`.
+ */
 export class WorkspaceAutomationEdges extends V2Resource<AutomationEdge, CreateAutomationEdge, UpdateAutomationEdge> {
   protected path = "/workspaces/{slug}/automations/{automation_id}/edges/";
   protected operations: Record<string, OperationId> = {
