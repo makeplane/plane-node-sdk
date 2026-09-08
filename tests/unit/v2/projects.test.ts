@@ -4,8 +4,7 @@ import { Projects } from "../../../src/api/v2/Projects";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
-const makeProjects = () =>
-  new Projects(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: "acme" });
+const makeProjects = () => new Projects(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -15,7 +14,7 @@ describe("Projects (v2)", () => {
       .get("/api/v2/workspaces/acme/projects/")
       .reply(200, { data: [{ id: "1", identifier: "ENG", name: "Engineering" }], pagination: { style: "offset" } });
 
-    const page = await makeProjects().list();
+    const page = await makeProjects().list("acme");
 
     expect(page.data[0].identifier).toBe("ENG");
   });
@@ -28,7 +27,7 @@ describe("Projects (v2)", () => {
       .get("/api/v2/workspaces/acme/projects/11111111-1111-1111-1111-111111111111/")
       .reply(200, { id: "11111111-1111-1111-1111-111111111111", identifier: "ENG" });
 
-    const project = await makeProjects().retrieve("11111111-1111-1111-1111-111111111111");
+    const project = await makeProjects().retrieve("acme", "11111111-1111-1111-1111-111111111111");
 
     expect(project.identifier).toBe("ENG");
   });
@@ -36,7 +35,7 @@ describe("Projects (v2)", () => {
   it("retrieves by bare project identifier — no UUID required", async () => {
     nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "1", identifier: "ENG" });
 
-    const project = await makeProjects().retrieve("ENG");
+    const project = await makeProjects().retrieve("acme", "ENG");
 
     expect(project.id).toBe("1");
   });
@@ -51,17 +50,17 @@ describe("Projects (v2)", () => {
     nock(BASE).delete("/api/v2/workspaces/acme/projects/ENG/").reply(204);
 
     const projects = makeProjects();
-    const created = await projects.create({ identifier: "ENG", name: "Engineering" });
-    const updated = await projects.update(created.identifier!, { name: "Eng Platform" });
+    const created = await projects.create("acme", { identifier: "ENG", name: "Engineering" });
+    const updated = await projects.update("acme", created.identifier!, { name: "Eng Platform" });
     expect(updated.name).toBe("Eng Platform");
 
-    await projects.delete("ENG");
+    await projects.delete("acme", "ENG");
   });
 
   it("archives, returning void on a 204", async () => {
     const scope = nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/archive/").reply(204);
 
-    const result = await makeProjects().archive("ENG");
+    const result = await makeProjects().archive("acme", "ENG");
 
     expect(scope.isDone()).toBe(true);
     expect(result).toBeUndefined();
@@ -70,7 +69,7 @@ describe("Projects (v2)", () => {
   it("unarchives, returning void on a 204", async () => {
     const scope = nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/unarchive/").reply(204);
 
-    const result = await makeProjects().unarchive("ENG");
+    const result = await makeProjects().unarchive("acme", "ENG");
 
     expect(scope.isDone()).toBe(true);
     expect(result).toBeUndefined();
@@ -82,7 +81,7 @@ describe("Projects (v2)", () => {
       .query({ counts: "members,states" })
       .reply(200, { id: "1", identifier: "ENG", name: "Engineering", counts: { members: 3, states: 5 } });
 
-    const summary = await makeProjects().summary("ENG", ["members", "states"]);
+    const summary = await makeProjects().summary("acme", "ENG", ["members", "states"]);
 
     expect(scope.isDone()).toBe(true);
     expect(summary.counts.members).toBe(3);
@@ -93,7 +92,7 @@ describe("Projects (v2)", () => {
       .get("/api/v2/workspaces/acme/projects/ENG/summary/")
       .reply(200, { id: "1", identifier: "ENG", name: "Engineering", counts: { members: 3 } });
 
-    await makeProjects().summary("ENG");
+    await makeProjects().summary("acme", "ENG");
 
     expect(scope.isDone()).toBe(true);
   });
@@ -103,7 +102,7 @@ describe("Projects (v2)", () => {
       .post("/api/v2/workspaces/acme/projects/upsert/", { identifier: "ENG", name: "Engineering" })
       .reply(200, { id: "1", identifier: "ENG" });
 
-    expect((await makeProjects().upsert({ identifier: "ENG", name: "Engineering" })).id).toBe("1");
+    expect((await makeProjects().upsert("acme", { identifier: "ENG", name: "Engineering" })).id).toBe("1");
   });
 
   it("posts an items envelope to bulk-create/ (no bulk-delete exists for projects)", async () => {
@@ -115,7 +114,7 @@ describe("Projects (v2)", () => {
       })
       .reply(200, { results: [{ index: 0, result: "created", id: "1" }], succeeded: 1, failed: 0 });
 
-    const result = await makeProjects().bulkCreate([{ identifier: "ENG", name: "Engineering" }]);
+    const result = await makeProjects().bulkCreate("acme", [{ identifier: "ENG", name: "Engineering" }]);
 
     expect(capturedBody).toEqual({
       items: [{ identifier: "ENG", name: "Engineering" }],
@@ -136,7 +135,7 @@ describe("Projects (v2)", () => {
       })
       .reply(200, { results: [{ index: 0, result: "updated", id: "1" }], succeeded: 1, failed: 0 });
 
-    await makeProjects().bulkUpdate([{ id: "1", name: "Renamed" }]);
+    await makeProjects().bulkUpdate("acme", [{ id: "1", name: "Renamed" }]);
 
     expect(capturedBody).toEqual({ items: [{ id: "1", name: "Renamed" }], all_or_none: false });
   });
@@ -144,7 +143,7 @@ describe("Projects (v2)", () => {
   // No nock interceptor is registered for this URL, so the message-specific regex
   // pins the real validator, not just "any throw".
   it("rejects an unknown fields value before making the request", async () => {
-    await expect(makeProjects().list({ fields: ["nope" as never] })).rejects.toThrow(
+    await expect(makeProjects().list("acme", { fields: ["nope" as never] })).rejects.toThrow(
       /Unknown field\(s\) for projects_list/
     );
   });
@@ -172,7 +171,7 @@ describe("Projects.roleDistribution (v2)", () => {
         total_distinct_members: 3,
       });
 
-    const distribution = await makeProjects().roleDistribution();
+    const distribution = await makeProjects().roleDistribution("acme");
 
     expect(distribution.total_memberships).toBe(3);
     expect(distribution.roles[0].slug).toBe("admin");
@@ -183,10 +182,7 @@ describe("Projects.roleDistribution (v2)", () => {
       .get("/api/v2/workspaces/other-workspace/project-role-distribution/")
       .reply(200, { roles: [], total_memberships: 0, total_distinct_members: 0 });
 
-    const otherWorkspace = new Projects(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-      slug: "other-workspace",
-    });
-    await otherWorkspace.roleDistribution();
+    await makeProjects().roleDistribution("other-workspace");
 
     expect(scope.isDone()).toBe(true);
   });

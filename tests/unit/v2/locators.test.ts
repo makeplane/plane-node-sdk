@@ -9,7 +9,51 @@ const makeClient = () => new PlaneClient({ baseUrl: BASE, apiKey: "secret" });
 beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
 
-describe("chain locators (Workspace/Project)", () => {
+// Two shapes coexist while the variant-F migration runs: the flat tree, which each
+// migrated family joins, and the `workspace(slug).project(key)` locator chain, which
+// each migrated family leaves. This file pins both halves of that trade so a family
+// cannot be half-moved — added to neither, or left on both.
+
+describe("flat tree (v2)", () => {
+  it("builds without making a single request", () => {
+    const spy = jest.spyOn(V2Transport.prototype, "request");
+    try {
+      const v2 = makeClient().v2;
+
+      expect(v2.projects).toBeDefined();
+      expect(v2.projects.states).toBeDefined();
+      expect(v2.projects.labels).toBeDefined();
+      expect(v2.projects.workItems).toBeDefined();
+      expect(v2.projects.workItems.comments).toBeDefined();
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("reaches a project-band resource by attribute access, taking its ids per call", async () => {
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/states/")
+      .matchHeader("X-Api-Key", "secret")
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    await makeClient().v2.projects.states.list("acme", "ENG");
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reaches a work item's own children three levels down", async () => {
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/work-items/wi-1/comments/")
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    await makeClient().v2.projects.workItems.comments.list("acme", "ENG", "wi-1");
+
+    expect(scope.isDone()).toBe(true);
+  });
+});
+
+describe("chain locators (Workspace/Project) — being retired", () => {
   it("build the whole chain without making a single request", () => {
     const spy = jest.spyOn(V2Transport.prototype, "request");
     try {
@@ -26,11 +70,10 @@ describe("chain locators (Workspace/Project)", () => {
     }
   });
 
-  it("Workspace exposes every workspace-level attribute the plan calls for", () => {
+  it("Workspace still exposes every workspace-level family that has not migrated", () => {
     const ws = makeClient().v2.workspace("acme");
 
     const expected = [
-      "projects",
       "members",
       "invitations",
       "roles",
@@ -65,16 +108,13 @@ describe("chain locators (Workspace/Project)", () => {
     expect(typeof ws.project).toBe("function");
   });
 
-  it("Project exposes every project-level attribute the plan calls for", () => {
+  it("Project still exposes every project-level family that has not migrated", () => {
     const proj = makeClient().v2.workspace("acme").project("ENG");
 
     const expected = [
-      "workItems",
       "cycles",
       "modules",
       "milestones",
-      "states",
-      "labels",
       "members",
       "pages",
       "views",
@@ -96,6 +136,18 @@ describe("chain locators (Workspace/Project)", () => {
     }
   });
 
+  it("drops each family the moment it goes flat, so neither shape is a stale copy", () => {
+    const v2 = makeClient().v2;
+    const ws = v2.workspace("acme") as unknown as Record<string, unknown>;
+    const proj = v2.workspace("acme").project("ENG") as unknown as Record<string, unknown>;
+
+    // Migrated in task 1: reachable flat and from a fetched row, never off a locator.
+    expect(ws.projects).toBeUndefined();
+    expect(proj.states).toBeUndefined();
+    expect(proj.labels).toBeUndefined();
+    expect(proj.workItems).toBeUndefined();
+  });
+
   it("Workspace.wiki exposes pages and collections", () => {
     const wiki = makeClient().v2.workspace("acme").wiki;
 
@@ -103,30 +155,13 @@ describe("chain locators (Workspace/Project)", () => {
     expect(wiki.collections).toBeDefined();
   });
 
-  it("V2Namespace keeps only transport/users/userAssets/workspace at the top level", () => {
-    const v2 = makeClient().v2 as unknown as Record<string, unknown>;
-
-    expect(v2.transport).toBeDefined();
-    expect(v2.users).toBeDefined();
-    expect(v2.userAssets).toBeDefined();
-    expect(typeof v2.workspace).toBe("function");
-
-    // Every other resource that used to be flat on `v2` is gone — reachable only
-    // through the chain now.
-    expect(v2.states).toBeUndefined();
-    expect(v2.labels).toBeUndefined();
-    expect(v2.workItems).toBeUndefined();
-    expect(v2.cycles).toBeUndefined();
-    expect(v2.projects).toBeUndefined();
-  });
-
   it("share one transport with the rest of v2 (same api key/base url)", async () => {
     const scope = nock(BASE)
-      .get("/api/v2/workspaces/acme/projects/ENG/states/")
+      .get("/api/v2/workspaces/acme/projects/ENG/cycles/")
       .matchHeader("X-Api-Key", "secret")
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await makeClient().v2.workspace("acme").project("ENG").states.list();
+    await makeClient().v2.workspace("acme").project("ENG").cycles.list();
 
     expect(scope.isDone()).toBe(true);
   });

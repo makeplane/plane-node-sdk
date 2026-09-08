@@ -2,7 +2,13 @@ import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common"
 import { Project, UpdateProject, ProjectPriority, ProjectSummary, CreateProject } from "../../models/v2/Project";
 import { ProjectRoleDistribution as ProjectRoleDistributionShape } from "../../models/v2/ProjectRoleDistribution";
 import { EXPAND, FIELDS, ORDER_BY } from "./generated/constants";
-import { AnyOperationId, V2Resource } from "./kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "./kernel/loaded";
+import { AnyOperationId } from "./kernel/resource";
+import { V2Transport } from "./kernel/transport";
+import { Labels } from "./Labels";
+import { LoadedProject, LoadedProjectRow, PROJECT_ID_NAMES, ProjectNavigation } from "./loaded/Project";
+import { States } from "./States";
+import { WorkItems } from "./WorkItems";
 
 export type ProjectField = (typeof FIELDS)["projects_list"][number];
 export type ProjectOrderBy = (typeof ORDER_BY)["projects_list"][number];
@@ -31,6 +37,12 @@ export interface ListProjectsParams {
   count?: boolean;
 }
 
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface ProjectShapeParams {
+  fields?: readonly ProjectField[];
+  expand?: readonly ProjectExpand[];
+}
+
 /** Comma-separated count keys for {@link Projects.summary}; omitting `counts` returns every key. */
 export type ProjectSummaryCount =
   | "members"
@@ -44,11 +56,22 @@ export type ProjectSummaryCount =
   | "work_item_properties"
   | "pages";
 
-const PROJECT_ROLE_DISTRIBUTION_PATH = "/workspaces/{slug}/project-role-distribution/";
-
-/** Workspace projects; every detail route accepts either the project's UUID or its bare `identifier` (e.g. `"ENG"`). No bulk-delete. */
-export class Projects extends V2Resource<Project, CreateProject, UpdateProject> {
+/**
+ * Workspace projects; every detail route accepts either the project's UUID or its bare
+ * `identifier` (e.g. `"ENG"`). No bulk-delete — deleting a project cascades everything
+ * in it.
+ *
+ * Every row-returning method answers a {@link LoadedProject}: the row's own data plus
+ * the path ids its children need, so `project.states.list()` works without repeating
+ * `slug` or the project key. The project band hangs off this class — `states`, `labels`
+ * and `workItems` today, the rest as their own migrations land.
+ */
+export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateProject, ProjectNavigation> {
   protected path = "/workspaces/{slug}/projects/";
+  protected extraPaths = {
+    // A workspace-wide report, not a row of this collection — its own sibling route.
+    roleDistribution: "/workspaces/{slug}/project-role-distribution/",
+  };
   protected operations: Record<string, AnyOperationId> = {
     list: "projects_list",
     retrieve: "projects_retrieve",
@@ -63,100 +86,140 @@ export class Projects extends V2Resource<Project, CreateProject, UpdateProject> 
     summary: "projects_summary",
     roleDistribution: "project_role_distribution",
   };
+  protected loadedIdNames = PROJECT_ID_NAMES;
+
+  public states: States;
+  public labels: Labels;
+  public workItems: WorkItems;
+
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.states = new States(transport);
+    this.labels = new Labels(transport);
+    this.workItems = new WorkItems(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<ProjectNavigation> {
+    const ids = meta.ids as [string, string];
+    return {
+      states: () => owned(this.states, ids, meta.idNames),
+      labels: () => owned(this.labels, ids, meta.idNames),
+      workItems: () => owned(this.workItems, ids, meta.idNames),
+    };
+  }
+
+  /**
+   * Children address a project by its readable identifier where the server returned one
+   * — `.../projects/ENG/states/`, not the UUID.
+   */
+  protected rowId(row: Project): string {
+    return row.identifier ?? row.id;
+  }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ProjectField, "all"> & keyof Project>(
+    slug: string,
     params: ListProjectsParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Project, F | "id">>>;
-  list(params?: ListProjectsParams): Promise<Page<Project>>;
-  list(params?: ListProjectsParams): Promise<Page<Project>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedProjectRow<Pick<Project, F | "id">>>>;
+  list(slug: string, params?: ListProjectsParams): Promise<Page<LoadedProject>>;
+  async list(slug: string, params?: ListProjectsParams): Promise<Page<LoadedProject>> {
+    const page = await this.doList({ slug }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug], params?.fields);
   }
 
-  /** Every project in the workspace, following pages automatically. */
-  iterate(params?: ListProjectsParams): AsyncGenerator<Project> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every project in the workspace, following pages automatically — navigable rows included. */
+  iterate(slug: string, params?: ListProjectsParams): AsyncGenerator<LoadedProject> {
+    return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 
   /** `project` accepts a project UUID or its bare identifier (e.g. `ENG`) — see this class's own doc comment. */
   retrieve<F extends Exclude<ProjectField, "all"> & keyof Project>(
+    slug: string,
     project: string,
     params: { fields: readonly F[]; expand?: readonly ProjectExpand[] }
-  ): Promise<Pick<Project, F | "id">>;
-  retrieve(
-    project: string,
-    params?: { fields?: readonly ProjectField[]; expand?: readonly ProjectExpand[] }
-  ): Promise<Project>;
-  retrieve(
-    project: string,
-    params?: { fields?: readonly ProjectField[]; expand?: readonly ProjectExpand[] }
-  ): Promise<Project> {
-    return this.doRetrieve({ pk: project }, params as Record<string, unknown>);
+  ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  retrieve(slug: string, project: string, params?: ProjectShapeParams): Promise<LoadedProject>;
+  async retrieve(slug: string, project: string, params?: ProjectShapeParams): Promise<LoadedProject> {
+    const row = await this.doRetrieve({ slug, pk: project }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  /** The one project with this name; throws if none or several match. */
-  findByName(name: string): Promise<Project> {
-    return this.doFindOne({ name }, {});
+  /**
+   * The one project with this name; throws if none or several match. Answers the same
+   * navigable row `retrieve` does — a lookup handing back a plain row would silently
+   * drop `.states`/`.labels`/`.workItems`.
+   */
+  async findByName(slug: string, name: string): Promise<LoadedProject> {
+    const row = await this.doFindOne({ name }, { slug });
+    return this.load(row, [slug]);
   }
 
-  create(
-    data: CreateProject,
-    params?: { fields?: readonly ProjectField[]; expand?: readonly ProjectExpand[] }
-  ): Promise<Project> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  async create(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject> {
+    const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** `project` accepts a project UUID or its bare identifier — see this class's own doc comment. */
-  update(
+  async update(
+    slug: string,
     project: string,
     data: UpdateProject,
-    params?: { fields?: readonly ProjectField[]; expand?: readonly ProjectExpand[] }
-  ): Promise<Project> {
-    return this.doUpdate(data, { pk: project }, params as Record<string, unknown>);
+    params?: ProjectShapeParams
+  ): Promise<LoadedProject> {
+    const row = await this.doUpdate(data, { slug, pk: project }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** `project` accepts a project UUID or its bare identifier — see this class's own doc comment. */
-  delete(project: string): Promise<void> {
-    return this.doDelete({ pk: project });
+  delete(slug: string, project: string): Promise<void> {
+    return this.doDelete({ slug, pk: project });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(
-    data: CreateProject,
-    params?: { fields?: readonly ProjectField[]; expand?: readonly ProjectExpand[] }
-  ): Promise<Project> {
-    return this.doUpsert(data, {}, params as Record<string, unknown>);
+  async upsert(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject> {
+    const row = await this.doUpsert(data, { slug }, params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  bulkCreate(items: CreateProject[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, {}, allOrNone);
+  bulkCreate(slug: string, items: CreateProject[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug }, allOrNone);
   }
 
-  bulkUpdate(items: BulkUpdateItem<UpdateProject>[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, {}, allOrNone);
+  /** Each item is the patch plus the target `id`. */
+  bulkUpdate(slug: string, items: BulkUpdateItem<UpdateProject>[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkUpdate(items, { slug }, allOrNone);
   }
 
   // Deliberately no bulkDelete — see this class's own doc comment.
 
   /** Archive a project. `204` — no response body, so this returns `void`; re-`retrieve` for the row. */
-  archive(project: string): Promise<void> {
-    return this.doAction<void>("archive", { pk: project });
+  archive(slug: string, project: string): Promise<void> {
+    return this.doVoidAction("archive", { slug, pk: project });
   }
 
   /** Unarchive a project. `project` accepts a UUID or bare identifier. `204` — no response body. */
-  unarchive(project: string): Promise<void> {
-    return this.doAction<void>("unarchive", { pk: project });
+  unarchive(slug: string, project: string): Promise<void> {
+    return this.doVoidAction("unarchive", { slug, pk: project });
   }
 
   /** Project identity plus resource counts; `counts` narrows which keys are returned (see {@link ProjectSummaryCount}). */
-  async summary(project: string, counts?: readonly ProjectSummaryCount[]): Promise<ProjectSummary> {
-    return this.transport.request<ProjectSummary>("GET", `${this.detailUrl({ pk: project })}summary/`, {
-      params: this.query(counts && counts.length > 0 ? { counts: counts.join(",") } : undefined, "summary"),
+  summary(slug: string, project: string, counts?: readonly ProjectSummaryCount[]): Promise<ProjectSummary> {
+    return this.doCustomAction<ProjectSummary>("summary", {
+      method: "GET",
+      pathParams: { slug },
+      pk: project,
+      params: counts && counts.length > 0 ? { counts: counts.join(",") } : undefined,
     });
   }
 
-  /** Workspace-wide project role stats. A single aggregate object, not a per-`pk` row. */
-  async roleDistribution(): Promise<ProjectRoleDistributionShape> {
-    return this.transport.request<ProjectRoleDistributionShape>("GET", this.urlFor(PROJECT_ROLE_DISTRIBUTION_PATH, {}));
+  /**
+   * Workspace-wide project role stats. A single read-only report, not a row of this
+   * collection — one object per workspace, no `id`, and its own template in `extraPaths`.
+   */
+  roleDistribution(slug: string): Promise<ProjectRoleDistributionShape> {
+    return this.doCustomAction<ProjectRoleDistributionShape>("roleDistribution", {
+      method: "GET",
+      pathParams: { slug },
+    });
   }
 }

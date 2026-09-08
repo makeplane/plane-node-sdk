@@ -3,30 +3,33 @@ import { Cycles } from "./Cycles";
 import { ProjectFeatures } from "./Features";
 import { Estimates } from "./Estimates";
 import { Intakes } from "./Intakes";
-import { Labels } from "./Labels";
 import { ProjectMembers } from "./Members";
 import { Milestones } from "./Milestones";
 import { Modules } from "./Modules";
 import { ProjectPages } from "./Pages";
 import { ProjectPermissions } from "./Permissions";
 import { ProjectWorklogs } from "./ProjectWorklogs";
-import { States } from "./States";
 import { ProjectViews } from "./Views";
 import { ProjectWorkItemTemplates } from "./WorkItemTemplates/ProjectTemplates";
 import { WorkItemProperties } from "./WorkItemProperties";
 import { WorkItemTypes } from "./WorkItemTypes";
-import { WorkItems } from "./WorkItems";
 import { Workflows } from "./Workflows";
 import { V2Transport } from "./kernel/transport";
 
-/** A project locator, bound once; each property is a resource already scoped to `{ slug, project_id }`. */
+/**
+ * A project locator, bound once; each property is a resource already scoped to
+ * `{ slug, project_id }`.
+ *
+ * **Being retired.** This is the pre-flat shape. A resource leaves this class as its
+ * flat migration lands and becomes reachable two ways instead — flat
+ * (`v2.projects.states.list(slug, project)`) and from a fetched project row
+ * (`project.states.list()`). `states`, `labels` and `workItems` have already moved; the
+ * last task of the variant-F plan deletes what is left of this class.
+ */
 export class Project {
-  public readonly workItems: WorkItems;
   public readonly cycles: Cycles;
   public readonly modules: Modules;
   public readonly milestones: Milestones;
-  public readonly states: States;
-  public readonly labels: Labels;
   public readonly members: ProjectMembers;
   public readonly pages: ProjectPages;
   public readonly views: ProjectViews;
@@ -43,12 +46,9 @@ export class Project {
 
   constructor(transport: V2Transport, slug: string, project: string) {
     const scope = { slug, project_id: project };
-    this.workItems = new WorkItems(transport, scope);
     this.cycles = new Cycles(transport, scope);
     this.modules = new Modules(transport, scope);
     this.milestones = new Milestones(transport, scope);
-    this.states = new States(transport, scope);
-    this.labels = new Labels(transport, scope);
     this.members = new ProjectMembers(transport, scope);
     this.pages = new ProjectPages(transport, scope);
     this.views = new ProjectViews(transport, scope);

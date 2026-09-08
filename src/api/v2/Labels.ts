@@ -19,7 +19,18 @@ export interface ListLabelsParams {
   count?: boolean;
 }
 
-/** Project labels, reached bound to a project (`project` accepts a project id or its key, e.g. `ENG`). */
+/** `?fields=` on a single-row read or write. */
+export interface LabelFieldsParams {
+  fields?: readonly LabelField[];
+}
+
+/**
+ * Project labels.
+ *
+ * Reached flat — `v2.projects.labels.list(slug, project)` — or from a fetched project,
+ * which supplies both leading ids: `project.labels.list()`. `project` accepts a project
+ * UUID or its bare identifier (e.g. `ENG`).
+ */
 export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
   protected path = "/workspaces/{slug}/projects/{project_id}/labels/";
   protected operations: Record<string, AnyOperationId> = {
@@ -36,58 +47,68 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<LabelField, "all"> & keyof Label>(
+    slug: string,
+    project: string,
     params: ListLabelsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Label, F | "id">>>;
-  list(params?: ListLabelsParams): Promise<Page<Label>>;
-  list(params?: ListLabelsParams): Promise<Page<Label>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListLabelsParams): Promise<Page<Label>>;
+  list(slug: string, project: string, params?: ListLabelsParams): Promise<Page<Label>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  /** Every label, following pages automatically. */
-  iterate(params?: ListLabelsParams): AsyncGenerator<Label> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every label in the project, following pages automatically. */
+  iterate(slug: string, project: string, params?: ListLabelsParams): AsyncGenerator<Label> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<LabelField, "all"> & keyof Label>(
-    labelId: string,
+    slug: string,
+    project: string,
+    label: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<Label, F | "id">>;
-  retrieve(labelId: string, params?: { fields?: readonly LabelField[] }): Promise<Label>;
-  retrieve(labelId: string, params?: { fields?: readonly LabelField[] }): Promise<Label> {
-    return this.doRetrieve({ pk: labelId }, params as Record<string, unknown>);
+  retrieve(slug: string, project: string, label: string, params?: LabelFieldsParams): Promise<Label>;
+  retrieve(slug: string, project: string, label: string, params?: LabelFieldsParams): Promise<Label> {
+    return this.doRetrieve({ slug, project_id: project, pk: label }, params as Record<string, unknown>);
   }
 
   /** The one label with this name; throws if none or several match. */
-  findByName(name: string): Promise<Label> {
-    return this.doFindOne({ name }, {});
+  findByName(slug: string, project: string, name: string): Promise<Label> {
+    return this.doFindOne({ name }, { slug, project_id: project });
   }
 
-  create(data: CreateLabel): Promise<Label> {
-    return this.doCreate(data, {});
+  create(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label> {
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  update(labelId: string, data: UpdateLabel): Promise<Label> {
-    return this.doUpdate(data, { pk: labelId });
+  update(slug: string, project: string, label: string, data: UpdateLabel, params?: LabelFieldsParams): Promise<Label> {
+    return this.doUpdate(data, { slug, project_id: project, pk: label }, params as Record<string, unknown>);
   }
 
-  delete(labelId: string): Promise<void> {
-    return this.doDelete({ pk: labelId });
+  delete(slug: string, project: string, label: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: label });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(data: CreateLabel): Promise<Label> {
-    return this.doUpsert(data, {});
+  upsert(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label> {
+    return this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  bulkCreate(items: CreateLabel[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, {}, allOrNone);
+  bulkCreate(slug: string, project: string, items: CreateLabel[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkUpdate(items: BulkUpdateItem<UpdateLabel>[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, {}, allOrNone);
+  /** Each item is the patch plus the target `id`. */
+  bulkUpdate(
+    slug: string,
+    project: string,
+    items: BulkUpdateItem<UpdateLabel>[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkUpdate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, {}, allOrNone);
+  bulkDelete(slug: string, project: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, { slug, project_id: project }, allOrNone);
   }
 }

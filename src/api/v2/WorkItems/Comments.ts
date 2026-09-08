@@ -28,7 +28,20 @@ export interface ListWorkItemCommentsParams {
   count?: boolean;
 }
 
-/** Comments on a work item (api_v2). Its own upsert/bulk actions, distinct operation ids from the CRUD ones. */
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface WorkItemCommentShapeParams {
+  fields?: readonly WorkItemCommentField[];
+  expand?: readonly WorkItemCommentExpand[];
+}
+
+/**
+ * Comments on a work item (api_v2). Its own upsert/bulk actions, distinct operation ids
+ * from the CRUD ones.
+ *
+ * Reached flat — `v2.projects.workItems.comments.list(slug, project, workItem)` — or
+ * from a fetched work item, which supplies all three leading ids:
+ * `workItem.comments.list()`.
+ */
 export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment, UpdateWorkItemComment> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/comments/";
   protected operations: Record<string, AnyOperationId> = {
@@ -43,88 +56,141 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     bulkDelete: "work_item_comments_bulk_delete",
   };
 
-  private pk(workItemId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { work_item_id: workItemId };
-    if (id !== undefined) params.pk = id;
-    return params;
-  }
-
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     params: ListWorkItemCommentsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemComment, F | "id">>>;
-  list(workItemId: string, params?: ListWorkItemCommentsParams): Promise<Page<WorkItemComment>>;
-  list(workItemId: string, params?: ListWorkItemCommentsParams): Promise<Page<WorkItemComment>> {
-    return this.doList(this.pk(workItemId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemCommentsParams
+  ): Promise<Page<WorkItemComment>>;
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemCommentsParams
+  ): Promise<Page<WorkItemComment>> {
+    return this.doList({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
-  /** Every comment, following pages automatically. */
-  iterate(workItemId: string, params?: ListWorkItemCommentsParams): AsyncGenerator<WorkItemComment> {
-    return this.doIterate(this.pk(workItemId), params as Record<string, unknown>);
+  /** Every comment on the work item, following pages automatically. */
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemCommentsParams
+  ): AsyncGenerator<WorkItemComment> {
+    return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
-    workItemId: string,
-    commentId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    comment: string,
     params: { fields: readonly F[]; expand?: readonly WorkItemCommentExpand[] }
   ): Promise<Pick<WorkItemComment, F | "id">>;
   retrieve(
-    workItemId: string,
-    commentId: string,
-    params?: { fields?: readonly WorkItemCommentField[]; expand?: readonly WorkItemCommentExpand[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    comment: string,
+    params?: WorkItemCommentShapeParams
   ): Promise<WorkItemComment>;
   retrieve(
-    workItemId: string,
-    commentId: string,
-    params?: { fields?: readonly WorkItemCommentField[]; expand?: readonly WorkItemCommentExpand[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    comment: string,
+    params?: WorkItemCommentShapeParams
   ): Promise<WorkItemComment> {
-    return this.doRetrieve(this.pk(workItemId, commentId), params as Record<string, unknown>);
+    return this.doRetrieve(
+      { slug, project_id: project, work_item_id: workItem, pk: comment },
+      params as Record<string, unknown>
+    );
   }
 
   create(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     data: CreateWorkItemComment,
-    params?: { fields?: readonly WorkItemCommentField[]; expand?: readonly WorkItemCommentExpand[] }
+    params?: WorkItemCommentShapeParams
   ): Promise<WorkItemComment> {
-    return this.doCreate(data, this.pk(workItemId), params as Record<string, unknown>);
+    return this.doCreate(
+      data,
+      { slug, project_id: project, work_item_id: workItem },
+      params as Record<string, unknown>
+    );
   }
 
   update(
-    workItemId: string,
-    commentId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    comment: string,
     data: UpdateWorkItemComment,
-    params?: { fields?: readonly WorkItemCommentField[]; expand?: readonly WorkItemCommentExpand[] }
+    params?: WorkItemCommentShapeParams
   ): Promise<WorkItemComment> {
-    return this.doUpdate(data, this.pk(workItemId, commentId), params as Record<string, unknown>);
+    return this.doUpdate(
+      data,
+      { slug, project_id: project, work_item_id: workItem, pk: comment },
+      params as Record<string, unknown>
+    );
   }
 
-  delete(workItemId: string, commentId: string): Promise<void> {
-    return this.doDelete(this.pk(workItemId, commentId));
+  delete(slug: string, project: string, workItem: string, comment: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, work_item_id: workItem, pk: comment });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
   upsert(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     data: CreateWorkItemComment,
-    params?: { fields?: readonly WorkItemCommentField[]; expand?: readonly WorkItemCommentExpand[] }
+    params?: WorkItemCommentShapeParams
   ): Promise<WorkItemComment> {
-    return this.doUpsert(data, this.pk(workItemId), params as Record<string, unknown>);
+    return this.doUpsert(
+      data,
+      { slug, project_id: project, work_item_id: workItem },
+      params as Record<string, unknown>
+    );
   }
 
-  bulkCreate(workItemId: string, items: CreateWorkItemComment[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, this.pk(workItemId), allOrNone);
+  bulkCreate(
+    slug: string,
+    project: string,
+    workItem: string,
+    items: CreateWorkItemComment[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug, project_id: project, work_item_id: workItem }, allOrNone);
   }
 
+  /** Each item is the patch plus the target `id`. */
   bulkUpdate(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     items: BulkUpdateItem<UpdateWorkItemComment>[],
     allOrNone = false
   ): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, this.pk(workItemId), allOrNone);
+    return this.doBulkUpdate(items, { slug, project_id: project, work_item_id: workItem }, allOrNone);
   }
 
-  bulkDelete(workItemId: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, this.pk(workItemId), allOrNone);
+  bulkDelete(
+    slug: string,
+    project: string,
+    workItem: string,
+    ids: string[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, { slug, project_id: project, work_item_id: workItem }, allOrNone);
   }
 }

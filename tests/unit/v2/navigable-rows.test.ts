@@ -1,0 +1,183 @@
+import nock from "nock";
+import { Configuration } from "../../../src/Configuration";
+import { Projects } from "../../../src/api/v2/Projects";
+import { State } from "../../../src/models/v2/State";
+import { Page } from "../../../src/models/v2/common";
+import { V2Transport } from "../../../src/api/v2/kernel/transport";
+import { LoadedProject } from "../../../src/api/v2/loaded/Project";
+
+const BASE = "https://api.example.com";
+const makeProjects = () => new Projects(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+
+afterEach(() => nock.cleanAll());
+
+/** Assignable in both directions — a real type, not `any` and not a widened supertype. */
+type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+function expectType<T extends true>(_ok: T): void {}
+
+describe("navigable rows (v2)", () => {
+  it("reaches a child from a fetched project without repeating either id", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/states/")
+      .reply(200, { data: [{ id: "s-1", name: "Todo" }], pagination: { style: "offset" } });
+
+    const project = await makeProjects().retrieve("acme", "ENG");
+    const states = await project.states.list();
+
+    expect(scope.isDone()).toBe(true);
+    expect(states.data[0].name).toBe("Todo");
+  });
+
+  it("addresses children by the readable identifier, not the uuid, when the server sent one", async () => {
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/11111111-1111-1111-1111-111111111111/")
+      .reply(200, { id: "11111111-1111-1111-1111-111111111111", identifier: "ENG" });
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/labels/")
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    const project = await makeProjects().retrieve("acme", "11111111-1111-1111-1111-111111111111");
+    await project.labels.list();
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("falls back to the uuid when the row carries no identifier", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/p-1/").reply(200, { id: "p-1" });
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/p-1/states/")
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    await (await makeProjects().retrieve("acme", "p-1")).states.list();
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("navigates three levels down: project -> work item -> comments", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/work-items/wi-1/").reply(200, { id: "wi-1", name: "Fix bug" });
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/work-items/wi-1/comments/")
+      .reply(200, { data: [{ id: "c-1" }], pagination: { style: "offset" } });
+
+    const project = await makeProjects().retrieve("acme", "ENG");
+    const workItem = await project.workItems.retrieve("wi-1");
+    const comments = await workItem.comments.list();
+
+    expect(scope.isDone()).toBe(true);
+    expect(comments.data[0].id).toBe("c-1");
+  });
+
+  it("routes every row-returning method through the loader, list and iterate included", async () => {
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/")
+      .reply(200, { data: [{ id: "p-1", identifier: "ENG" }], pagination: { style: "offset" }, next: null });
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/")
+      .reply(200, { data: [{ id: "p-2", identifier: "OPS" }], pagination: { style: "offset" }, next: null });
+    nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/", { identifier: "NEW", name: "New" })
+      .reply(201, { id: "p-3", identifier: "NEW" });
+
+    const projects = makeProjects();
+
+    const page = await projects.list("acme");
+    expect(typeof page.data[0].states.list).toBe("function");
+
+    // `iterate` is the one that gets forgotten — paging must not lose navigation.
+    for await (const row of projects.iterate("acme")) {
+      expect(typeof row.workItems.retrieve).toBe("function");
+    }
+
+    const created = await projects.create("acme", { identifier: "NEW", name: "New" });
+    expect(typeof created.labels.create).toBe("function");
+  });
+
+  it("keeps the row serializable: navigation and metadata are non-enumerable", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG", name: "Eng" });
+
+    const project = await makeProjects().retrieve("acme", "ENG");
+
+    expect(Object.keys(project).sort()).toEqual(["id", "identifier", "name"]);
+    expect(JSON.parse(JSON.stringify(project))).toEqual({ id: "p-1", identifier: "ENG", name: "Eng" });
+  });
+
+  it("records what the server returned, narrowed by the caller's fields", async () => {
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/")
+      .query({ fields: "name" })
+      .reply(200, { id: "p-1", identifier: "ENG", name: "Eng" });
+
+    const project = await makeProjects().retrieve("acme", "ENG", { fields: ["name"] });
+
+    // `identifier` came back because the server sent it, but the caller did not ask
+    // for it — presence reflects the projection, so it never over-reports.
+    expect([...project.$loaded.present].sort()).toEqual(["id", "name"]);
+    expect(project.$loaded.ids).toEqual(["acme", "ENG"]);
+    expect(project.$loaded.idNames).toEqual(["slug", "project"]);
+  });
+
+  it("refuses to prepend ids into leading parameters that are ordered differently", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+
+    const projects = makeProjects();
+    const project = await projects.retrieve("acme", "ENG");
+    // A resource whose leading parameters are the wrong way round would still satisfy
+    // the type (every path id is a `string`), and would build a well-formed wrong URL.
+    (projects.states as unknown as Record<string, unknown>).list = (project_: string, slug: string) => {
+      void project_;
+      void slug;
+      return Promise.resolve(null);
+    };
+
+    expect(() => project.states.list()).toThrow(/does not take its leading parameters in the order \[slug, project\]/);
+  });
+});
+
+describe("navigation typing (compile-time)", () => {
+  it("resolves a navigated call to the child's real return type", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/states/")
+      .reply(200, { data: [{ id: "s-1" }], pagination: { style: "offset" } });
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/states/s-1/").reply(200, { id: "s-1", name: "Todo" });
+
+    const project: LoadedProject = await makeProjects().retrieve("acme", "ENG");
+
+    const page = await project.states.list();
+    const one = await project.states.retrieve("s-1");
+
+    // Exact, not merely assignable: `any` would satisfy an `extends` check in both
+    // directions against anything, so these pin the real types.
+    expectType<Exact<typeof page, Page<State>>>(true);
+    expectType<Exact<typeof one, State>>(true);
+
+    // @ts-expect-error a misspelled method does not exist on the owned view
+    void project.states.lst;
+
+    // @ts-expect-error the bound ids are gone from the signature — this is one too many
+    void (() => project.states.retrieve("acme", "ENG", "s-1"));
+
+    // @ts-expect-error a child that needs its own row's id is not reachable from the parent's view
+    void project.workItems.comments;
+
+    expect(page.data[0].id).toBe("s-1");
+    expect(one.name).toBe("Todo");
+  });
+
+  it("keeps a projection navigable and still narrowed", async () => {
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/")
+      .query({ fields: "id,name" })
+      .reply(200, { data: [{ id: "p-1", identifier: "ENG", name: "Eng" }], pagination: { style: "offset" } });
+
+    const page = await makeProjects().list("acme", { fields: ["id", "name"] as const });
+    const row = page.data[0];
+
+    expect(row.name).toBe("Eng");
+    expect(typeof row.states.list).toBe("function");
+    // @ts-expect-error `priority` was not requested, so it is not on the narrowed row
+    void row.priority;
+  });
+});

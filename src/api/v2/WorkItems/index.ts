@@ -1,8 +1,10 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
 import { WorkItem, UpdateWorkItem, WorkItemPriority, CreateWorkItem } from "../../../models/v2/WorkItem";
 import { WorkItemExpand, WorkItemField, WorkItemOrderBy } from "../generated/constants";
-import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { LoadedWorkItem, LoadedWorkItemRow, WORK_ITEM_ID_NAMES, WorkItemNavigation } from "../loaded/WorkItem";
 import { Activities } from "./Activities";
 import { Attachments } from "./Attachments";
 import { Comments } from "./Comments";
@@ -63,8 +65,21 @@ export interface ListWorkItemsParams {
   target_date__lte?: string;
 }
 
-/** Work items — CRUD plus per-item sub-resources. Write DTOs accept human values, not ids. */
-export class WorkItems extends V2Resource<WorkItem, CreateWorkItem, UpdateWorkItem> {
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface WorkItemShapeParams {
+  fields?: readonly WorkItemField[];
+  expand?: readonly WorkItemExpand[];
+}
+
+/**
+ * Work items — CRUD plus per-item sub-resources. Write DTOs accept human values, not ids.
+ *
+ * Reached flat — `v2.projects.workItems.list(slug, project)` — or from a fetched
+ * project, which supplies both leading ids: `project.workItems.list()`. Every
+ * row-returning method answers a {@link LoadedWorkItem}: the row's own data plus the
+ * path ids its children need, so `workItem.comments.list()` needs nothing repeated.
+ */
+export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, UpdateWorkItem, WorkItemNavigation> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/";
   protected operations: Record<string, AnyOperationId> = {
     list: "work_items_list",
@@ -79,8 +94,12 @@ export class WorkItems extends V2Resource<WorkItem, CreateWorkItem, UpdateWorkIt
     bulkUpdate: "work_items_bulk_update",
     bulkDelete: "work_items_bulk_delete",
   };
+  protected loadedIdNames = WORK_ITEM_ID_NAMES;
 
   public comments: Comments;
+  // Not yet on the flat shape, and so not yet reachable from a fetched row — see the
+  // opt-out list in `tests/unit/v2/treeWalk.ts`, which is what makes that a scheduled
+  // migration rather than an omission.
   public attachments: Attachments;
   public links: Links;
   public worklogs: WorkLogs;
@@ -88,99 +107,147 @@ export class WorkItems extends V2Resource<WorkItem, CreateWorkItem, UpdateWorkIt
   public relations: Relations;
   public dependencies: Dependencies;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.comments = new Comments(transport, scope);
-    this.attachments = new Attachments(transport, scope);
-    this.links = new Links(transport, scope);
-    this.worklogs = new WorkLogs(transport, scope);
-    this.activities = new Activities(transport, scope);
-    this.relations = new Relations(transport, scope);
-    this.dependencies = new Dependencies(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.comments = new Comments(transport);
+    this.attachments = new Attachments(transport);
+    this.links = new Links(transport);
+    this.worklogs = new WorkLogs(transport);
+    this.activities = new Activities(transport);
+    this.relations = new Relations(transport);
+    this.dependencies = new Dependencies(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<WorkItemNavigation> {
+    return {
+      comments: () => owned(this.comments, meta.ids as [string, string, string], meta.idNames),
+    };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
     params: ListWorkItemsParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<WorkItem, F | "id">>>;
-  list(params?: ListWorkItemsParams): Promise<Page<WorkItem>>;
-  list(params?: ListWorkItemsParams): Promise<Page<WorkItem>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>>;
+  list(slug: string, project: string, params?: ListWorkItemsParams): Promise<Page<LoadedWorkItem>>;
+  async list(slug: string, project: string, params?: ListWorkItemsParams): Promise<Page<LoadedWorkItem>> {
+    const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug, project], params?.fields);
   }
 
-  /** Every work item in the project, following pages automatically. */
-  iterate(params?: ListWorkItemsParams): AsyncGenerator<WorkItem> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every work item in the project, following pages automatically — navigable rows included. */
+  iterate(slug: string, project: string, params?: ListWorkItemsParams): AsyncGenerator<LoadedWorkItem> {
+    return this.loadIterate(
+      this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
+      [slug, project],
+      params?.fields
+    );
   }
 
   retrieve<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     params: { fields: readonly F[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<Pick<WorkItem, F | "id">>;
-  retrieve(
-    workItemId: string,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem>;
-  retrieve(
-    workItemId: string,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem> {
-    return this.doRetrieve({ pk: workItemId }, params as Record<string, unknown>);
+  ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  retrieve(slug: string, project: string, workItem: string, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
+  async retrieve(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem> {
+    const row = await this.doRetrieve({ slug, project_id: project, pk: workItem }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  create(
+  async create(
+    slug: string,
+    project: string,
     data: CreateWorkItem,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem> {
+    const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  update(
-    workItemId: string,
+  async update(
+    slug: string,
+    project: string,
+    workItem: string,
     data: UpdateWorkItem,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem> {
-    return this.doUpdate(data, { pk: workItemId }, params as Record<string, unknown>);
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem> {
+    const row = await this.doUpdate(
+      data,
+      { slug, project_id: project, pk: workItem },
+      params as Record<string, unknown>
+    );
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  delete(workItemId: string): Promise<void> {
-    return this.doDelete({ pk: workItemId });
+  delete(slug: string, project: string, workItem: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: workItem });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(
+  async upsert(
+    slug: string,
+    project: string,
     data: CreateWorkItem,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem> {
-    return this.doUpsert(data, {}, params as Record<string, unknown>);
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem> {
+    const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  bulkCreate(items: CreateWorkItem[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, {}, allOrNone);
+  bulkCreate(slug: string, project: string, items: CreateWorkItem[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkUpdate(items: BulkUpdateItem<UpdateWorkItem>[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, {}, allOrNone);
+  /** Each item is the patch plus the target `id`. */
+  bulkUpdate(
+    slug: string,
+    project: string,
+    items: BulkUpdateItem<UpdateWorkItem>[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkUpdate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, {}, allOrNone);
+  bulkDelete(slug: string, project: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, { slug, project_id: project }, allOrNone);
   }
 
   /** Archive a work item. Returns the archived row. */
-  archive(
-    workItemId: string,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem> {
-    return this.doAction<WorkItem>("archive", { pk: workItemId }, params as Record<string, unknown>);
+  async archive(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem> {
+    const row = await this.doAction<WorkItem>(
+      "archive",
+      { slug, project_id: project, pk: workItem },
+      params as Record<string, unknown>
+    );
+    return this.load(row, [slug, project], params?.fields);
   }
 
   /** Unarchive a work item. Returns the restored row. */
-  unarchive(
-    workItemId: string,
-    params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
-  ): Promise<WorkItem> {
-    return this.doAction<WorkItem>("unarchive", { pk: workItemId }, params as Record<string, unknown>);
+  async unarchive(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem> {
+    const row = await this.doAction<WorkItem>(
+      "unarchive",
+      { slug, project_id: project, pk: workItem },
+      params as Record<string, unknown>
+    );
+    return this.load(row, [slug, project], params?.fields);
   }
 }
 
@@ -203,6 +270,7 @@ export type {
   WorkItemCommentExpand,
   WorkItemCommentField,
   WorkItemCommentOrderBy,
+  WorkItemCommentShapeParams,
 } from "./Comments";
 export type { ListWorkItemLinksParams, WorkItemLinkField, WorkItemLinkOrderBy } from "./Links";
 export type {

@@ -6,11 +6,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeWorkItems = () =>
-  new WorkItems(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeWorkItems = () => new WorkItems(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -20,7 +16,7 @@ describe("WorkItems (v2)", () => {
       .get("/api/v2/workspaces/acme/projects/ENG/work-items/")
       .reply(200, { data: [{ id: "1", name: "Fix bug" }], pagination: { style: "offset" } });
 
-    const page = await makeWorkItems().list();
+    const page = await makeWorkItems().list("acme", "ENG");
 
     expect(page.data[0].name).toBe("Fix bug");
   });
@@ -32,7 +28,7 @@ describe("WorkItems (v2)", () => {
       .reply(200, { data: [{ id: "1" }], pagination: { style: "offset" } });
 
     const dynamicFields: WorkItemField[] = ["id"];
-    const page = await makeWorkItems().list({ fields: dynamicFields });
+    const page = await makeWorkItems().list("acme", "ENG", { fields: dynamicFields });
 
     expect(page.data[0].id).toBe("1");
     expect(page.data[0].name).toBeUndefined();
@@ -44,7 +40,7 @@ describe("WorkItems (v2)", () => {
       .query({ fields: "id,name" })
       .reply(200, { data: [{ id: "1", name: "Fix bug" }], pagination: { style: "offset" } });
 
-    const page = await makeWorkItems().list({ fields: ["id", "name"] as const });
+    const page = await makeWorkItems().list("acme", "ENG", { fields: ["id", "name"] as const });
     const row = page.data[0];
 
     expect(row.name).toBe("Fix bug");
@@ -58,13 +54,13 @@ describe("WorkItems (v2)", () => {
       .query({ expand: "state,assignees" })
       .reply(200, { id: "abc" });
 
-    await makeWorkItems().retrieve("abc", { expand: ["state", "assignees"] });
+    await makeWorkItems().retrieve("acme", "ENG", "abc", { expand: ["state", "assignees"] });
 
     expect(scope.isDone()).toBe(true);
   });
 
   it("rejects an unknown expand value before making the request", async () => {
-    await expect(makeWorkItems().list({ expand: ["nope" as never] })).rejects.toThrow(
+    await expect(makeWorkItems().list("acme", "ENG", { expand: ["nope" as never] })).rejects.toThrow(
       /Unknown expand value\(s\) for work_items_list: nope/
     );
   });
@@ -75,7 +71,7 @@ describe("WorkItems (v2)", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/work-items/", write)
       .reply(201, { id: "1", name: "Fix bug" });
 
-    const created = await makeWorkItems().create(write);
+    const created = await makeWorkItems().create("acme", "ENG", write);
 
     expect(scope.isDone()).toBe(true);
     expect(created.id).toBe("1");
@@ -86,7 +82,7 @@ describe("WorkItems (v2)", () => {
       .patch("/api/v2/workspaces/acme/projects/ENG/work-items/1/", { name: "Renamed" })
       .reply(200, { id: "1", name: "Renamed" });
 
-    await makeWorkItems().update("1", { name: "Renamed" });
+    await makeWorkItems().update("acme", "ENG", "1", { name: "Renamed" });
 
     expect(scope.isDone()).toBe(true);
   });
@@ -94,7 +90,7 @@ describe("WorkItems (v2)", () => {
   it("deletes without a body", async () => {
     nock(BASE).delete("/api/v2/workspaces/acme/projects/ENG/work-items/1/").reply(204);
 
-    await expect(makeWorkItems().delete("1")).resolves.toBeUndefined();
+    await expect(makeWorkItems().delete("acme", "ENG", "1")).resolves.toBeUndefined();
   });
 
   it("upserts", async () => {
@@ -103,7 +99,7 @@ describe("WorkItems (v2)", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/work-items/upsert/", write)
       .reply(200, { id: "1", name: "Fix bug" });
 
-    await makeWorkItems().upsert(write);
+    await makeWorkItems().upsert("acme", "ENG", write);
 
     expect(scope.isDone()).toBe(true);
   });
@@ -126,9 +122,9 @@ describe("WorkItems (v2)", () => {
       .reply(200, { results: [{ index: 0, result: "deleted", id: "1" }], succeeded: 1, failed: 0 });
 
     const workItems = makeWorkItems();
-    await workItems.bulkCreate([{ name: "A" }]);
-    await workItems.bulkUpdate([{ id: "1", name: "B" }]);
-    await workItems.bulkDelete(["1"]);
+    await workItems.bulkCreate("acme", "ENG", [{ name: "A" }]);
+    await workItems.bulkUpdate("acme", "ENG", [{ id: "1", name: "B" }]);
+    await workItems.bulkDelete("acme", "ENG", ["1"]);
 
     expect(createScope.isDone()).toBe(true);
     expect(updateScope.isDone()).toBe(true);
@@ -144,8 +140,8 @@ describe("WorkItems (v2)", () => {
       .reply(200, { id: "1", archived_at: null });
 
     const workItems = makeWorkItems();
-    const archived = await workItems.archive("1");
-    const unarchived = await workItems.unarchive("1");
+    const archived = await workItems.archive("acme", "ENG", "1");
+    const unarchived = await workItems.unarchive("acme", "ENG", "1");
 
     expect(archiveScope.isDone()).toBe(true);
     expect(unarchiveScope.isDone()).toBe(true);
@@ -154,6 +150,6 @@ describe("WorkItems (v2)", () => {
   });
 
   it("validates fields/expand on archive/unarchive the same as any other action", async () => {
-    await expect(makeWorkItems().archive("1", { fields: ["nope" as never] })).rejects.toThrow(/nope/);
+    await expect(makeWorkItems().archive("acme", "ENG", "1", { fields: ["nope" as never] })).rejects.toThrow(/nope/);
   });
 });

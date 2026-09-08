@@ -19,7 +19,18 @@ export interface ListStatesParams {
   count?: boolean;
 }
 
-/** Project states, reached via `client.v2.workspace(slug).project(project).states`. */
+/** `?fields=` on a single-row read or write. */
+export interface StateFieldsParams {
+  fields?: readonly StateField[];
+}
+
+/**
+ * Project states.
+ *
+ * Reached flat — `v2.projects.states.list(slug, project)` — or from a fetched project,
+ * which supplies both leading ids: `project.states.list()`. `project` accepts a project
+ * UUID or its bare identifier (e.g. `ENG`).
+ */
 export class States extends V2Resource<State, CreateState, UpdateState> {
   protected path = "/workspaces/{slug}/projects/{project_id}/states/";
   protected operations: Record<string, AnyOperationId> = {
@@ -36,58 +47,68 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<StateField, "all"> & keyof State>(
+    slug: string,
+    project: string,
     params: ListStatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<State, F | "id">>>;
-  list(params?: ListStatesParams): Promise<Page<State>>;
-  list(params?: ListStatesParams): Promise<Page<State>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListStatesParams): Promise<Page<State>>;
+  list(slug: string, project: string, params?: ListStatesParams): Promise<Page<State>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  /** Every state, following pages automatically. */
-  iterate(params?: ListStatesParams): AsyncGenerator<State> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every state in the project, following pages automatically. */
+  iterate(slug: string, project: string, params?: ListStatesParams): AsyncGenerator<State> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<StateField, "all"> & keyof State>(
-    stateId: string,
+    slug: string,
+    project: string,
+    state: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<State, F | "id">>;
-  retrieve(stateId: string, params?: { fields?: readonly StateField[] }): Promise<State>;
-  retrieve(stateId: string, params?: { fields?: readonly StateField[] }): Promise<State> {
-    return this.doRetrieve({ pk: stateId }, params as Record<string, unknown>);
+  retrieve(slug: string, project: string, state: string, params?: StateFieldsParams): Promise<State>;
+  retrieve(slug: string, project: string, state: string, params?: StateFieldsParams): Promise<State> {
+    return this.doRetrieve({ slug, project_id: project, pk: state }, params as Record<string, unknown>);
   }
 
   /** The one state with this name; throws if none or several match. */
-  findByName(name: string): Promise<State> {
-    return this.doFindOne({ name }, {});
+  findByName(slug: string, project: string, name: string): Promise<State> {
+    return this.doFindOne({ name }, { slug, project_id: project });
   }
 
-  create(data: CreateState): Promise<State> {
-    return this.doCreate(data, {});
+  create(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State> {
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  update(stateId: string, data: UpdateState): Promise<State> {
-    return this.doUpdate(data, { pk: stateId });
+  update(slug: string, project: string, state: string, data: UpdateState, params?: StateFieldsParams): Promise<State> {
+    return this.doUpdate(data, { slug, project_id: project, pk: state }, params as Record<string, unknown>);
   }
 
-  delete(stateId: string): Promise<void> {
-    return this.doDelete({ pk: stateId });
+  delete(slug: string, project: string, state: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: state });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(data: CreateState): Promise<State> {
-    return this.doUpsert(data, {});
+  upsert(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State> {
+    return this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  bulkCreate(items: CreateState[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, {}, allOrNone);
+  bulkCreate(slug: string, project: string, items: CreateState[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkUpdate(items: BulkUpdateItem<UpdateState>[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, {}, allOrNone);
+  /** Each item is the patch plus the target `id`. */
+  bulkUpdate(
+    slug: string,
+    project: string,
+    items: BulkUpdateItem<UpdateState>[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkUpdate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, {}, allOrNone);
+  bulkDelete(slug: string, project: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, { slug, project_id: project }, allOrNone);
   }
 }

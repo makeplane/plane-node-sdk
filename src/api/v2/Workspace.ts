@@ -11,7 +11,6 @@ import { Invitations } from "./Invitations";
 import { WorkspacePermissions } from "./Permissions";
 import { PermissionSchemes } from "./PermissionSchemes";
 import { Project } from "./Project";
-import { Projects } from "./Projects";
 import { Releases } from "./Releases";
 import { Roles } from "./Roles";
 import { Stickies } from "./Stickies";
@@ -27,9 +26,14 @@ import { WorkspaceWorkItemProperties } from "./WorkspaceWorkItemProperties";
 import { WorkspaceWorkItems } from "./WorkspaceWorkItems";
 import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
 
-/** A workspace, bound once; no I/O on construction. Every property is a resource already scoped to `{ slug }`. */
+/**
+ * A workspace, bound once; no I/O on construction. Every property is a resource already
+ * scoped to `{ slug }`.
+ *
+ * **Being retired**, exactly as `Project` is: a resource leaves this class as its flat
+ * migration lands. `projects` has already moved to `v2.projects`.
+ */
 export class Workspace {
-  public readonly projects: Projects;
   public readonly members: WorkspaceMembers;
   public readonly invitations: Invitations;
   public readonly roles: Roles;
@@ -61,7 +65,6 @@ export class Workspace {
     private slug: string
   ) {
     const scope = { slug };
-    this.projects = new Projects(transport, scope);
     this.members = new WorkspaceMembers(transport, scope);
     this.invitations = new Invitations(transport, scope);
     this.roles = new Roles(transport, scope);

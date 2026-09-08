@@ -5,11 +5,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeStates = () =>
-  new States(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeStates = () => new States(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -20,7 +16,7 @@ describe("typed field projection", () => {
       .query({ fields: "id,name" })
       .reply(200, { data: [{ id: "1", name: "Todo" }], pagination: { style: "offset" } });
 
-    const page = await makeStates().list({ fields: ["id", "name"] as const });
+    const page = await makeStates().list("acme", "ENG", { fields: ["id", "name"] as const });
     const row = page.data[0];
 
     expect(row.name).toBe("Todo");
@@ -33,7 +29,7 @@ describe("typed field projection", () => {
       .get("/api/v2/workspaces/acme/projects/ENG/states/")
       .reply(200, { data: [{ id: "1", group: "unstarted" }], pagination: { style: "offset" } });
 
-    const page = await makeStates().list();
+    const page = await makeStates().list("acme", "ENG");
 
     expect(page.data[0].group).toBe("unstarted");
   });

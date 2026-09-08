@@ -1,19 +1,32 @@
 import { Configuration } from "../../Configuration";
+import { Projects } from "./Projects";
 import { UserAssets } from "./UserAssets";
 import { Users } from "./UsersMe";
 import { Workspace } from "./Workspace";
 import { V2Transport } from "./kernel/transport";
 
-/** `users`/`userAssets` plus `workspace(slug)` — the entry point into every other v2 resource, all reached bound. */
+/**
+ * Root of the v2 surface, reached as `client.v2`.
+ *
+ * Two ways in, both flat: a resource is a plain attribute and takes the ids its URL
+ * names — `v2.projects.states.list(slug, project)` — and a row it hands back carries
+ * those ids, so `(await v2.projects.retrieve(slug, "ENG")).states.list()` needs nothing
+ * repeated.
+ *
+ * `workspace(slug)` is the pre-flat locator chain, shrinking as each family migrates;
+ * the last task of the variant-F plan removes it.
+ */
 export class V2Namespace {
   public transport: V2Transport;
   public users: Users;
   public userAssets: UserAssets;
+  public projects: Projects;
 
   constructor(config: Configuration) {
     this.transport = new V2Transport(config);
     this.users = new Users(this.transport);
     this.userAssets = new UserAssets(this.transport);
+    this.projects = new Projects(this.transport);
   }
 
   /** Bind a workspace. Makes no request. */
@@ -57,6 +70,13 @@ export type { ListMilestonesParams } from "./Milestones";
 export type { ListModulesParams, ModuleExpand } from "./Modules";
 export { V2Transport } from "./kernel/transport";
 export { bulkFailures, isBulkFailure, raiseForFailures } from "./kernel/bulk";
+// Navigable rows: the types a fetched row resolves to, and the machinery behind them.
+export { LoadsNavigableRows, loadPage, loadRow, owned } from "./kernel/loaded";
+export type { Loaded, LoadedMeta, NavigationFactories, Owned } from "./kernel/loaded";
+export { PROJECT_ID_NAMES } from "./loaded/Project";
+export type { LoadedProject, LoadedProjectRow, ProjectIds, ProjectNavigation } from "./loaded/Project";
+export { WORK_ITEM_ID_NAMES } from "./loaded/WorkItem";
+export type { LoadedWorkItem, LoadedWorkItemRow, WorkItemIds, WorkItemNavigation } from "./loaded/WorkItem";
 // Narrow a `Page<T>` to its offset or cursor envelope — see README "API v2".
 export { isCursorPage, isOffsetPage } from "./kernel/pagination";
 // Field-name/order_by unions for dynamically-built `fields`/`order_by` values, and the

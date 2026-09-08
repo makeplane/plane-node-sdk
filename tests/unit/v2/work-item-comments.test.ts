@@ -8,11 +8,7 @@ const SLUG = "acme";
 const PROJECT = "ENG";
 const WORK_ITEM = "wi-1";
 
-const makeComments = () =>
-  new Comments(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: SLUG,
-    project_id: PROJECT,
-  });
+const makeComments = () => new Comments(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 const collection = `/api/v2/workspaces/${SLUG}/projects/${PROJECT}/work-items/${WORK_ITEM}/comments/`;
 
 afterEach(() => nock.cleanAll());
@@ -23,7 +19,7 @@ describe("WorkItems.comments (v2)", () => {
       .get(collection)
       .reply(200, { data: [{ id: "c1", comment_html: "<p>hi</p>" }], pagination: { style: "offset" } });
 
-    const page = await makeComments().list(WORK_ITEM);
+    const page = await makeComments().list(SLUG, PROJECT, WORK_ITEM);
 
     expect(page.data[0].comment_html).toBe("<p>hi</p>");
   });
@@ -34,7 +30,7 @@ describe("WorkItems.comments (v2)", () => {
       .query({ fields: "id" })
       .reply(200, { data: [{ id: "c1" }], pagination: { style: "offset" } });
 
-    const page = await makeComments().list(WORK_ITEM, { fields: ["id"] as const });
+    const page = await makeComments().list(SLUG, PROJECT, WORK_ITEM, { fields: ["id"] as const });
 
     expect(page.data[0].id).toBe("c1");
     // @ts-expect-error `comment_html` was not requested
@@ -50,7 +46,7 @@ describe("WorkItems.comments (v2)", () => {
         pagination: { style: "offset" },
       });
 
-    await makeComments().list(WORK_ITEM, { expand: ["actor"] });
+    await makeComments().list(SLUG, PROJECT, WORK_ITEM, { expand: ["actor"] });
 
     expect(scope.isDone()).toBe(true);
   });
@@ -69,16 +65,16 @@ describe("WorkItems.comments (v2)", () => {
     nock(BASE).delete(`${collection}c1/`).reply(204);
 
     const comments = makeComments();
-    const created = await comments.create(WORK_ITEM, write);
+    const created = await comments.create(SLUG, PROJECT, WORK_ITEM, write);
     expect(created.id).toBe("c1");
 
-    const fetched = await comments.retrieve(WORK_ITEM, "c1");
+    const fetched = await comments.retrieve(SLUG, PROJECT, WORK_ITEM, "c1");
     expect(fetched.comment_html).toBe("<p>hello</p>");
 
-    const updated = await comments.update(WORK_ITEM, "c1", { comment_html: "<p>edited</p>" });
+    const updated = await comments.update(SLUG, PROJECT, WORK_ITEM, "c1", { comment_html: "<p>edited</p>" });
     expect(updated.comment_html).toBe("<p>edited</p>");
 
-    await expect(comments.delete(WORK_ITEM, "c1")).resolves.toBeUndefined();
+    await expect(comments.delete(SLUG, PROJECT, WORK_ITEM, "c1")).resolves.toBeUndefined();
   });
 
   it("upserts via the comment-specific operation id", async () => {
@@ -87,7 +83,7 @@ describe("WorkItems.comments (v2)", () => {
       .post(`${collection}upsert/`, write)
       .reply(200, { id: "c1", ...write });
 
-    await makeComments().upsert(WORK_ITEM, write);
+    await makeComments().upsert(SLUG, PROJECT, WORK_ITEM, write);
 
     expect(scope.isDone()).toBe(true);
   });
@@ -104,9 +100,9 @@ describe("WorkItems.comments (v2)", () => {
       .reply(200, { results: [{ index: 0, result: "deleted", id: "c1" }], succeeded: 1, failed: 0 });
 
     const comments = makeComments();
-    await comments.bulkCreate(WORK_ITEM, [{ comment_html: "<p>a</p>" }]);
-    await comments.bulkUpdate(WORK_ITEM, [{ id: "c1", comment_html: "<p>b</p>" }]);
-    await comments.bulkDelete(WORK_ITEM, ["c1"]);
+    await comments.bulkCreate(SLUG, PROJECT, WORK_ITEM, [{ comment_html: "<p>a</p>" }]);
+    await comments.bulkUpdate(SLUG, PROJECT, WORK_ITEM, [{ id: "c1", comment_html: "<p>b</p>" }]);
+    await comments.bulkDelete(SLUG, PROJECT, WORK_ITEM, ["c1"]);
 
     expect(createScope.isDone()).toBe(true);
     expect(updateScope.isDone()).toBe(true);
@@ -114,6 +110,6 @@ describe("WorkItems.comments (v2)", () => {
   });
 
   it("rejects an unknown field before making the request", async () => {
-    await expect(makeComments().list(WORK_ITEM, { fields: ["nope" as never] })).rejects.toThrow(/nope/);
+    await expect(makeComments().list(SLUG, PROJECT, WORK_ITEM, { fields: ["nope" as never] })).rejects.toThrow(/nope/);
   });
 });
