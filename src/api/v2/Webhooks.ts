@@ -91,12 +91,23 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     return this.load(row, [slug]);
   }
 
-  /** Returns `secret_key` once — store it now, it is never shown again outside of `regenerate`. */
+  /**
+   * Returns `secret_key` once — store it now, it is never shown again outside of
+   * `regenerate`.
+   *
+   * `secret_key` survives a `fields` projection, and that is not a courtesy: it is not in
+   * `FIELDS.webhooks_create` at all, so it is not a name the server will accept in
+   * `?fields=` and not a field it can be asked to drop. (Contrast `webhooks_regenerate`,
+   * whose field list *does* include it — which is why `regenerate` takes no `fields` at
+   * all rather than letting a caller project away the only copy of a secret.) So the
+   * narrowed row keeps it, and a caller who projects a create still gets the one thing
+   * this call exists to hand back.
+   */
   create<F extends Exclude<WebhookField, "all"> & keyof WebhookCreateResponse>(
     slug: string,
     data: CreateWebhook,
     params: { fields: readonly F[] }
-  ): Promise<Pick<WebhookCreateResponse, F | "id">>;
+  ): Promise<Pick<WebhookCreateResponse, F | "id" | "secret_key">>;
   create(
     slug: string,
     data: CreateWebhook,

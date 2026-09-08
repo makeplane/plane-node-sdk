@@ -103,3 +103,37 @@ describe("navigable webhook rows (v2)", () => {
     expect(page.data[0].id).toBe("log-1");
   });
 });
+
+/**
+ * The one-time secret has to survive a projection, and it is the write-projection
+ * codemod that made this worth pinning.
+ *
+ * Giving `create` a narrowing overload nearly took `secret_key` away: `WebhookField` is
+ * `FIELDS.webhooks_create`, which does **not** list `secret_key`, so
+ * `Pick<WebhookCreateResponse, F | "id">` could never include it — and a caller who
+ * projected a create would have lost, at compile time, the only copy of the secret the
+ * call exists to hand back. The absence from that list is precisely what says the server
+ * cannot be asked to drop it, so the narrowed row keeps it.
+ */
+describe("the webhook secret and `fields`", () => {
+  it("keeps `secret_key` on a projected create", async () => {
+    const scope = nock(BASE)
+      .post(`/api/v2/workspaces/${SLUG}/webhooks/`)
+      .query({ fields: "id,name" })
+      .reply(201, { id: "w1", name: "Prod notifier", secret_key: "shhh" });
+
+    const created = await makeWebhooks().create(
+      SLUG,
+      { url: "https://example.com/hook" },
+      { fields: ["id", "name"] as const }
+    );
+
+    // Both must type-check: the requested field, and the secret that is not projectable.
+    expect([created.name, created.secret_key]).toEqual(["Prod notifier", "shhh"]);
+    // (mutation-proof: dropping `| "secret_key"` from the overload makes the line above a
+    // compile error naming the property.)
+    // @ts-expect-error `url` was not requested, so the projection still applies to it
+    expect(created.url).toBeUndefined();
+    expect(scope.isDone()).toBe(true);
+  });
+});

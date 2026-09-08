@@ -1338,7 +1338,7 @@ v2	WebhookLogOrderBy	WebhookLogOrderBy	ec2dca9ddef07b93
 v2	WebhookLogs	WebhookLogs	b59ecffba63c05f8
 v2	WebhookNavigation	WebhookNavigation	46f44d74dbda490c
 v2	WebhookOrderBy	WebhookOrderBy	8208ef1cf8b386b0
-v2	Webhooks	Webhooks	19d19c88badb3e95
+v2	Webhooks	Webhooks	09848aa86ca428aa
 v2	Wiki	Wiki	cd52f62e39693268
 v2	WikiPageExpand	WikiPageExpand	b41bd04e55582fc9
 v2	WikiPageField	WikiPageField	bd8a2930ea927502
