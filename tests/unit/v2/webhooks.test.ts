@@ -102,6 +102,47 @@ describe("navigable webhook rows (v2)", () => {
     expect(logs.isDone()).toBe(true);
     expect(page.data[0].id).toBe("log-1");
   });
+
+  /**
+   * `create` was the one row-returning method on any `LoadsNavigableRows` subclass that
+   * never went through `load()`, so a *created* webhook silently had no `.logs` while a
+   * *retrieved* one did — the exact failure the kernel's own doc comment warns about
+   * ("a method that returns a plain row instead silently loses navigation").
+   *
+   * No sweep could see it. `loaded-navigation.test.ts` asks whether the resource is
+   * navigable, and `Webhooks` is — through `list`, `iterate`, `retrieve`, `findByName`
+   * and `update`. Only the one method was missing, and only a caller who created a
+   * webhook and then reached for its logs would find out.
+   */
+  it("reaches the delivery log off a freshly created webhook too", async () => {
+    nock(BASE)
+      .post(`/api/v2/workspaces/${SLUG}/webhooks/`)
+      .reply(201, { id: "w1", name: "Prod notifier", secret_key: "shhh" });
+    const logs = nock(BASE)
+      .get(`/api/v2/workspaces/${SLUG}/webhook-logs/w1/`)
+      .reply(200, { data: [{ id: "log-1" }], pagination: { style: "offset" } });
+
+    const created = await makeWebhooks().create(SLUG, { url: "https://example.com/hook" });
+    const page = await created.logs.list();
+
+    expect(logs.isDone()).toBe(true);
+    expect(page.data[0].id).toBe("log-1");
+  });
+
+  it("a created webhook's navigation is non-enumerable, like every other loaded row", async () => {
+    nock(BASE)
+      .post(`/api/v2/workspaces/${SLUG}/webhooks/`)
+      .reply(201, { id: "w1", name: "Prod notifier", secret_key: "shhh" });
+
+    const created = await makeWebhooks().create(SLUG, { url: "https://example.com/hook" });
+
+    expect(Object.keys(created).sort()).toEqual(["id", "name", "secret_key"]);
+    expect(JSON.parse(JSON.stringify(created))).toEqual({
+      id: "w1",
+      name: "Prod notifier",
+      secret_key: "shhh",
+    });
+  });
 });
 
 /**
@@ -135,5 +176,45 @@ describe("the webhook secret and `fields`", () => {
     // @ts-expect-error `url` was not requested, so the projection still applies to it
     expect(created.url).toBeUndefined();
     expect(scope.isDone()).toBe(true);
+  });
+
+  /**
+   * ...and `$loaded.present` has to agree with the row.
+   *
+   * `loadRow` narrows presence to the caller's `fields` when one was given. Routing
+   * `create` through `load` therefore had to add `secret_key` to that set explicitly:
+   * otherwise a projected create would hand back a row carrying the secret while
+   * `$loaded.present` reported it missing — the one field the call exists to return.
+   */
+  it("reports `secret_key` as present on a projected create", async () => {
+    nock(BASE)
+      .post(`/api/v2/workspaces/${SLUG}/webhooks/`)
+      .query({ fields: "id,name" })
+      .reply(201, { id: "w1", name: "Prod notifier", secret_key: "shhh" });
+
+    const created = await makeWebhooks().create(
+      SLUG,
+      { url: "https://example.com/hook" },
+      { fields: ["id", "name"] as const }
+    );
+
+    expect([...created.$loaded.present].sort()).toEqual(["id", "name", "secret_key"]);
+  });
+
+  it("does not invent `secret_key` when the server did not send one", async () => {
+    nock(BASE)
+      .post(`/api/v2/workspaces/${SLUG}/webhooks/`)
+      .query({ fields: "id,name" })
+      .reply(201, { id: "w1", name: "Prod notifier" });
+
+    const created = await makeWebhooks().create(
+      SLUG,
+      { url: "https://example.com/hook" },
+      { fields: ["id", "name"] as const }
+    );
+
+    // Presence is what the response carried, intersected with what was asked for plus
+    // the unprojectable secret — never a claim about a field that never arrived.
+    expect([...created.$loaded.present].sort()).toEqual(["id", "name"]);
   });
 });

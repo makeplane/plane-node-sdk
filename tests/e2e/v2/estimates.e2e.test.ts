@@ -1,5 +1,11 @@
 /**
  * One estimate per project (`EstimateViewSet.create` 409s on a second); every test deletes its own estimate in `finally`.
+ *
+ * The estimate collection is driven flat — the "lists and narrows fields" case needs the
+ * `fields` narrowing, which `Owned` erases — and the point scale off each fetched
+ * estimate row, whose navigation property is **`estimatePoints`**, not `points`: the row
+ * already carries an API field called `points`, and `loadRow` refuses to define a
+ * navigation property over it.
  */
 import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 import { v2Env } from "./support/env";
@@ -12,48 +18,50 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 estimates (live)", () => {
   const suite = useV2Project("est", env);
 
-  const proj = () => suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
-  const estimates = () => proj().estimates;
-  const points = () => proj().estimates.points;
+  const estimates = () => suite.client.v2.projects.estimates;
+  const slug = () => suite.workspaceSlug;
+  const project = () => suite.projectId;
 
   describe("CRUD", () => {
     it("creates, retrieves, updates, and deletes an estimate", async () => {
-      const created = await estimates().create({ name: uniqueName("est-crud"), type: "points" });
+      const created = await estimates().create(slug(), project(), { name: uniqueName("est-crud"), type: "points" });
       expect(created.id).toBeDefined();
       expect(created.type).toBe("points");
 
-      const fetched = await estimates().retrieve(created.id);
+      const fetched = await estimates().retrieve(slug(), project(), created.id);
       expect(fetched.name).toBe(created.name);
 
-      const updated = await estimates().update(created.id, { description: "Story point scale" });
+      const updated = await estimates().update(slug(), project(), created.id, { description: "Story point scale" });
       expect(updated.description).toBe("Story point scale");
 
-      await estimates().delete(created.id);
-      await expect(estimates().retrieve(created.id)).rejects.toMatchObject<Partial<PlaneApiError>>({ status: 404 });
+      await estimates().delete(slug(), project(), created.id);
+      await expect(estimates().retrieve(slug(), project(), created.id)).rejects.toMatchObject<Partial<PlaneApiError>>({
+        status: 404,
+      });
     });
 
     it("lists and narrows fields", async () => {
-      const created = await estimates().create({ name: uniqueName("est-list"), type: "categories" });
+      const created = await estimates().create(slug(), project(), { name: uniqueName("est-list"), type: "categories" });
       try {
-        const page = await estimates().list({ fields: ["id", "name"] });
+        const page = await estimates().list(slug(), project(), { fields: ["id", "name"] });
         const found = page.data.find((row) => row.id === created.id);
         expect(found).toBeDefined();
         expect(found!.name).toBeDefined();
         // @ts-expect-error `type` was not requested, so it is not on the narrowed type
         expect(found!.type).toBeUndefined();
       } finally {
-        await estimates().delete(created.id);
+        await estimates().delete(slug(), project(), created.id);
       }
     });
 
     it("finds by name", async () => {
       const name = uniqueName("est-find");
-      const created = await estimates().create({ name });
+      const created = await estimates().create(slug(), project(), { name });
       try {
-        const found = await estimates().findByName(name);
+        const found = await estimates().findByName(slug(), project(), name);
         expect(found.id).toBe(created.id);
       } finally {
-        await estimates().delete(created.id);
+        await estimates().delete(slug(), project(), created.id);
       }
     });
   });
@@ -63,30 +71,29 @@ maybe("v2 estimates (live)", () => {
       const externalId = uniqueName("est-ext");
       const write = { name: uniqueName("est-upsert"), external_id: externalId, external_source: "sdk-e2e" };
 
-      const first = await estimates().upsert(write);
+      const first = await estimates().upsert(slug(), project(), write);
       try {
         const renamed = uniqueName("est-upsert-again");
-        const second = await estimates().upsert({ ...write, name: renamed });
+        const second = await estimates().upsert(slug(), project(), { ...write, name: renamed });
         expect(second.id).toBe(first.id);
         expect(second.name).toBe(renamed);
       } finally {
-        await estimates().delete(first.id);
+        await estimates().delete(slug(), project(), first.id);
       }
     });
   });
 
   describe("expand", () => {
     it("expand=points inlines the point scale instead of just leaving it to a separate call", async () => {
-      const created = await estimates().create({ name: uniqueName("est-exp") });
+      const created = await estimates().create(slug(), project(), { name: uniqueName("est-exp") });
       try {
-        await points().create(created.id, { value: "XS", key: 0 });
-        const expanded = (await estimates().retrieve(created.id, { expand: ["points"] })) as unknown as Record<
-          string,
-          unknown
-        >;
+        await created.estimatePoints.create({ value: "XS", key: 0 });
+        const expanded = (await estimates().retrieve(slug(), project(), created.id, {
+          expand: ["points"],
+        })) as unknown as Record<string, unknown>;
         expect(expanded.points).toBeDefined();
       } finally {
-        await estimates().delete(created.id);
+        await estimates().delete(slug(), project(), created.id);
       }
     });
   });
@@ -95,18 +102,22 @@ maybe("v2 estimates (live)", () => {
     // Estimates are one-per-project, so bulkCreate can only be a "bulk of one";
     // bulkUpdate/bulkDelete still use their real array shape over that one row.
     it("bulkCreate, bulkUpdate, bulkDelete (bulk of one — see the one-per-project note above)", async () => {
-      const created = await estimates().bulkCreate([{ name: uniqueName("est-bulk-1") }]);
+      const created = await estimates().bulkCreate(slug(), project(), [{ name: uniqueName("est-bulk-1") }]);
       expect(created.succeeded).toBe(1);
       const ids = created.results.map((row) => row.id).filter((id): id is string => Boolean(id));
 
       try {
-        const updated = await estimates().bulkUpdate(ids.map((id) => ({ id, description: "bulk-updated" })));
+        const updated = await estimates().bulkUpdate(
+          slug(),
+          project(),
+          ids.map((id) => ({ id, description: "bulk-updated" }))
+        );
         expect(updated.succeeded).toBe(ids.length);
       } finally {
         // Always attempted, even if bulkUpdate's own assertion throws — otherwise
         // this leaks the project's one estimate and every subsequent test in this
         // file 409s with "An estimate already exists for this project."
-        const deleted = await estimates().bulkDelete(ids);
+        const deleted = await estimates().bulkDelete(slug(), project(), ids);
         expect(deleted.succeeded).toBe(ids.length);
       }
     });
@@ -114,59 +125,58 @@ maybe("v2 estimates (live)", () => {
 
   describe("points sub-resource", () => {
     it("creates, retrieves, updates, and deletes a point on an estimate's scale", async () => {
-      const estimate = await estimates().create({ name: uniqueName("est-points") });
+      const estimate = await estimates().create(slug(), project(), { name: uniqueName("est-points") });
       try {
-        const created = await points().create(estimate.id, { value: "M", key: 1 });
+        const created = await estimate.estimatePoints.create({ value: "M", key: 1 });
         expect(created.estimate_id).toBe(estimate.id);
 
-        const fetched = await points().retrieve(estimate.id, created.id);
+        const fetched = await estimate.estimatePoints.retrieve(created.id);
         expect(fetched.value).toBe("M");
 
-        const byKey = await points().findByKey(estimate.id, 1);
+        const byKey = await estimate.estimatePoints.findByKey(1);
         expect(byKey.id).toBe(created.id);
 
-        const updated = await points().update(estimate.id, created.id, { value: "L" });
+        const updated = await estimate.estimatePoints.update(created.id, { value: "L" });
         expect(updated.value).toBe("L");
 
-        await points().delete(estimate.id, created.id);
-        await expect(points().retrieve(estimate.id, created.id)).rejects.toMatchObject<Partial<PlaneApiError>>({
+        await estimate.estimatePoints.delete(created.id);
+        await expect(estimate.estimatePoints.retrieve(created.id)).rejects.toMatchObject<Partial<PlaneApiError>>({
           status: 404,
         });
       } finally {
-        await estimates().delete(estimate.id);
+        await estimates().delete(slug(), project(), estimate.id);
       }
     });
 
     it("reconciles on upsert and performs all three bulk actions", async () => {
-      const estimate = await estimates().create({ name: uniqueName("est-points-bulk") });
+      const estimate = await estimates().create(slug(), project(), { name: uniqueName("est-points-bulk") });
       try {
         const externalId = uniqueName("point-ext");
-        const first = await points().upsert(estimate.id, {
+        const first = await estimate.estimatePoints.upsert({
           value: "XS",
           external_id: externalId,
           external_source: "sdk-e2e",
         });
-        const second = await points().upsert(estimate.id, {
+        const second = await estimate.estimatePoints.upsert({
           value: "XXS",
           external_id: externalId,
           external_source: "sdk-e2e",
         });
         expect(second.id).toBe(first.id);
 
-        const created = await points().bulkCreate(estimate.id, [{ value: "S" }, { value: "L" }]);
+        const created = await estimate.estimatePoints.bulkCreate([{ value: "S" }, { value: "L" }]);
         expect(created.succeeded).toBe(2);
         const ids = created.results.map((row) => row.id).filter((id): id is string => Boolean(id));
 
-        const updated = await points().bulkUpdate(
-          estimate.id,
+        const updated = await estimate.estimatePoints.bulkUpdate(
           ids.map((id) => ({ id, description: "bulk-updated" }))
         );
         expect(updated.succeeded).toBe(ids.length);
 
-        const deleted = await points().bulkDelete(estimate.id, ids);
+        const deleted = await estimate.estimatePoints.bulkDelete(ids);
         expect(deleted.succeeded).toBe(ids.length);
       } finally {
-        await estimates().delete(estimate.id);
+        await estimates().delete(slug(), project(), estimate.id);
       }
     });
   });

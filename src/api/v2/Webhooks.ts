@@ -107,18 +107,25 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     slug: string,
     data: CreateWebhook,
     params: { fields: readonly F[] }
-  ): Promise<Pick<WebhookCreateResponse, F | "id" | "secret_key">>;
+  ): Promise<LoadedWebhookRow<Pick<WebhookCreateResponse, F | "id" | "secret_key">>>;
   create(
     slug: string,
     data: CreateWebhook,
     params?: { fields?: readonly WebhookField[] }
-  ): Promise<WebhookCreateResponse>;
-  create(
+  ): Promise<LoadedWebhookRow<WebhookCreateResponse>>;
+  async create(
     slug: string,
     data: CreateWebhook,
     params?: { fields?: readonly WebhookField[] }
-  ): Promise<WebhookCreateResponse> {
-    return this.doCreate(data, { slug }, params as Record<string, unknown>);
+  ): Promise<LoadedWebhookRow<WebhookCreateResponse>> {
+    const row: WebhookCreateResponse = await this.doCreate(data, { slug }, params as Record<string, unknown>);
+    // `secret_key` is added to the presence set alongside the caller's `fields`, not
+    // because it was asked for but because it cannot be asked for: it is absent from
+    // `FIELDS.webhooks_create`, so `?fields=` can neither request nor drop it, and the
+    // server sends it regardless. Passing `fields` alone would leave `$loaded.present`
+    // reporting the one field this call exists to return as missing while it sits in the
+    // row.
+    return this.load(row, [slug], params?.fields && [...params.fields, "secret_key"]);
   }
 
   update<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
