@@ -27,11 +27,14 @@ import { WorkspaceWorkItems } from "./WorkspaceWorkItems";
 import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
 
 /**
- * A workspace, bound once; no I/O on construction. Every property is a resource already
- * scoped to `{ slug }`.
+ * A workspace, bound once; no I/O on construction.
  *
- * **Being retired**, exactly as `Project` is: a resource leaves this class as its flat
- * migration lands. `projects` has already moved to `v2.projects`.
+ * **Being retired**, exactly as `Project` is. Most of what it holds is already on the
+ * flat shape and takes its ids per call — `workspace(slug).roles.list(slug)` — so
+ * binding buys nothing any more; the class survives only because the flat attachment
+ * point for the workspace band (`v2.workspaces`) arrives with the tree wiring in the
+ * last task of the variant-F plan, and until then this is what keeps these resources
+ * reachable. `projects` has already moved to `v2.projects`.
  */
 export class Workspace {
   public readonly members: WorkspaceMembers;
@@ -64,6 +67,9 @@ export class Workspace {
     private transport: V2Transport,
     private slug: string
   ) {
+    // The scope is dead weight for a migrated resource — its methods take every id per
+    // call and `formatPath` lets those win — but it is still what a not-yet-migrated
+    // one reads its `{ slug }` from, so it stays until the last family migrates.
     const scope = { slug };
     this.members = new WorkspaceMembers(transport, scope);
     this.invitations = new Invitations(transport, scope);

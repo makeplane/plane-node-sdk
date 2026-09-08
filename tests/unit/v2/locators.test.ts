@@ -10,9 +10,13 @@ beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
 
 // Two shapes coexist while the variant-F migration runs: the flat tree, which each
-// migrated family joins, and the `workspace(slug).project(key)` locator chain, which
-// each migrated family leaves. This file pins both halves of that trade so a family
-// cannot be half-moved — added to neither, or left on both.
+// migrated family joins, and the `workspace(slug).project(key)` locator chain, which a
+// family leaves once the flat tree has somewhere to put it. Those two events are not
+// simultaneous: `states`/`labels`/`workItems` moved together because `Projects` was
+// already there to hold them, while the workspace band is migrated but still hangs off
+// the locator, because its flat attachment point arrives with the tree wiring. So what
+// this file pins is not "migrated implies gone from the locator" — it is that whatever
+// the locator still holds behaves the migrated way, taking its ids per call.
 
 describe("flat tree (v2)", () => {
   it("builds without making a single request", () => {
@@ -136,7 +140,19 @@ describe("chain locators (Workspace/Project) — being retired", () => {
     }
   });
 
-  it("drops each family the moment it goes flat, so neither shape is a stale copy", () => {
+  it("hand back resources that take their ids per call, binding or no binding", async () => {
+    // A migrated resource reached through the locator ignores the bound slug and uses
+    // the one it is passed — the locator is a holding pen at this point, not a scope.
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/other/roles/")
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    await makeClient().v2.workspace("acme").roles.list("other");
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("drops a family once the flat tree has somewhere to put it, so neither shape is a stale copy", () => {
     const v2 = makeClient().v2;
     const ws = v2.workspace("acme") as unknown as Record<string, unknown>;
     const proj = v2.workspace("acme").project("ENG") as unknown as Record<string, unknown>;

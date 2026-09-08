@@ -17,14 +17,14 @@ import { Workflows } from "./Workflows";
 import { V2Transport } from "./kernel/transport";
 
 /**
- * A project locator, bound once; each property is a resource already scoped to
- * `{ slug, project_id }`.
+ * A project locator, bound once.
  *
- * **Being retired.** This is the pre-flat shape. A resource leaves this class as its
- * flat migration lands and becomes reachable two ways instead — flat
- * (`v2.projects.states.list(slug, project)`) and from a fetched project row
- * (`project.states.list()`). `states`, `labels` and `workItems` have already moved; the
- * last task of the variant-F plan deletes what is left of this class.
+ * **Being retired.** This is the pre-flat shape. `states`, `labels` and `workItems` have
+ * already left, because `Projects` gave them a flat home and a navigable row
+ * (`v2.projects.states.list(slug, project)`, or `project.states.list()`). The rest are
+ * mostly migrated too and take their ids per call; they are still listed here only
+ * because nothing else reaches them until the tree wiring in the last task of the
+ * variant-F plan, which then deletes this class.
  */
 export class Project {
   public readonly cycles: Cycles;
