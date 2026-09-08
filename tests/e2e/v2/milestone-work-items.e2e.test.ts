@@ -1,6 +1,10 @@
 /**
- * `add`/`remove` is reached as `proj.milestones.workItems.add`/`.remove`, a bridge sub-resource on `Milestones`.
+ * `add`/`remove` is a bridge sub-resource on `Milestones`. Driven three navigations deep
+ * — project row, milestone row, then the bridge — for the same reason as
+ * `module-work-items.e2e.test.ts`: a grandchild needs its own row's id, which `Owned`
+ * cannot supply from the project row alone.
  */
+import { LoadedMilestone } from "../../../src/api/v2/loaded/Milestone";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -11,34 +15,29 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 milestone work-item management (live)", () => {
   const suite = useV2Project("milestone-work-items", env);
 
-  let milestoneId: string;
+  let milestone: LoadedMilestone;
   let workItemId: string;
 
   beforeAll(async () => {
-    const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
-    const milestone = await proj.milestones.create({ title: uniqueName("milestone") });
-    milestoneId = milestone.id;
-    const workItem = await proj.workItems.create({ name: uniqueName("milestone-wi") });
+    milestone = await suite.projectRow.milestones.create({ title: uniqueName("milestone") });
+    const workItem = await suite.projectRow.workItems.create({ name: uniqueName("milestone-wi") });
     workItemId = workItem.id;
   });
 
   afterAll(async () => {
-    const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
     if (workItemId) {
-      await proj.workItems.delete(workItemId).catch(() => undefined);
+      await suite.projectRow.workItems.delete(workItemId).catch(() => undefined);
     }
-    if (milestoneId) {
-      await proj.milestones.delete(milestoneId).catch(() => undefined);
+    if (milestone) {
+      await suite.projectRow.milestones.delete(milestone.id).catch(() => undefined);
     }
   });
 
-  it("adds then removes a work item", async () => {
-    const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
-
-    const added = await proj.milestones.workItems.add(milestoneId, [workItemId]);
+  it("adds then removes a work item, navigated (milestone row -> workItems)", async () => {
+    const added = await milestone.workItems.add([workItemId]);
     expect(added).toContain(workItemId);
 
-    const removed = await proj.milestones.workItems.remove(milestoneId, [workItemId]);
+    const removed = await milestone.workItems.remove([workItemId]);
     expect(removed).toContain(workItemId);
   });
 });

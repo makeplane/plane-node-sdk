@@ -10,7 +10,10 @@ const maybe = env.ready ? describe : describe.skip;
 
 maybe("Cycles.transfer/workItems.add/remove (v2 live)", () => {
   const suite = useV2Project("cycAct", env);
-  const proj = () => suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
+  // Navigated: cycles off the fetched project row, and `workItems` off each fetched
+  // cycle row — the bridge is a grandchild, so it needs the cycle's own id and is not
+  // reachable from the project row alone.
+  const proj = () => suite.projectRow;
 
   it("adds/removes work items, then transfers a completed cycle's leftovers", async () => {
     const sourceCycle = await proj().cycles.create({
@@ -26,10 +29,10 @@ maybe("Cycles.transfer/workItems.add/remove (v2 live)", () => {
     // `roles.py`'s own "already completed" guard) — exercise add/remove on a fresh,
     // not-yet-completed cycle instead, then transfer separately below.
     const openCycle = await proj().cycles.create({ name: uniqueName("cyc-open") });
-    const added = await proj().cycles.workItems.add(openCycle.id, [workItem.id]);
+    const added = await openCycle.workItems.add([workItem.id]);
     expect(added).toContain(workItem.id);
 
-    const removed = await proj().cycles.workItems.remove(openCycle.id, [workItem.id]);
+    const removed = await openCycle.workItems.remove([workItem.id]);
     expect(removed).toContain(workItem.id);
 
     // Populate the still-open source cycle directly via the work item's own
