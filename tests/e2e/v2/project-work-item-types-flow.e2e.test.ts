@@ -30,8 +30,12 @@ function swallow(promise: Promise<unknown>): Promise<void> {
 
 maybe("v2 project work item types flow (live)", () => {
   const suite = useV2Project("wit-flow", env);
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
-  const proj = () => ws().project(suite.projectId);
+  // Flat throughout, like `work-item-types.e2e.test.ts`: this flow crosses the
+  // workspace/project seam that governance mode moves, and a bound row would fix the
+  // path before the branch that is under test.
+  const proj = () => suite.client.v2.projects;
+  const slug = () => suite.workspaceSlug;
+  const project = () => suite.projectId;
 
   let mode: WorkItemTypeMode;
   beforeAll(async () => {
@@ -49,25 +53,25 @@ maybe("v2 project work item types flow (live)", () => {
 
     try {
       // 1. enable -- bootstraps the project's default (non-epic) type
-      const enabled = await proj().workItemTypes.enable();
+      const enabled = await proj().workItemTypes.enable(slug(), project());
       expect(enabled.is_epic).toBe(false);
 
       // 2. create a project-owned type
       const typeName = `E2E Type ${suffix}`;
-      const wtype = await proj().workItemTypes.create({ name: typeName });
+      const wtype = await proj().workItemTypes.create(slug(), project(), { name: typeName });
       typeId = wtype.id;
       expect(wtype.name).toBe(typeName);
       expect(wtype.is_epic).toBe(false);
 
       // 3. list + retrieve + schema
-      expect((await proj().workItemTypes.list()).data.some((row) => row.id === typeId)).toBe(true);
-      expect((await proj().workItemTypes.retrieve(typeId)).id).toBe(typeId);
-      const schema = await proj().workItemTypes.schema(typeId);
+      expect((await proj().workItemTypes.list(slug(), project())).data.some((row) => row.id === typeId)).toBe(true);
+      expect((await proj().workItemTypes.retrieve(slug(), project(), typeId)).id).toBe(typeId);
+      const schema = await proj().workItemTypes.schema(slug(), project(), typeId);
       expect(schema.fields).toBeDefined();
       expect(schema.custom_fields).toBeDefined();
 
       // 4. TEXT property
-      const textProp = await proj().workItemProperties.create({
+      const textProp = await proj().workItemProperties.create(slug(), project(), {
         display_name: `Severity ${suffix}`,
         property_type: "TEXT",
       });
@@ -75,7 +79,7 @@ maybe("v2 project work item types flow (live)", () => {
       const sevKey = textProp.name!; // slugified display_name; the custom_fields key
 
       // 5. OPTION property with inline options
-      const optionProp = await proj().workItemProperties.create({
+      const optionProp = await proj().workItemProperties.create(slug(), project(), {
         display_name: `Tier ${suffix}`,
         property_type: "OPTION",
         options: [{ name: "Gold", is_default: true }, { name: "Silver" }],
@@ -86,24 +90,32 @@ maybe("v2 project work item types flow (live)", () => {
       const goldId = (optionProp.options ?? []).find((o) => o.name === "Gold")!.id;
 
       // 6. add one more option through the options endpoint
-      await proj().workItemProperties.options.create(optionProp.id, { name: "Bronze" });
-      const names = (await proj().workItemProperties.options.list(optionProp.id)).data.map((o) => o.name);
+      await proj().workItemProperties.options.create(slug(), project(), optionProp.id, { name: "Bronze" });
+      const names = (await proj().workItemProperties.options.list(slug(), project(), optionProp.id)).data.map(
+        (o) => o.name
+      );
       expect(new Set(names)).toEqual(new Set(["Gold", "Silver", "Bronze"]));
 
       // 7. a second default option is rejected
       await expect(
-        proj().workItemProperties.options.create(optionProp.id, { name: "Platinum", is_default: true })
+        proj().workItemProperties.options.create(slug(), project(), optionProp.id, {
+          name: "Platinum",
+          is_default: true,
+        })
       ).rejects.toMatchObject<Partial<PlaneApiError>>({ status: 400 });
 
       // 8. link both properties to the type
-      const result = await proj().workItemTypes.properties.link(typeId, [textProp.id, optionProp.id]);
+      const result = await proj().workItemTypes.properties.link(slug(), project(), typeId, [
+        textProp.id,
+        optionProp.id,
+      ]);
       attached.push(textProp.id, optionProp.id);
       expect(result.properties).toEqual(expect.arrayContaining([textProp.id, optionProp.id]));
-      const listed = (await proj().workItemTypes.properties.list(typeId)).data.map((p) => p.id);
+      const listed = (await proj().workItemTypes.properties.list(slug(), project(), typeId)).data.map((p) => p.id);
       expect(listed).toEqual(expect.arrayContaining([textProp.id, optionProp.id]));
 
       // 9. create a work item of this type with custom_fields, read it back
-      const item = await proj().workItems.create({
+      const item = await proj().workItems.create(slug(), project(), {
         name: "E2E work item",
         type_id: typeId,
         custom_fields: { [sevKey]: "high", [tierKey]: goldId },
@@ -112,27 +124,30 @@ maybe("v2 project work item types flow (live)", () => {
       expect(item.custom_fields![sevKey].value).toBe("high");
       expect((item.custom_fields![tierKey].value_detail as { name?: string }).name).toBe("Gold");
 
-      const fetched = await proj().workItems.retrieve(item.id);
+      const fetched = await proj().workItems.retrieve(slug(), project(), item.id);
       expect(fetched.custom_fields![sevKey].value).toBe("high");
 
       // 10. the readable `type` name resolves to the same type
-      const item2 = await proj().workItems.create({ name: "E2E by type name", type: typeName });
+      const item2 = await proj().workItems.create(slug(), project(), { name: "E2E by type name", type: typeName });
       createdWorkItems.push(item2.id);
       expect(item2.type_id).toBe(typeId);
 
       // 11. mark-default
-      expect((await proj().workItemTypes.markDefault(typeId)).is_default).toBe(true);
+      expect((await proj().workItemTypes.markDefault(slug(), project(), typeId)).is_default).toBe(true);
     } finally {
       if (!KEEP) {
-        for (const id of createdWorkItems) await swallow(proj().workItems.delete(id));
-        for (const id of attached) await swallow(proj().workItemTypes.properties.unlink(typeId ?? "", id));
-        for (const id of properties) await swallow(proj().workItemProperties.delete(id));
+        for (const id of createdWorkItems) await swallow(proj().workItems.delete(slug(), project(), id));
+        for (const id of attached)
+          await swallow(proj().workItemTypes.properties.unlink(slug(), project(), typeId ?? "", id));
+        for (const id of properties) await swallow(proj().workItemProperties.delete(slug(), project(), id));
       }
     }
 
     if (!KEEP && typeId) {
       // the type is now the project default, so delete is refused
-      await expect(proj().workItemTypes.delete(typeId)).rejects.toMatchObject<Partial<PlaneApiError>>({
+      await expect(proj().workItemTypes.delete(slug(), project(), typeId)).rejects.toMatchObject<
+        Partial<PlaneApiError>
+      >({
         status: 409,
       });
     }

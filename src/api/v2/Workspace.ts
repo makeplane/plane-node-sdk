@@ -35,11 +35,15 @@ import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
  * slug twice, and every one of them is also on `v2.workspaces`, which
  * `tests/unit/v2/bands.test.ts` requires.
  *
- * **Why it is still here.** Its only remaining consumer is `tests/e2e/`, whose ~30 call
- * sites are a declared pre-PR pass; deleting the class now would leave that suite unable
- * to compile. Nothing else depends on it any more — in particular `bands.test.ts` used to
- * derive both bands *from* these locators and no longer does, so removing this file and
- * `Project.ts` (with `V2Namespace.workspace()`) is now a deletion, not a redesign.
+ * **Why it is still here.** `tests/e2e/` is no longer a reason: that suite was migrated to
+ * the flat surface and fetched rows, and calls nothing here. What is left is
+ * `tests/unit/v2/locators.test.ts`, which pins this class's own behavior, and
+ * `tests/unit/v2/tree-walk.ts`, which still walks the locator chain as one of the three
+ * sources it triangulates the resource tree from. Neither is a design constraint —
+ * `bands.test.ts` used to derive both bands *from* these locators and no longer does — so
+ * removing this file and `Project.ts` (with `V2Namespace.workspace()`) is a deletion plus
+ * one change to how `tree-walk.ts` enumerates, not a redesign. It is deliberately not
+ * done here: this pass is the e2e refresh, and dropping a public class is its own change.
  */
 export class Workspace {
   public readonly members: WorkspaceMembers;

@@ -32,8 +32,13 @@ function swallow(promise: Promise<unknown>): Promise<void> {
 
 maybe("v2 workspace work item types flow (live)", () => {
   const suite = useV2Project("ws-wit-flow", env);
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
-  const proj = () => ws().project(suite.projectId);
+  // Flat throughout, like `work-item-types.e2e.test.ts`: this flow crosses the
+  // workspace/project seam that governance mode moves, and a bound row would fix the
+  // path before the branch that is under test.
+  const ws = () => suite.client.v2.workspaces;
+  const proj = () => suite.client.v2.projects;
+  const slug = () => suite.workspaceSlug;
+  const project = () => suite.projectId;
 
   let mode: WorkItemTypeMode;
   beforeAll(async () => {
@@ -53,7 +58,7 @@ maybe("v2 workspace work item types flow (live)", () => {
     }
     if (mode === "project") {
       // 1. enable -- auto-creates a default workspace type and fans it out to every project
-      const feature = await ws().features.update({ is_work_item_types_enabled: true });
+      const feature = await ws().features.update(slug(), { is_work_item_types_enabled: true });
       expect(feature.is_work_item_types_enabled).toBe(true);
     }
 
@@ -66,20 +71,20 @@ maybe("v2 workspace work item types flow (live)", () => {
     try {
       // 2. create a workspace-owned type
       const typeName = `WS Type ${suffix}`;
-      const wtype = await ws().workItemTypes.create({ name: typeName });
+      const wtype = await ws().workItemTypes.create(slug(), { name: typeName });
       typeId = wtype.id;
 
       // 3. list + retrieve
-      expect((await ws().workItemTypes.list()).data.some((row) => row.id === typeId)).toBe(true);
-      expect((await ws().workItemTypes.retrieve(typeId)).id).toBe(typeId);
+      expect((await ws().workItemTypes.list(slug())).data.some((row) => row.id === typeId)).toBe(true);
+      expect((await ws().workItemTypes.retrieve(slug(), typeId)).id).toBe(typeId);
 
       // 4-5. workspace TEXT + OPTION properties (option values come from the context below)
-      const textProp = await ws().workItemProperties.create({
+      const textProp = await ws().workItemProperties.create(slug(), {
         display_name: `Severity ${suffix}`,
         property_type: "TEXT",
       });
       properties.push(textProp.id);
-      const optionProp = await ws().workItemProperties.create({
+      const optionProp = await ws().workItemProperties.create(slug(), {
         display_name: `Tier ${suffix}`,
         property_type: "OPTION",
       });
@@ -88,7 +93,7 @@ maybe("v2 workspace work item types flow (live)", () => {
       const tierKey = optionProp.name!;
 
       // 6. scope the OPTION property to this project + type via a context, with its options
-      const context = await ws().workItemProperties.contexts.create(optionProp.id, {
+      const context = await ws().workItemProperties.contexts.create(slug(), optionProp.id, {
         name: `Bug-only ${suffix}`,
         is_required: false,
         applies_to_all_projects: false,
@@ -100,35 +105,37 @@ maybe("v2 workspace work item types flow (live)", () => {
       const goldId = (context.options ?? []).find((o) => o.name === "Gold")!.id;
 
       // 7. link both properties to the workspace type
-      const result = await ws().workItemTypes.properties.link(typeId, [textProp.id, optionProp.id]);
+      const result = await ws().workItemTypes.properties.link(slug(), typeId, [textProp.id, optionProp.id]);
       attached.push(textProp.id, optionProp.id);
       expect(result.properties).toEqual(expect.arrayContaining([textProp.id, optionProp.id]));
 
       // 8. import the workspace type into the project
-      await proj().workItemTypes.import([typeId]);
-      expect((await proj().workItemTypes.list()).data.some((row) => row.id === typeId)).toBe(true);
+      await proj().workItemTypes.import(slug(), project(), [typeId]);
+      expect((await proj().workItemTypes.list(slug(), project())).data.some((row) => row.id === typeId)).toBe(true);
 
       // 9-10. create a work item of the imported type with custom_fields, read it back
-      const item = await proj().workItems.create({
+      const item = await proj().workItems.create(slug(), project(), {
         name: "WS-mode work item",
         type_id: typeId,
         custom_fields: { [sevKey]: "high", [tierKey]: goldId },
       });
       createdWorkItems.push(item.id);
       expect(item.custom_fields![sevKey].value).toBe("high");
-      expect((await proj().workItems.retrieve(item.id)).id).toBe(item.id);
+      expect((await proj().workItems.retrieve(slug(), project(), item.id)).id).toBe(item.id);
 
       // 11. project-level type writes are blocked in workspace mode
-      await expect(proj().workItemTypes.create({ name: "nope" })).rejects.toMatchObject<Partial<PlaneApiError>>({
+      await expect(proj().workItemTypes.create(slug(), project(), { name: "nope" })).rejects.toMatchObject<
+        Partial<PlaneApiError>
+      >({
         status: 409,
         code: "work_item_types_managed_at_workspace",
       });
     } finally {
       if (!KEEP) {
-        for (const id of createdWorkItems) await swallow(proj().workItems.delete(id));
-        for (const id of attached) await swallow(ws().workItemTypes.properties.unlink(typeId ?? "", id));
-        for (const id of properties) await swallow(ws().workItemProperties.delete(id));
-        if (typeId) await swallow(ws().workItemTypes.delete(typeId));
+        for (const id of createdWorkItems) await swallow(proj().workItems.delete(slug(), project(), id));
+        for (const id of attached) await swallow(ws().workItemTypes.properties.unlink(slug(), typeId ?? "", id));
+        for (const id of properties) await swallow(ws().workItemProperties.delete(slug(), id));
+        if (typeId) await swallow(ws().workItemTypes.delete(slug(), typeId));
       }
     }
   });

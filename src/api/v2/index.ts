@@ -14,8 +14,9 @@ import { V2Transport } from "./kernel/transport";
  * those ids, so `(await v2.projects.retrieve(slug, "ENG")).states.list()` needs nothing
  * repeated.
  *
- * `workspace(slug)` is the retired locator chain — deprecated, binding nothing, and kept
- * only until the e2e suite stops calling it. See {@link Workspace}.
+ * `workspace(slug)` is the retired locator chain — deprecated and binding nothing. The
+ * e2e suite has stopped calling it; see {@link Workspace} for what still holds it in
+ * place.
  */
 export class V2Namespace {
   public transport: V2Transport;

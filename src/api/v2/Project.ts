@@ -23,8 +23,9 @@ import { V2Transport } from "./kernel/transport";
  * project row (`project.cycles.list()`). Every family here is flat and also hangs off
  * `Projects`, which `tests/unit/v2/bands.test.ts` requires, so this binds nothing.
  *
- * Kept for the same reason as {@link Workspace}: the e2e suite is its last consumer and
- * that migration is a separate pass.
+ * Kept for the same reason as {@link Workspace}, and with the same caveat: the e2e suite
+ * is no longer a consumer — it was migrated to the flat surface and fetched rows — so what
+ * remains is the unit-level locator test and `tree-walk.ts`'s triangulation.
  */
 export class Project {
   public readonly cycles: Cycles;
