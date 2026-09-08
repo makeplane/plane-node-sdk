@@ -6,10 +6,10 @@ import { PlaneClient } from "../../../../src/client/plane-client";
 export type WorkItemTypeMode = "project" | "workspace";
 
 export async function resolveWorkItemTypeMode(client: PlaneClient, workspaceSlug: string): Promise<WorkItemTypeMode> {
-  const features = await client.v2.transport.request<{ is_work_item_types_enabled: boolean }>(
-    "GET",
-    `/workspaces/${workspaceSlug}/features/`
-  );
+  // Through `v2.workspaces.features`, not the raw transport: this runs in every work
+  // item type suite's `beforeAll`, so it doubles as a live check that the features
+  // singleton's URL is right.
+  const features = await client.v2.workspaces.features.retrieve(workspaceSlug);
   return features.is_work_item_types_enabled ? "workspace" : "project";
 }
 

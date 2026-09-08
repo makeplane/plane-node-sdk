@@ -16,12 +16,12 @@ maybe("v2 audit logs (live)", () => {
   });
 
   it("lists without throwing and honors per_page", async () => {
-    const auditLogs = client.v2.workspace(env.workspaceSlug).auditLogs;
+    const auditLogs = client.v2.workspaces.auditLogs;
 
-    const page = await auditLogs.list({ per_page: 5, paginate: "cursor" });
+    const page = await auditLogs.list(env.workspaceSlug, { per_page: 5, paginate: "cursor" });
     expect(Array.isArray(page.data)).toBe(true);
     if (page.data.length > 0) {
-      const fetched = await auditLogs.retrieve(page.data[0].id);
+      const fetched = await auditLogs.retrieve(env.workspaceSlug, page.data[0].id);
       expect(fetched.id).toBe(page.data[0].id);
     }
   });

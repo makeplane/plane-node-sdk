@@ -17,7 +17,7 @@ maybe("WorkspacePermissions (v2 live)", () => {
   });
 
   it("gets the caller's effective permissions at the workspace level", async () => {
-    const perms = await client.v2.workspace(env.workspaceSlug).permissions.me();
+    const perms = await client.v2.workspaces.permissions.me(env.workspaceSlug);
 
     expect(Array.isArray(perms.permission_grants)).toBe(true);
   });
@@ -27,7 +27,7 @@ maybe("ProjectPermissions (v2 live)", () => {
   const suite = useV2Project("perms", env);
 
   it("gets the caller's effective permissions for a project", async () => {
-    const perms = await suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId).permissions.me();
+    const perms = await suite.projectRow.permissions.me();
 
     expect(Array.isArray(perms.permission_grants)).toBe(true);
   });

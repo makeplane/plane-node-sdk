@@ -18,21 +18,23 @@ maybe("WorkspaceFeatures (v2 live)", () => {
   });
 
   it("retrieves, flips one flag, then restores it", async () => {
-    const features = client.v2.workspace(env.workspaceSlug).features;
-    const before = await features.retrieve();
+    const features = client.v2.workspaces.features;
+    const before = await features.retrieve(env.workspaceSlug);
     const original = before.is_wiki_enabled;
 
-    const toggled = await features.update({ is_wiki_enabled: !original });
+    const toggled = await features.update(env.workspaceSlug, { is_wiki_enabled: !original });
     expect(toggled.is_wiki_enabled).toBe(!original);
 
-    const restored = await features.update({ is_wiki_enabled: original });
+    const restored = await features.update(env.workspaceSlug, { is_wiki_enabled: original });
     expect(restored.is_wiki_enabled).toBe(original);
   });
 });
 
 maybe("ProjectFeatures (v2 live)", () => {
   const suite = useV2Project("features", env);
-  const features = () => suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId).features;
+  // Navigated: the project row supplies both path ids, so these calls are the flat ones
+  // minus their two leading arguments.
+  const features = () => suite.projectRow.features;
 
   it("retrieves and patches", async () => {
     const before = await features().retrieve();

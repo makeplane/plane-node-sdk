@@ -1,7 +1,9 @@
 /**
  * list/retrieve/create/update/delete against a real server, workspace-scoped.
  */
+import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { Teamspaces } from "../../../src/api/v2/Teamspaces";
+import { WorkspaceIds } from "../../../src/api/v2/loaded/Workspace";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -10,12 +12,14 @@ const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
 
 maybe("Teamspaces (v2 live)", () => {
-  let resource: Teamspaces;
+  // Navigated: bound off a fetched workspace row.
+  let resource: Owned<Teamspaces, WorkspaceIds>;
   let teamspaceId: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const client = createV2Client(env);
-    resource = client.v2.workspace(env.workspaceSlug).teamspaces;
+    const workspace = await client.v2.workspaces.retrieve(env.workspaceSlug);
+    resource = workspace.teamspaces;
   });
 
   afterAll(async () => {

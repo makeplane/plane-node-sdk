@@ -1,7 +1,13 @@
 /**
  * `states`/`labels` share the same `V2Resource` kernel, so this suite is written once per behavior and driven over both via `SPECS`.
+ *
+ * Each spec also knows both ways into the SDK — {@link ResourceSpec.flat} passes the two
+ * path ids per call, {@link ResourceSpec.navigated} takes them off a fetched project row
+ * — so the behavior suites run twice over the same assertions rather than picking one
+ * shape and leaving the other unexercised against a live server.
  */
 import { PlaneClient } from "../../../../src/client/plane-client";
+import { LoadedProject } from "../../../../src/api/v2/loaded/Project";
 import { Label, UpdateLabel, CreateLabel } from "../../../../src/models/v2/Label";
 import { State, UpdateState, CreateState } from "../../../../src/models/v2/State";
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../../src/models/v2/common";
@@ -22,25 +28,71 @@ export interface ResourceOps<TRead, TWrite, TPatch> {
   bulkDelete(ids: string[], allOrNone?: boolean): Promise<BulkWriteResponse>;
 }
 
+/**
+ * Which way into the SDK a behavior suite is currently driving.
+ *
+ * Named in the test title so a failure says which shape broke: the two reach the same
+ * HTTP, but only through different code — `owned()`'s positional prepending is only on
+ * the `navigated` path.
+ */
+export type WayIn = "flat" | "navigated";
+
+export const WAYS_IN: readonly WayIn[] = ["flat", "navigated"];
+
 export interface ResourceSpec<TRead, TWrite, TPatch> {
   key: "states" | "labels";
   makeWrite(name: string, overrides?: Partial<TWrite>): TWrite;
   makePatch(fields: Partial<TWrite>): TPatch;
-  chained(client: PlaneClient, workspaceSlug: string, project: string): ResourceOps<TRead, TWrite, TPatch>;
+  /** The flat form: `v2.projects.<key>`, both path ids passed on every call. */
+  flat(client: PlaneClient, workspaceSlug: string, project: string): ResourceOps<TRead, TWrite, TPatch>;
+  /** The navigated form: the same methods off a fetched project row, with the ids bound. */
+  navigated(project: LoadedProject): ResourceOps<TRead, TWrite, TPatch>;
 }
 
 const statesSpec: ResourceSpec<State, CreateState, UpdateState> = {
   key: "states",
   makeWrite: (name, overrides = {}) => ({ name, color: DEFAULT_COLOR, ...overrides }),
   makePatch: (fields) => ({ ...fields }),
-  chained: (client, workspaceSlug, project) => client.v2.workspace(workspaceSlug).project(project).states,
+  flat: (client, slug, project) => {
+    const states = client.v2.projects.states;
+    return {
+      list: (params) => states.list(slug, project, params),
+      iterate: (params) => states.iterate(slug, project, params),
+      retrieve: (id, params) => states.retrieve(slug, project, id, params),
+      findByName: (name) => states.findByName(slug, project, name),
+      create: (data) => states.create(slug, project, data),
+      update: (id, data) => states.update(slug, project, id, data),
+      delete: (id) => states.delete(slug, project, id),
+      upsert: (data) => states.upsert(slug, project, data),
+      bulkCreate: (items, allOrNone) => states.bulkCreate(slug, project, items, allOrNone),
+      bulkUpdate: (items, allOrNone) => states.bulkUpdate(slug, project, items, allOrNone),
+      bulkDelete: (ids, allOrNone) => states.bulkDelete(slug, project, ids, allOrNone),
+    };
+  },
+  navigated: (project) => project.states,
 };
 
 const labelsSpec: ResourceSpec<Label, CreateLabel, UpdateLabel> = {
   key: "labels",
   makeWrite: (name, overrides = {}) => ({ name, color: DEFAULT_COLOR, ...overrides }),
   makePatch: (fields) => ({ ...fields }),
-  chained: (client, workspaceSlug, project) => client.v2.workspace(workspaceSlug).project(project).labels,
+  flat: (client, slug, project) => {
+    const labels = client.v2.projects.labels;
+    return {
+      list: (params) => labels.list(slug, project, params),
+      iterate: (params) => labels.iterate(slug, project, params),
+      retrieve: (id, params) => labels.retrieve(slug, project, id, params),
+      findByName: (name) => labels.findByName(slug, project, name),
+      create: (data) => labels.create(slug, project, data),
+      update: (id, data) => labels.update(slug, project, id, data),
+      delete: (id) => labels.delete(slug, project, id),
+      upsert: (data) => labels.upsert(slug, project, data),
+      bulkCreate: (items, allOrNone) => labels.bulkCreate(slug, project, items, allOrNone),
+      bulkUpdate: (items, allOrNone) => labels.bulkUpdate(slug, project, items, allOrNone),
+      bulkDelete: (ids, allOrNone) => labels.bulkDelete(slug, project, ids, allOrNone),
+    };
+  },
+  navigated: (project) => project.labels,
 };
 
 /**

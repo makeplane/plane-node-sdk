@@ -12,8 +12,10 @@ const maybeWithMember = env.ready && secondaryMemberId ? it : it.skip;
 maybe("v2 members (live)", () => {
   const suite = useV2Project("members", env);
 
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
-  const proj = () => ws().project(suite.projectId);
+  // Two ways in on purpose: project membership navigated off the fetched project row,
+  // workspace membership flat with the slug per call.
+  const ws = () => suite.client.v2.workspaces;
+  const proj = () => suite.projectRow;
 
   describe("project-scoped", () => {
     it("lists the creating user as a project member", async () => {
@@ -38,13 +40,13 @@ maybe("v2 members (live)", () => {
 
   describe("workspace-scoped", () => {
     it("list lists the creating user as a workspace member", async () => {
-      const page = await ws().members.list();
+      const page = await ws().members.list(suite.workspaceSlug);
       expect(page.data.length).toBeGreaterThan(0);
     });
 
     it("iterate yields at least one member", async () => {
       const ids: string[] = [];
-      for await (const m of ws().members.iterate()) ids.push(m.id);
+      for await (const m of ws().members.iterate(suite.workspaceSlug)) ids.push(m.id);
       expect(ids.length).toBeGreaterThan(0);
     });
 
@@ -52,7 +54,7 @@ maybe("v2 members (live)", () => {
     // (right endpoint, right error shape) rather than actually removing anyone.
     it("remove rejects an email that isn't a member of the workspace", async () => {
       await expect(
-        ws().members.remove({
+        ws().members.remove(suite.workspaceSlug, {
           email: "definitely-not-a-member@example.invalid",
         })
       ).rejects.toThrow();

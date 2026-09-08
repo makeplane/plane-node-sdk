@@ -21,38 +21,41 @@ interface CreateAssetEnvelope<T> {
 maybe("v2 assets (live)", () => {
   const suite = useV2Project("assets", env);
 
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
+  // Flat: `assets` takes the slug per call. Kept flat rather than navigated because the
+  // sparse-read case below needs the `fields` narrowing, which `Owned` erases by design.
+  const assets = () => suite.client.v2.workspaces.assets;
+  const slug = () => suite.workspaceSlug;
 
   describe("Assets (workspace-scoped)", () => {
     it("create returns upload credentials; list/retrieve/delete round-trip", async () => {
       const name = uniqueName("asset");
-      const created = (await ws().assets.create({
+      const created = (await assets().create(slug(), {
         name,
         size: 1024,
       })) as unknown as CreateAssetEnvelope<WorkspaceAsset>;
       expect(created.asset_id).toBeDefined();
       expect(created.asset.name).toBe(name);
 
-      const fetched = await ws().assets.retrieve(created.asset_id);
+      const fetched = await assets().retrieve(slug(), created.asset_id);
       expect(fetched.id).toBe(created.asset_id);
 
-      await expect(ws().assets.delete(created.asset_id)).resolves.toBeUndefined();
+      await expect(assets().delete(slug(), created.asset_id)).resolves.toBeUndefined();
     });
 
     it("with fields is sparse: an unrequested field is undefined, not an error", async () => {
-      const created = (await ws().assets.create({
+      const created = (await assets().create(slug(), {
         name: uniqueName("asset-sparse"),
         size: 512,
       })) as unknown as CreateAssetEnvelope<WorkspaceAsset>;
       try {
-        const fetched = await ws().assets.retrieve(created.asset_id, {
-          fields: ["id", "name"],
+        const fetched = await assets().retrieve(slug(), created.asset_id, {
+          fields: ["id", "name"] as const,
         });
         expect(fetched.name).toBeDefined();
         expect((fetched as Partial<WorkspaceAsset>).content_type).toBeUndefined();
       } finally {
-        await ws()
-          .assets.delete(created.asset_id)
+        await assets()
+          .delete(slug(), created.asset_id)
           .catch(() => undefined);
       }
     });

@@ -1,7 +1,11 @@
 /**
  * create/retrieve/publish/update against a real server; the golden has no delete op, so runs leave artifacts behind.
+ *
+ * Driven navigated (off a fetched workspace row) rather than flat — see the binding below.
  */
+import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { Artifacts } from "../../../src/api/v2/Artifacts";
+import { WorkspaceIds } from "../../../src/api/v2/loaded/Workspace";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -10,11 +14,14 @@ const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
 
 maybe("Artifacts (v2 live)", () => {
-  let resource: Artifacts;
+  // The navigated way in: a fetched workspace row hands back the artifacts resource with
+  // the slug already bound, so every call below is the flat one minus its leading id.
+  let resource: Owned<Artifacts, WorkspaceIds>;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const client = createV2Client(env);
-    resource = client.v2.workspace(env.workspaceSlug).artifacts;
+    const workspace = await client.v2.workspaces.retrieve(env.workspaceSlug);
+    resource = workspace.artifacts;
   });
 
   it("creates, retrieves, publishes, updates", async () => {

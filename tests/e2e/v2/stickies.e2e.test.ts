@@ -1,7 +1,9 @@
 /**
  * list/retrieve/create/update/delete, workspace-scoped and personal to the caller (`owner_id`).
  */
+import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { Stickies } from "../../../src/api/v2/Stickies";
+import { WorkspaceIds } from "../../../src/api/v2/loaded/Workspace";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -10,12 +12,15 @@ const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
 
 maybe("Stickies (v2 live)", () => {
-  let resource: Stickies;
+  // Navigated: the slug is bound once, at fetch time — see roles.e2e.test.ts for the
+  // flat/navigated agreement check that backs this shape.
+  let resource: Owned<Stickies, WorkspaceIds>;
   let stickyId: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const client = createV2Client(env);
-    resource = client.v2.workspace(env.workspaceSlug).stickies;
+    const workspace = await client.v2.workspaces.retrieve(env.workspaceSlug);
+    resource = workspace.stickies;
   });
 
   afterAll(async () => {

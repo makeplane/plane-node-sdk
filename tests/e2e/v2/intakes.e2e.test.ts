@@ -10,14 +10,11 @@ const maybe = env.ready ? describe : describe.skip;
 
 maybe("Intakes (v2 live)", () => {
   const suite = useV2Project("intakes", env);
-  const resource = () => suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId).intakes;
+  // Navigated: bound off the suite's fetched project row.
+  const resource = () => suite.projectRow.intakes;
 
   beforeAll(async () => {
-    await suite.client.v2.transport.request(
-      "PATCH",
-      `/workspaces/${suite.workspaceSlug}/projects/${suite.projectId}/`,
-      { data: { intake_view: true } }
-    );
+    await suite.client.v2.projects.update(suite.workspaceSlug, suite.projectId, { intake_view: true });
   });
 
   it("creates, retrieves, lists, and folds a triage decision into one PATCH", async () => {

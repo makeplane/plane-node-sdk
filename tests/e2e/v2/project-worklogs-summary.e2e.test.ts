@@ -11,17 +11,11 @@ maybe("v2 project worklogs summary (live)", () => {
   const suite = useV2Project("worklogs-summary", env);
 
   beforeAll(async () => {
-    await suite.client.v2.transport.request(
-      "PATCH",
-      `/workspaces/${suite.workspaceSlug}/projects/${suite.projectId}/`,
-      { data: { is_time_tracking_enabled: true } }
-    );
+    await suite.client.v2.projects.update(suite.workspaceSlug, suite.projectId, { is_time_tracking_enabled: true });
   });
 
   it("returns a bare array for the project (empty when nothing's been logged)", async () => {
-    const summary = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId).worklogs;
-
-    const rows = await summary.summary();
+    const rows = await suite.projectRow.worklogs.summary();
     expect(Array.isArray(rows)).toBe(true);
   });
 });
