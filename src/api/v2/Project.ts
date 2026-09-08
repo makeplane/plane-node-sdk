@@ -46,16 +46,16 @@ export class Project {
 
   constructor(transport: V2Transport, slug: string, project: string) {
     const scope = { slug, project_id: project };
-    this.cycles = new Cycles(transport, scope);
-    this.modules = new Modules(transport, scope);
-    this.milestones = new Milestones(transport, scope);
+    this.cycles = new Cycles(transport);
+    this.modules = new Modules(transport);
+    this.milestones = new Milestones(transport);
     this.members = new ProjectMembers(transport, scope);
     this.pages = new ProjectPages(transport, scope);
     this.views = new ProjectViews(transport, scope);
     this.features = new ProjectFeatures(transport, scope);
     this.permissions = new ProjectPermissions(transport, scope);
     this.intakes = new Intakes(transport, scope);
-    this.estimates = new Estimates(transport, scope);
+    this.estimates = new Estimates(transport);
     this.workItemTypes = new WorkItemTypes(transport, scope);
     this.workItemProperties = new WorkItemProperties(transport, scope);
     this.workItemTemplates = new ProjectWorkItemTemplates(transport, scope);

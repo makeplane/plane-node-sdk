@@ -16,24 +16,20 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeCycles = () =>
-  new Cycles(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeCycles = () => new Cycles(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
 describe("membership bridge guard (v2, via Cycles.workItems)", () => {
   it("rejects 0 ids with a RangeError before making any request", async () => {
-    await expect(makeCycles().workItems.add("cyc-1", [])).rejects.toBeInstanceOf(RangeError);
+    await expect(makeCycles().workItems.add("acme", "ENG", "cyc-1", [])).rejects.toBeInstanceOf(RangeError);
     // No interceptor was registered at all — if a request had gone out, nock would
     // throw "No match for request" and this would fail as an unhandled rejection.
   });
 
   it(`rejects more than ${BRIDGE_MAX_IDS} ids with a RangeError before making any request`, async () => {
     const tooMany = Array.from({ length: BRIDGE_MAX_IDS + 1 }, (_, i) => `wi-${i}`);
-    await expect(makeCycles().workItems.add("cyc-1", tooMany)).rejects.toBeInstanceOf(RangeError);
+    await expect(makeCycles().workItems.add("acme", "ENG", "cyc-1", tooMany)).rejects.toBeInstanceOf(RangeError);
   });
 
   it(`allows exactly ${BRIDGE_MAX_IDS} ids`, async () => {
@@ -42,24 +38,24 @@ describe("membership bridge guard (v2, via Cycles.workItems)", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/", { add: exactlyMax })
       .reply(200, { added: exactlyMax });
 
-    const result = await makeCycles().workItems.add("cyc-1", exactlyMax);
+    const result = await makeCycles().workItems.add("acme", "ENG", "cyc-1", exactlyMax);
 
     expect(scope.isDone()).toBe(true);
     expect(result).toHaveLength(BRIDGE_MAX_IDS);
   });
 
   it("rejects a non-array with a TypeError before making any request", async () => {
-    await expect(makeCycles().workItems.add("cyc-1", "x" as never)).rejects.toBeInstanceOf(TypeError);
+    await expect(makeCycles().workItems.add("acme", "ENG", "cyc-1", "x" as never)).rejects.toBeInstanceOf(TypeError);
   });
 
   it("resolves to [] when the response omits added/removed", async () => {
     nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/").reply(200, {});
 
-    const added = await makeCycles().workItems.add("cyc-1", ["wi-1"]);
+    const added = await makeCycles().workItems.add("acme", "ENG", "cyc-1", ["wi-1"]);
     expect(added).toEqual([]);
 
     nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/").reply(200, {});
-    const removed = await makeCycles().workItems.remove("cyc-1", ["wi-1"]);
+    const removed = await makeCycles().workItems.remove("acme", "ENG", "cyc-1", ["wi-1"]);
     expect(removed).toEqual([]);
   });
 });

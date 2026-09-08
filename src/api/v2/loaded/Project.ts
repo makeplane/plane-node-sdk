@@ -1,9 +1,13 @@
 import type { Project } from "../../../models/v2/Project";
+import type { Cycles } from "../Cycles";
+import type { Estimates } from "../Estimates";
 import type { ProjectFeatures } from "../Features";
 import type { Intakes } from "../Intakes";
 import type { Loaded, Owned } from "../kernel/loaded";
 import type { Labels } from "../Labels";
 import type { ProjectMembers } from "../Members";
+import type { Milestones } from "../Milestones";
+import type { Modules } from "../Modules";
 import type { ProjectPages } from "../Pages";
 import type { ProjectPermissions } from "../Permissions";
 import type { ProjectWorklogs } from "../ProjectWorklogs";
@@ -49,6 +53,10 @@ export interface ProjectNavigation {
   readonly intakes: Owned<Intakes, ProjectIds>;
   readonly workItemTemplates: Owned<ProjectWorkItemTemplates, ProjectIds>;
   readonly worklogs: Owned<ProjectWorklogs, ProjectIds>;
+  readonly cycles: Owned<Cycles, ProjectIds>;
+  readonly modules: Owned<Modules, ProjectIds>;
+  readonly milestones: Owned<Milestones, ProjectIds>;
+  readonly estimates: Owned<Estimates, ProjectIds>;
 }
 
 /**

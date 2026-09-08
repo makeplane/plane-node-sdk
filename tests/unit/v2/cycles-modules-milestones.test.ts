@@ -16,12 +16,19 @@ import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 
 const BASE = "https://api.example.com";
 const makeTransport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
-const SCOPE = { slug: "acme", project_id: "ENG" };
+const SLUG = "acme";
+const PROJECT = "ENG";
 
 /** Widens a plain-object write/read value to a nock-friendly matcher/index shape. */
 const asRecord = (value: unknown): Record<string, unknown> => value as Record<string, unknown>;
 
-/** The shape all three resources share, erased to a common signature for the table below. */
+/**
+ * The shape all three resources share, **with the two leading path ids already supplied**.
+ *
+ * All three are flat now — `list(slug, project, params)` — so the table below binds the ids
+ * once through {@link bind} and goes on asking one question per row. The ids are still
+ * really passed per call; nothing here holds a scope.
+ */
 interface ResourceOps<TRead, TWrite, TPatch> {
   list: (params?: Record<string, unknown>) => Promise<Page<TRead>>;
   retrieve: (id: string, params?: Record<string, unknown>) => Promise<TRead>;
@@ -44,11 +51,43 @@ interface ResourceSpec<TRead, TWrite, TPatch> {
   makeWrite: (label: string) => TWrite;
 }
 
+/** The flat resource with `(slug, project)` prepended to every method — see {@link ResourceOps}. */
+function bind<TRead, TWrite, TPatch>(resource: {
+  list(slug: string, project: string, params?: never): Promise<Page<TRead>>;
+  retrieve(slug: string, project: string, id: string, params?: never): Promise<TRead>;
+  findByName(slug: string, project: string, name: string): Promise<TRead>;
+  create(slug: string, project: string, data: TWrite): Promise<TRead>;
+  update(slug: string, project: string, id: string, data: TPatch): Promise<TRead>;
+  delete(slug: string, project: string, id: string): Promise<void>;
+  upsert(slug: string, project: string, data: TWrite): Promise<TRead>;
+  bulkCreate(slug: string, project: string, items: TWrite[], allOrNone?: boolean): Promise<BulkWriteResponse>;
+  bulkUpdate(
+    slug: string,
+    project: string,
+    items: BulkUpdateItem<TPatch>[],
+    allOrNone?: boolean
+  ): Promise<BulkWriteResponse>;
+  bulkDelete(slug: string, project: string, ids: string[], allOrNone?: boolean): Promise<BulkWriteResponse>;
+}): ResourceOps<TRead, TWrite, TPatch> {
+  return {
+    list: (params) => resource.list(SLUG, PROJECT, params as never),
+    retrieve: (id, params) => resource.retrieve(SLUG, PROJECT, id, params as never),
+    findByName: (name) => resource.findByName(SLUG, PROJECT, name),
+    create: (data) => resource.create(SLUG, PROJECT, data),
+    update: (id, data) => resource.update(SLUG, PROJECT, id, data),
+    delete: (id) => resource.delete(SLUG, PROJECT, id),
+    upsert: (data) => resource.upsert(SLUG, PROJECT, data),
+    bulkCreate: (items, allOrNone) => resource.bulkCreate(SLUG, PROJECT, items, allOrNone),
+    bulkUpdate: (items, allOrNone) => resource.bulkUpdate(SLUG, PROJECT, items, allOrNone),
+    bulkDelete: (ids, allOrNone) => resource.bulkDelete(SLUG, PROJECT, ids, allOrNone),
+  };
+}
+
 const cyclesSpec: ResourceSpec<Cycle, CreateCycle, UpdateCycle> = {
   key: "cycles",
   segment: "cycles",
   identityField: "name",
-  make: () => new Cycles(makeTransport(), SCOPE),
+  make: () => bind(new Cycles(makeTransport())),
   makeWrite: (label) => ({ name: label }),
 };
 
@@ -56,7 +95,7 @@ const modulesSpec: ResourceSpec<Module, CreateModule, UpdateModule> = {
   key: "modules",
   segment: "modules",
   identityField: "name",
-  make: () => new Modules(makeTransport(), SCOPE),
+  make: () => bind(new Modules(makeTransport())),
   makeWrite: (label) => ({ name: label }),
 };
 
@@ -64,7 +103,7 @@ const milestonesSpec: ResourceSpec<Milestone, CreateMilestone, UpdateMilestone> 
   key: "milestones",
   segment: "milestones",
   identityField: "title",
-  make: () => new Milestones(makeTransport(), SCOPE),
+  make: () => bind(new Milestones(makeTransport())),
   makeWrite: (label) => ({ title: label }),
 };
 
@@ -234,10 +273,10 @@ describe("Cycles (v2, offline) — expand", () => {
       .query({ expand: "owned_by" })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await new Cycles(makeTransport(), SCOPE).list({ expand: ["owned_by"] });
+    await new Cycles(makeTransport()).list(SLUG, PROJECT, { expand: ["owned_by"] });
     expect(scope.isDone()).toBe(true);
 
-    await expect(new Cycles(makeTransport(), SCOPE).list({ expand: ["nope" as never] })).rejects.toThrow(
+    await expect(new Cycles(makeTransport()).list(SLUG, PROJECT, { expand: ["nope" as never] })).rejects.toThrow(
       /Unknown expand value\(s\) for cycles_list: nope/
     );
   });
@@ -249,7 +288,7 @@ describe("Cycles (v2, offline) — expand", () => {
       .reply(200, { data: [{ id: "1", name: "Sprint 1" }], pagination: { style: "offset" } });
 
     const dynamicFields: CycleField[] = ["id", "name"];
-    const page = await new Cycles(makeTransport(), SCOPE).list({ fields: dynamicFields });
+    const page = await new Cycles(makeTransport()).list(SLUG, PROJECT, { fields: dynamicFields });
 
     expect(page.data[0].name).toBe("Sprint 1");
   });
@@ -262,10 +301,10 @@ describe("Modules (v2, offline) — expand and status filters", () => {
       .query({ expand: "lead,members" })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await new Modules(makeTransport(), SCOPE).list({ expand: ["lead", "members"] });
+    await new Modules(makeTransport()).list(SLUG, PROJECT, { expand: ["lead", "members"] });
     expect(scope.isDone()).toBe(true);
 
-    await expect(new Modules(makeTransport(), SCOPE).list({ expand: ["nope" as never] })).rejects.toThrow(
+    await expect(new Modules(makeTransport()).list(SLUG, PROJECT, { expand: ["nope" as never] })).rejects.toThrow(
       /Unknown expand value\(s\) for modules_list: nope/
     );
   });
@@ -276,7 +315,7 @@ describe("Modules (v2, offline) — expand and status filters", () => {
       .query({ status__in: "backlog,planned" })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await new Modules(makeTransport(), SCOPE).list({ status__in: ["backlog", "planned"] });
+    await new Modules(makeTransport()).list(SLUG, PROJECT, { status__in: ["backlog", "planned"] });
     expect(scope.isDone()).toBe(true);
   });
 
@@ -286,7 +325,7 @@ describe("Modules (v2, offline) — expand and status filters", () => {
       .query({ status: "completed" })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await new Modules(makeTransport(), SCOPE).list({ status: "completed" });
+    await new Modules(makeTransport()).list(SLUG, PROJECT, { status: "completed" });
     expect(scope.isDone()).toBe(true);
   });
 });
@@ -296,8 +335,8 @@ describe("Milestones (v2, offline) — no expand support", () => {
     // `ListMilestonesParams` has no `expand` field at all — the golden's milestones_list
     // never gained one — so this is deliberately typed around to exercise the kernel's
     // runtime guard (`encodeExpand`) for this operation id specifically.
-    const params = { expand: ["anything"] } as unknown as Parameters<Milestones["list"]>[0];
-    await expect(new Milestones(makeTransport(), SCOPE).list(params)).rejects.toThrow(
+    const params = { expand: ["anything"] } as unknown as Parameters<Milestones["list"]>[2];
+    await expect(new Milestones(makeTransport()).list(SLUG, PROJECT, params)).rejects.toThrow(
       /milestones_list does not support the expand parameter/
     );
   });
@@ -307,7 +346,7 @@ describe("Milestones (v2, offline) — no expand support", () => {
       .get("/api/v2/workspaces/acme/projects/ENG/milestones/")
       .reply(200, { data: [{ id: "1", title: "Launch" }], pagination: { style: "offset" } });
 
-    const page = await new Milestones(makeTransport(), SCOPE).list();
+    const page = await new Milestones(makeTransport()).list(SLUG, PROJECT);
 
     expect(page.data[0].title).toBe("Launch");
   });
@@ -317,7 +356,7 @@ describe("Milestones (v2, offline) — no expand support", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/milestones/", { title: "Launch" })
       .reply(201, { id: "1", title: "Launch" });
 
-    await new Milestones(makeTransport(), SCOPE).create({ title: "Launch" });
+    await new Milestones(makeTransport()).create(SLUG, PROJECT, { title: "Launch" });
     expect(scope.isDone()).toBe(true);
   });
 });

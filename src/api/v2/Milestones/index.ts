@@ -1,8 +1,10 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
 import { Milestone, UpdateMilestone, CreateMilestone } from "../../../models/v2/Milestone";
 import { MilestoneField, MilestoneOrderBy } from "../generated/constants";
-import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { LoadedMilestone, LoadedMilestoneRow, MILESTONE_ID_NAMES, MilestoneNavigation } from "../loaded/Milestone";
 import { MilestoneWorkItems } from "./WorkItems";
 
 export interface ListMilestonesParams {
@@ -23,8 +25,20 @@ export interface ListMilestonesParams {
   count?: boolean;
 }
 
-/** Project milestones, reached bound to a project; membership is `workItems`. */
-export class Milestones extends V2Resource<Milestone, CreateMilestone, UpdateMilestone> {
+/** `?fields=` on a single-row read. The golden declares no `?expand=` on this family. */
+export interface MilestoneShapeParams {
+  fields?: readonly MilestoneField[];
+}
+
+/**
+ * Project milestones.
+ *
+ * Reached flat — `v2.projects.milestones.list(slug, project)` — or from a fetched project,
+ * which supplies both leading ids: `project.milestones.list()`. Every row-returning method
+ * answers a {@link LoadedMilestone}, so `milestone.workItems.add([...])` needs nothing
+ * repeated.
+ */
+export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, UpdateMilestone, MilestoneNavigation> {
   protected path = "/workspaces/{slug}/projects/{project_id}/milestones/";
   protected operations: Record<string, AnyOperationId> = {
     list: "milestones_list",
@@ -37,70 +51,126 @@ export class Milestones extends V2Resource<Milestone, CreateMilestone, UpdateMil
     bulkUpdate: "milestones_bulk_update",
     bulkDelete: "milestones_bulk_delete",
   };
+  protected loadedIdNames = MILESTONE_ID_NAMES;
 
   /** `add`/`remove` work items on a milestone — see {@link MilestoneWorkItems}. */
   public workItems: MilestoneWorkItems;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.workItems = new MilestoneWorkItems(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.workItems = new MilestoneWorkItems(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<MilestoneNavigation> {
+    const ids = meta.ids as [string, string, string];
+    return { workItems: () => owned(this.workItems, ids, meta.idNames) };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
+    slug: string,
+    project: string,
     params: ListMilestonesParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Milestone, F | "id">>>;
-  list(params?: ListMilestonesParams): Promise<Page<Milestone>>;
-  list(params?: ListMilestonesParams): Promise<Page<Milestone>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedMilestoneRow<Pick<Milestone, F | "id">>>>;
+  list(slug: string, project: string, params?: ListMilestonesParams): Promise<Page<LoadedMilestone>>;
+  async list(slug: string, project: string, params?: ListMilestonesParams): Promise<Page<LoadedMilestone>> {
+    const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug, project], params?.fields);
   }
 
-  /** Every milestone, following pages automatically. */
-  iterate(params?: ListMilestonesParams): AsyncGenerator<Milestone> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every milestone in the project, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
+    slug: string,
+    project: string,
+    params: ListMilestonesParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  iterate(slug: string, project: string, params?: ListMilestonesParams): AsyncGenerator<LoadedMilestone>;
+  iterate(slug: string, project: string, params?: ListMilestonesParams): AsyncGenerator<LoadedMilestone> {
+    return this.loadIterate(
+      this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
+      [slug, project],
+      params?.fields
+    );
   }
 
   retrieve<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
-    milestoneId: string,
+    slug: string,
+    project: string,
+    milestone: string,
     params: { fields: readonly F[] }
-  ): Promise<Pick<Milestone, F | "id">>;
-  retrieve(milestoneId: string, params?: { fields?: readonly MilestoneField[] }): Promise<Milestone>;
-  retrieve(milestoneId: string, params?: { fields?: readonly MilestoneField[] }): Promise<Milestone> {
-    return this.doRetrieve({ pk: milestoneId }, params as Record<string, unknown>);
+  ): Promise<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  retrieve(slug: string, project: string, milestone: string, params?: MilestoneShapeParams): Promise<LoadedMilestone>;
+  async retrieve(
+    slug: string,
+    project: string,
+    milestone: string,
+    params?: MilestoneShapeParams
+  ): Promise<LoadedMilestone> {
+    const row = await this.doRetrieve({ slug, project_id: project, pk: milestone }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  /** The one milestone with this title; throws if none or several match. */
-  findByName(name: string): Promise<Milestone> {
-    return this.doFindOne({ name }, {});
+  /** The one milestone with this title; throws if none or several match. Answers the same navigable row `retrieve` does. */
+  async findByName(slug: string, project: string, name: string): Promise<LoadedMilestone> {
+    const row = await this.doFindOne({ name }, { slug, project_id: project });
+    return this.load(row, [slug, project]);
   }
 
-  create(data: CreateMilestone): Promise<Milestone> {
-    return this.doCreate(data, {});
+  async create(
+    slug: string,
+    project: string,
+    data: CreateMilestone,
+    params?: MilestoneShapeParams
+  ): Promise<LoadedMilestone> {
+    const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  update(milestoneId: string, data: UpdateMilestone): Promise<Milestone> {
-    return this.doUpdate(data, { pk: milestoneId });
+  async update(
+    slug: string,
+    project: string,
+    milestone: string,
+    data: UpdateMilestone,
+    params?: MilestoneShapeParams
+  ): Promise<LoadedMilestone> {
+    const row = await this.doUpdate(
+      data,
+      { slug, project_id: project, pk: milestone },
+      params as Record<string, unknown>
+    );
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  delete(milestoneId: string): Promise<void> {
-    return this.doDelete({ pk: milestoneId });
+  delete(slug: string, project: string, milestone: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: milestone });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(data: CreateMilestone): Promise<Milestone> {
-    return this.doUpsert(data, {});
+  async upsert(
+    slug: string,
+    project: string,
+    data: CreateMilestone,
+    params?: MilestoneShapeParams
+  ): Promise<LoadedMilestone> {
+    const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  bulkCreate(items: CreateMilestone[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, {}, allOrNone);
+  bulkCreate(slug: string, project: string, items: CreateMilestone[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkUpdate(items: BulkUpdateItem<UpdateMilestone>[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, {}, allOrNone);
+  bulkUpdate(
+    slug: string,
+    project: string,
+    items: BulkUpdateItem<UpdateMilestone>[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkUpdate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, {}, allOrNone);
+  bulkDelete(slug: string, project: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, { slug, project_id: project }, allOrNone);
   }
 }
 

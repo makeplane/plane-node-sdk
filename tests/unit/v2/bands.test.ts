@@ -76,7 +76,7 @@ export const PREFLAT_UNDER_ROOT_CEILING = 1;
  * list, never from a list written here, so this cannot drift. Task 3 lowers both to 0 as it
  * migrates the two bands; they are never raised.
  */
-export const BAND_PENDING_CEILING: Readonly<Record<string, number>> = { workspace: 8, project: 8 };
+export const BAND_PENDING_CEILING: Readonly<Record<string, number>> = { workspace: 8, project: 4 };
 
 const namespace = new V2Namespace(WALK_CONFIG);
 const workspaceLocator = namespace.workspace("acme");
@@ -111,7 +111,7 @@ const BANDS: readonly Band[] = [
     root: namespace.projects,
     rootPath: "v2.projects",
     prefix: "/workspaces/{slug}/projects/{project_id}/",
-    rootFloor: 10,
+    rootFloor: 15,
   },
 ];
 

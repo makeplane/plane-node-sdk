@@ -1,8 +1,10 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
 import { Module, UpdateModule, ModuleStatus, CreateModule } from "../../../models/v2/Module";
 import { EXPAND, ModuleField, ModuleOrderBy } from "../generated/constants";
-import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { LoadedModule, LoadedModuleRow, MODULE_ID_NAMES, ModuleNavigation } from "../loaded/Module";
 import { ModuleWorkItems } from "./WorkItems";
 
 /** `modules_list`'s expand targets — the module's lead and members as full objects instead of `*_id(s)`. */
@@ -26,8 +28,20 @@ export interface ListModulesParams {
   count?: boolean;
 }
 
-/** Project modules, reached bound to a project; membership is `workItems`. */
-export class Modules extends V2Resource<Module, CreateModule, UpdateModule> {
+/** `?fields=`/`?expand=` on a single-row read. */
+export interface ModuleShapeParams {
+  fields?: readonly ModuleField[];
+  expand?: readonly ModuleExpand[];
+}
+
+/**
+ * Project modules.
+ *
+ * Reached flat — `v2.projects.modules.list(slug, project)` — or from a fetched project,
+ * which supplies both leading ids: `project.modules.list()`. Every row-returning method
+ * answers a {@link LoadedModule}, so `module.workItems.add([...])` needs nothing repeated.
+ */
+export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModule, ModuleNavigation> {
   protected path = "/workspaces/{slug}/projects/{project_id}/modules/";
   protected operations: Record<string, AnyOperationId> = {
     list: "modules_list",
@@ -40,76 +54,107 @@ export class Modules extends V2Resource<Module, CreateModule, UpdateModule> {
     bulkUpdate: "modules_bulk_update",
     bulkDelete: "modules_bulk_delete",
   };
+  protected loadedIdNames = MODULE_ID_NAMES;
 
   /** `add`/`remove` work items on a module — see {@link ModuleWorkItems}. */
   public workItems: ModuleWorkItems;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.workItems = new ModuleWorkItems(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.workItems = new ModuleWorkItems(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<ModuleNavigation> {
+    const ids = meta.ids as [string, string, string];
+    return { workItems: () => owned(this.workItems, ids, meta.idNames) };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ModuleField, "all"> & keyof Module>(
+    slug: string,
+    project: string,
     params: ListModulesParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Module, F | "id">>>;
-  list(params?: ListModulesParams): Promise<Page<Module>>;
-  list(params?: ListModulesParams): Promise<Page<Module>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedModuleRow<Pick<Module, F | "id">>>>;
+  list(slug: string, project: string, params?: ListModulesParams): Promise<Page<LoadedModule>>;
+  async list(slug: string, project: string, params?: ListModulesParams): Promise<Page<LoadedModule>> {
+    const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug, project], params?.fields);
   }
 
-  /** Every module, following pages automatically. */
-  iterate(params?: ListModulesParams): AsyncGenerator<Module> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every module in the project, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<ModuleField, "all"> & keyof Module>(
+    slug: string,
+    project: string,
+    params: ListModulesParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedModuleRow<Pick<Module, F | "id">>>;
+  iterate(slug: string, project: string, params?: ListModulesParams): AsyncGenerator<LoadedModule>;
+  iterate(slug: string, project: string, params?: ListModulesParams): AsyncGenerator<LoadedModule> {
+    return this.loadIterate(
+      this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
+      [slug, project],
+      params?.fields
+    );
   }
 
   retrieve<F extends Exclude<ModuleField, "all"> & keyof Module>(
-    moduleId: string,
+    slug: string,
+    project: string,
+    module: string,
     params: { fields: readonly F[]; expand?: readonly ModuleExpand[] }
-  ): Promise<Pick<Module, F | "id">>;
-  retrieve(
-    moduleId: string,
-    params?: { fields?: readonly ModuleField[]; expand?: readonly ModuleExpand[] }
-  ): Promise<Module>;
-  retrieve(
-    moduleId: string,
-    params?: { fields?: readonly ModuleField[]; expand?: readonly ModuleExpand[] }
-  ): Promise<Module> {
-    return this.doRetrieve({ pk: moduleId }, params as Record<string, unknown>);
+  ): Promise<LoadedModuleRow<Pick<Module, F | "id">>>;
+  retrieve(slug: string, project: string, module: string, params?: ModuleShapeParams): Promise<LoadedModule>;
+  async retrieve(slug: string, project: string, module: string, params?: ModuleShapeParams): Promise<LoadedModule> {
+    const row = await this.doRetrieve({ slug, project_id: project, pk: module }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  /** The one module with this name; throws if none or several match. */
-  findByName(name: string): Promise<Module> {
-    return this.doFindOne({ name }, {});
+  /** The one module with this name; throws if none or several match. Answers the same navigable row `retrieve` does. */
+  async findByName(slug: string, project: string, name: string): Promise<LoadedModule> {
+    const row = await this.doFindOne({ name }, { slug, project_id: project });
+    return this.load(row, [slug, project]);
   }
 
-  create(data: CreateModule): Promise<Module> {
-    return this.doCreate(data, {});
+  async create(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule> {
+    const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  update(moduleId: string, data: UpdateModule): Promise<Module> {
-    return this.doUpdate(data, { pk: moduleId });
+  async update(
+    slug: string,
+    project: string,
+    module: string,
+    data: UpdateModule,
+    params?: ModuleShapeParams
+  ): Promise<LoadedModule> {
+    const row = await this.doUpdate(data, { slug, project_id: project, pk: module }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  delete(moduleId: string): Promise<void> {
-    return this.doDelete({ pk: moduleId });
+  delete(slug: string, project: string, module: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: module });
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(data: CreateModule): Promise<Module> {
-    return this.doUpsert(data, {});
+  async upsert(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule> {
+    const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  bulkCreate(items: CreateModule[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, {}, allOrNone);
+  bulkCreate(slug: string, project: string, items: CreateModule[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkUpdate(items: BulkUpdateItem<UpdateModule>[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, {}, allOrNone);
+  bulkUpdate(
+    slug: string,
+    project: string,
+    items: BulkUpdateItem<UpdateModule>[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkUpdate(items, { slug, project_id: project }, allOrNone);
   }
 
-  bulkDelete(ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, {}, allOrNone);
+  bulkDelete(slug: string, project: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, { slug, project_id: project }, allOrNone);
   }
 }
 

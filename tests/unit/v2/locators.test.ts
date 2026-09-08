@@ -177,7 +177,10 @@ describe("chain locators (Workspace/Project) — being retired", () => {
       .matchHeader("X-Api-Key", "secret")
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await makeClient().v2.workspace("acme").project("ENG").cycles.list();
+    // The ids are passed even though the locator bound them: `Cycles` is flat now, so the
+    // locator is only a holder. What is still worth asserting is that what it holds shares
+    // the namespace's transport — the locator does not build one of its own.
+    await makeClient().v2.workspace("acme").project("ENG").cycles.list("acme", "ENG");
 
     expect(scope.isDone()).toBe(true);
   });

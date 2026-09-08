@@ -10,11 +10,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeMilestones = () =>
-  new Milestones(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeMilestones = () => new Milestones(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -28,7 +24,7 @@ describe("Milestones.workItems (v2)", () => {
       })
       .reply(200, { added: ["wi-1", "wi-2"] });
 
-    const result = await makeMilestones().workItems.add("ms-1", ["wi-1", "wi-2"]);
+    const result = await makeMilestones().workItems.add("acme", "ENG", "ms-1", ["wi-1", "wi-2"]);
 
     expect(scope.isDone()).toBe(true);
     // Assert the fully parsed body, not a substring — see bulk.test.ts's own rationale
@@ -46,7 +42,7 @@ describe("Milestones.workItems (v2)", () => {
       })
       .reply(200, { removed: ["wi-3"] });
 
-    const result = await makeMilestones().workItems.remove("ms-1", ["wi-3"]);
+    const result = await makeMilestones().workItems.remove("acme", "ENG", "ms-1", ["wi-3"]);
 
     expect(scope.isDone()).toBe(true);
     expect(capturedBody).toEqual({ remove: ["wi-3"] });
@@ -58,7 +54,7 @@ describe("Milestones.workItems (v2)", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/milestones/ms%2Fslash/work-items/")
       .reply(200, { added: ["wi-1"] });
 
-    await makeMilestones().workItems.add("ms/slash", ["wi-1"]);
+    await makeMilestones().workItems.add("acme", "ENG", "ms/slash", ["wi-1"]);
 
     expect(scope.isDone()).toBe(true);
   });
@@ -66,7 +62,7 @@ describe("Milestones.workItems (v2)", () => {
   it("omits idempotent no-ops from the response rather than echoing every requested id back", async () => {
     nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/work-items/").reply(200, { added: [] });
 
-    const result = await makeMilestones().workItems.add("ms-1", ["already-there"]);
+    const result = await makeMilestones().workItems.add("acme", "ENG", "ms-1", ["already-there"]);
 
     expect(result).toEqual([]);
   });

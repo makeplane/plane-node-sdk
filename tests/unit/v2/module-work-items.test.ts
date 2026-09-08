@@ -9,11 +9,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeModules = () =>
-  new Modules(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeModules = () => new Modules(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -27,7 +23,7 @@ describe("Modules.workItems (v2)", () => {
       })
       .reply(200, { added: ["wi-1"] });
 
-    const result = await makeModules().workItems.add("mod-1", ["wi-1"]);
+    const result = await makeModules().workItems.add("acme", "ENG", "mod-1", ["wi-1"]);
 
     expect(scope.isDone()).toBe(true);
     expect(capturedBody).toEqual({ add: ["wi-1"] });
@@ -39,7 +35,7 @@ describe("Modules.workItems (v2)", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/modules/mod%2Fslash/work-items/")
       .reply(200, { added: ["wi-1"] });
 
-    await makeModules().workItems.add("mod/slash", ["wi-1"]);
+    await makeModules().workItems.add("acme", "ENG", "mod/slash", ["wi-1"]);
 
     expect(scope.isDone()).toBe(true);
   });
@@ -53,7 +49,7 @@ describe("Modules.workItems (v2)", () => {
       })
       .reply(200, { removed: ["wi-9"] });
 
-    const result = await makeModules().workItems.remove("mod-1", ["wi-9"]);
+    const result = await makeModules().workItems.remove("acme", "ENG", "mod-1", ["wi-9"]);
 
     expect(capturedBody).toEqual({ remove: ["wi-9"] });
     expect(result).toEqual(["wi-9"]);
@@ -62,7 +58,7 @@ describe("Modules.workItems (v2)", () => {
   it("resolves to [] when the response omits added/removed", async () => {
     nock(BASE).post("/api/v2/workspaces/acme/projects/ENG/modules/mod-1/work-items/").reply(200, {});
 
-    const result = await makeModules().workItems.add("mod-1", ["wi-1"]);
+    const result = await makeModules().workItems.add("acme", "ENG", "mod-1", ["wi-1"]);
 
     expect(result).toEqual([]);
   });

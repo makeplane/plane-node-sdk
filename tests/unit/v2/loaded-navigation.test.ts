@@ -33,7 +33,7 @@
  *   the type system nor the URL builder can tell a transposed child from a correct one.
  */
 
-import { FIELDS } from "../../../src/api/v2/generated/constants";
+import { EXPAND, FIELDS } from "../../../src/api/v2/generated/constants";
 import { LoadedMeta, ownedBinding } from "../../../src/api/v2/kernel/loaded";
 import {
   AnyResource,
@@ -51,13 +51,18 @@ import {
 /**
  * Child attribute name -> navigation property name, where the two must differ.
  *
- * **Empty today.** The collisions Python needed entries for (`Estimate.points`,
- * `WorkItemProperty.options` — real API fields a navigation property of the same name
- * would shadow) belong to families tasks 2 and 3 still have to migrate. Add a row only for
- * that kind of reason: a child whose attribute name is already taken by a field on the
- * row. Any other divergence is a bug.
+ * A row goes in here only for one reason: the child's attribute name is already a key the
+ * API itself puts on the row, so a navigation property of that name would define over real
+ * data. `loadRow` refuses that outright and {@link fullRowOf} makes the refusal fire in CI,
+ * so an entry here is never a suppression — it is the record of which spelling was chosen
+ * instead. Any other divergence between the two names is a bug.
+ *
+ * `Estimates.points` is the inline point scale `?expand=points` returns; the Python SDK
+ * needed the identical rename on the identical resource.
  */
-export const NAVIGATION_ALIASES: Readonly<Record<string, Record<string, string>>> = {};
+export const NAVIGATION_ALIASES: Readonly<Record<string, Record<string, string>>> = {
+  Estimates: { points: "estimatePoints" },
+};
 
 const NAVIGABLE = navigableEntries();
 
@@ -73,7 +78,7 @@ function rowOf(resource: AnyResource): Record<string, unknown> {
 }
 
 /**
- * The same row, but carrying **every field the golden says this resource returns** rather
+ * The same row, but carrying **every key the golden says this resource can return** rather
  * than `id` alone.
  *
  * {@link rowOf} builds `{ id }`, and no navigation property can collide with `id` — so a
@@ -83,11 +88,20 @@ function rowOf(resource: AnyResource): Record<string, unknown> {
  * shape here turns that refusal into a sweep: the collision fails in CI instead of silently
  * hiding the field behind a child resource at runtime.
  *
- * Every field gets the row's own id as its value so `rowId` — which some resources override
+ * **Two sources, not one.** `FIELDS` is what the row carries by default, and `EXPAND` is
+ * what `?expand=` adds to it under the relation's own name — and the expand names are where
+ * the collisions actually are. `Estimate.points` is not in `FIELDS.estimates_list` at all;
+ * it exists only as `EXPAND.estimates_list`, the inline point scale the server returns when
+ * asked. A `FIELDS`-only version of this row passes while `estimates.retrieve(…, { expand:
+ * ["points"] })` throws in the consumer's hands, which is the exact failure mode the
+ * `defineOver` guard was written for. Python needed an alias for that very property, and
+ * this is what makes the need mechanical here rather than remembered.
+ *
+ * Every key gets the row's own id as its value so `rowId` — which some resources override
  * to prefer a readable key like `identifier` — still yields the id the caller expects.
  */
 function fullRowOf(resource: AnyResource): Record<string, unknown> {
-  const table = FIELDS as unknown as Record<string, readonly string[]>;
+  const tables = [FIELDS, EXPAND].map((table) => table as unknown as Record<string, readonly string[]>);
   const operations = operationsOf(resource);
   const idNames = idNamesOf(resource);
   const ids = idNames.map((name) => `id-${name}`);
@@ -96,9 +110,12 @@ function fullRowOf(resource: AnyResource): Record<string, unknown> {
   const row: Record<string, unknown> = {};
   for (const action of ["retrieve", "list"]) {
     const operationId = operations[action];
-    for (const field of (operationId === undefined ? undefined : table[operationId]) ?? []) {
-      // `all` is the golden's "no projection" sentinel, not a field name.
-      if (field !== "all") row[field] = own;
+    if (operationId === undefined) continue;
+    for (const table of tables) {
+      for (const key of table[operationId] ?? []) {
+        // `all` is the golden's "no projection" sentinel, not a field name.
+        if (key !== "all") row[key] = own;
+      }
     }
   }
   row.id = own;

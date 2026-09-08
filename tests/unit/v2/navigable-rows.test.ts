@@ -1,5 +1,9 @@
 import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
+import { Cycles } from "../../../src/api/v2/Cycles";
+import { Estimates } from "../../../src/api/v2/Estimates";
+import { Milestones } from "../../../src/api/v2/Milestones";
+import { Modules } from "../../../src/api/v2/Modules";
 import { Projects } from "../../../src/api/v2/Projects";
 import { WorkItems } from "../../../src/api/v2/WorkItems";
 import { State } from "../../../src/models/v2/State";
@@ -236,5 +240,90 @@ describe("navigation typing (compile-time)", () => {
     expect(typeof row.states.list).toBe("function");
     // @ts-expect-error `priority` was not requested, so it is not on the narrowed row
     void row.priority;
+  });
+});
+
+/**
+ * The families migrated in task 3 whose rows own children, exercised end to end.
+ *
+ * Each asserts the exact URL the navigated call reaches: the navigation sweep proves the
+ * property exists and wraps the right child, but a well-formed URL pointing at the wrong
+ * place is internally consistent and only a request assertion catches it.
+ */
+describe("navigable rows — cycles, modules, milestones, estimates (v2)", () => {
+  const transport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
+
+  it("reaches a cycle's work-item bridge from a fetched cycle, with no id repeated", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/").reply(200, { id: "cyc-1", name: "Sprint 1" });
+    const scope = nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/", { add: ["wi-1"] })
+      .reply(200, { added: ["wi-1"] });
+
+    const cycle = await new Cycles(transport()).retrieve("acme", "ENG", "cyc-1");
+
+    expect(await cycle.workItems.add(["wi-1"])).toEqual(["wi-1"]);
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reaches a module's work-item bridge from a listed module", async () => {
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/modules/")
+      .reply(200, { data: [{ id: "mod-1" }], pagination: { style: "offset" } });
+    const scope = nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/modules/mod-1/work-items/", { remove: ["wi-2"] })
+      .reply(200, { removed: ["wi-2"] });
+
+    const page = await new Modules(transport()).list("acme", "ENG");
+    await page.data[0].workItems.remove(["wi-2"]);
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reaches a milestone's work-item bridge from a fetched milestone", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/").reply(200, { id: "ms-1", title: "Launch" });
+    const scope = nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/milestones/ms-1/work-items/", { add: ["wi-3"] })
+      .reply(200, { added: ["wi-3"] });
+
+    const milestone = await new Milestones(transport()).retrieve("acme", "ENG", "ms-1");
+    await milestone.workItems.add(["wi-3"]);
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reaches an estimate's scale as `estimatePoints`, the name `?expand=points` is not using", async () => {
+    // The row really can carry a `points` key — this fetch asks for it — and the
+    // navigation property is deliberately spelled differently so it does not define over
+    // it. Both must be readable off the same row.
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/estimates/e1/")
+      .query({ expand: "points" })
+      .reply(200, { id: "e1", name: "Sizing", points: [{ id: "p1", key: 0, value: "XS" }] });
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/estimates/e1/points/")
+      .reply(200, { data: [{ id: "p1" }], pagination: { style: "offset" } });
+
+    const estimate = await new Estimates(transport()).retrieve("acme", "ENG", "e1", { expand: ["points"] });
+
+    expect((estimate as unknown as { points: unknown[] }).points).toHaveLength(1);
+    const scale = await estimate.estimatePoints.list();
+    expect(scale.data[0].id).toBe("p1");
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reaches a project's cycles two levels down: project -> cycle -> work items", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+    nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/cycles/")
+      .reply(200, { data: [{ id: "cyc-1" }], pagination: { style: "offset" } });
+    const scope = nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/cycles/cyc-1/work-items/", { add: ["wi-1"] })
+      .reply(200, { added: ["wi-1"] });
+
+    const project = await makeProjects().retrieve("acme", "ENG");
+    const cycles = await project.cycles.list();
+    await cycles.data[0].workItems.add(["wi-1"]);
+
+    expect(scope.isDone()).toBe(true);
   });
 });

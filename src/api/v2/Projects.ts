@@ -1,6 +1,8 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
 import { Project, UpdateProject, ProjectPriority, ProjectSummary, CreateProject } from "../../models/v2/Project";
 import { ProjectRoleDistribution as ProjectRoleDistributionShape } from "../../models/v2/ProjectRoleDistribution";
+import { Cycles } from "./Cycles";
+import { Estimates } from "./Estimates";
 import { ProjectFeatures } from "./Features";
 import { EXPAND, FIELDS, ORDER_BY } from "./generated/constants";
 import { Intakes } from "./Intakes";
@@ -10,6 +12,8 @@ import { V2Transport } from "./kernel/transport";
 import { Labels } from "./Labels";
 import { LoadedProject, LoadedProjectRow, PROJECT_ID_NAMES, ProjectNavigation } from "./loaded/Project";
 import { ProjectMembers } from "./Members";
+import { Milestones } from "./Milestones";
+import { Modules } from "./Modules";
 import { ProjectPages } from "./Pages";
 import { ProjectPermissions } from "./Permissions";
 import { ProjectWorklogs } from "./ProjectWorklogs";
@@ -109,6 +113,10 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
   public intakes: Intakes;
   public workItemTemplates: ProjectWorkItemTemplates;
   public worklogs: ProjectWorklogs;
+  public cycles: Cycles;
+  public modules: Modules;
+  public milestones: Milestones;
+  public estimates: Estimates;
 
   constructor(transport: V2Transport) {
     super(transport);
@@ -123,6 +131,10 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     this.intakes = new Intakes(transport);
     this.workItemTemplates = new ProjectWorkItemTemplates(transport);
     this.worklogs = new ProjectWorklogs(transport);
+    this.cycles = new Cycles(transport);
+    this.modules = new Modules(transport);
+    this.milestones = new Milestones(transport);
+    this.estimates = new Estimates(transport);
   }
 
   protected navigationOf(meta: LoadedMeta): NavigationFactories<ProjectNavigation> {
@@ -139,6 +151,10 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
       intakes: () => owned(this.intakes, ids, meta.idNames),
       workItemTemplates: () => owned(this.workItemTemplates, ids, meta.idNames),
       worklogs: () => owned(this.worklogs, ids, meta.idNames),
+      cycles: () => owned(this.cycles, ids, meta.idNames),
+      modules: () => owned(this.modules, ids, meta.idNames),
+      milestones: () => owned(this.milestones, ids, meta.idNames),
+      estimates: () => owned(this.estimates, ids, meta.idNames),
     };
   }
 

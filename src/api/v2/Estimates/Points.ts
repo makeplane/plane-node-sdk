@@ -21,7 +21,19 @@ export interface ListEstimatePointsParams {
   count?: boolean;
 }
 
-/** The values on an {@link Estimate}'s scale (api_v2). Nested under a project's estimate. */
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface EstimatePointShapeParams {
+  fields?: readonly EstimatePointField[];
+}
+
+/**
+ * The values on an {@link Estimate}'s scale.
+ *
+ * Reached flat — `v2.projects.estimates.points.list(slug, project, estimate)` — or from a
+ * fetched estimate, where it is `estimate.estimatePoints.list()`: the row's own `points`
+ * key is the inline scale `?expand=points` returns, so the navigation property is spelled
+ * differently (see `EstimateNavigation`).
+ */
 export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoint, UpdateEstimatePoint> {
   protected path = "/workspaces/{slug}/projects/{project_id}/estimates/{estimate_id}/points/";
   protected operations: Record<string, AnyOperationId> = {
@@ -36,80 +48,151 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     bulkDelete: "estimate_points_bulk_delete",
   };
 
-  private pk(estimateId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { estimate_id: estimateId };
-    if (id !== undefined) params.pk = id;
+  // Underscore-prefixed because `private` is compile-time only: `owned()` walks the
+  // runtime prototype, so an un-prefixed helper would land on a fetched estimate's
+  // `estimatePoints` view as a public method (the navigation sweep caught exactly that).
+  private _at(slug: string, project: string, estimate: string, point?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, project_id: project, estimate_id: estimate };
+    if (point !== undefined) params.pk = point;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
-    estimateId: string,
+    slug: string,
+    project: string,
+    estimate: string,
     params: ListEstimatePointsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<EstimatePoint, F | "id">>>;
-  list(estimateId: string, params?: ListEstimatePointsParams): Promise<Page<EstimatePoint>>;
-  list(estimateId: string, params?: ListEstimatePointsParams): Promise<Page<EstimatePoint>> {
-    return this.doList(this.pk(estimateId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    estimate: string,
+    params?: ListEstimatePointsParams
+  ): Promise<Page<EstimatePoint>>;
+  list(
+    slug: string,
+    project: string,
+    estimate: string,
+    params?: ListEstimatePointsParams
+  ): Promise<Page<EstimatePoint>> {
+    return this.doList(this._at(slug, project, estimate), params as Record<string, unknown>);
   }
 
   /** Every point on the estimate's scale, following pages automatically. */
-  iterate(estimateId: string, params?: ListEstimatePointsParams): AsyncGenerator<EstimatePoint> {
-    return this.doIterate(this.pk(estimateId), params as Record<string, unknown>);
+  iterate<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
+    slug: string,
+    project: string,
+    estimate: string,
+    params: ListEstimatePointsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<EstimatePoint, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    estimate: string,
+    params?: ListEstimatePointsParams
+  ): AsyncGenerator<EstimatePoint>;
+  iterate(
+    slug: string,
+    project: string,
+    estimate: string,
+    params?: ListEstimatePointsParams
+  ): AsyncGenerator<EstimatePoint> {
+    return this.doIterate(this._at(slug, project, estimate), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
-    estimateId: string,
-    pointId: string,
+    slug: string,
+    project: string,
+    estimate: string,
+    point: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<EstimatePoint, F | "id">>;
   retrieve(
-    estimateId: string,
-    pointId: string,
+    slug: string,
+    project: string,
+    estimate: string,
+    point: string,
     params?: { fields?: readonly EstimatePointField[] }
   ): Promise<EstimatePoint>;
   retrieve(
-    estimateId: string,
-    pointId: string,
+    slug: string,
+    project: string,
+    estimate: string,
+    point: string,
     params?: { fields?: readonly EstimatePointField[] }
   ): Promise<EstimatePoint> {
-    return this.doRetrieve(this.pk(estimateId, pointId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, project, estimate, point), params as Record<string, unknown>);
   }
 
   /** The one point with this numeric `key` on the estimate's scale, server-side via `?key=`; throws if none or several match. */
-  findByKey(estimateId: string, key: number): Promise<EstimatePoint> {
-    return this.doFindOne({ key }, this.pk(estimateId));
+  findByKey(slug: string, project: string, estimate: string, key: number): Promise<EstimatePoint> {
+    return this.doFindOne({ key }, this._at(slug, project, estimate));
   }
 
-  create(estimateId: string, data: CreateEstimatePoint): Promise<EstimatePoint> {
-    return this.doCreate(data, this.pk(estimateId));
+  create(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: CreateEstimatePoint,
+    params?: EstimatePointShapeParams
+  ): Promise<EstimatePoint> {
+    return this.doCreate(data, this._at(slug, project, estimate), params as Record<string, unknown>);
   }
 
-  update(estimateId: string, pointId: string, data: UpdateEstimatePoint): Promise<EstimatePoint> {
-    return this.doUpdate(data, this.pk(estimateId, pointId));
+  update(
+    slug: string,
+    project: string,
+    estimate: string,
+    point: string,
+    data: UpdateEstimatePoint,
+    params?: EstimatePointShapeParams
+  ): Promise<EstimatePoint> {
+    return this.doUpdate(data, this._at(slug, project, estimate, point), params as Record<string, unknown>);
   }
 
-  delete(estimateId: string, pointId: string): Promise<void> {
-    return this.doDelete(this.pk(estimateId, pointId));
+  delete(slug: string, project: string, estimate: string, point: string): Promise<void> {
+    return this.doDelete(this._at(slug, project, estimate, point));
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
-  upsert(estimateId: string, data: CreateEstimatePoint): Promise<EstimatePoint> {
-    return this.doUpsert(data, this.pk(estimateId));
+  upsert(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: CreateEstimatePoint,
+    params?: EstimatePointShapeParams
+  ): Promise<EstimatePoint> {
+    return this.doUpsert(data, this._at(slug, project, estimate), params as Record<string, unknown>);
   }
 
-  bulkCreate(estimateId: string, items: CreateEstimatePoint[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkCreate(items, this.pk(estimateId), allOrNone);
+  bulkCreate(
+    slug: string,
+    project: string,
+    estimate: string,
+    items: CreateEstimatePoint[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkCreate(items, this._at(slug, project, estimate), allOrNone);
   }
 
   bulkUpdate(
-    estimateId: string,
+    slug: string,
+    project: string,
+    estimate: string,
     items: BulkUpdateItem<UpdateEstimatePoint>[],
     allOrNone = false
   ): Promise<BulkWriteResponse> {
-    return this.doBulkUpdate(items, this.pk(estimateId), allOrNone);
+    return this.doBulkUpdate(items, this._at(slug, project, estimate), allOrNone);
   }
 
-  bulkDelete(estimateId: string, ids: string[], allOrNone = false): Promise<BulkWriteResponse> {
-    return this.doBulkDelete(ids, this.pk(estimateId), allOrNone);
+  bulkDelete(
+    slug: string,
+    project: string,
+    estimate: string,
+    ids: string[],
+    allOrNone = false
+  ): Promise<BulkWriteResponse> {
+    return this.doBulkDelete(ids, this._at(slug, project, estimate), allOrNone);
   }
 }
