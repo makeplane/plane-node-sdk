@@ -25,6 +25,12 @@ export interface ListWorkItemActivitiesParams {
   count?: boolean;
 }
 
+/** `?fields=`/`?expand=` on a single-row read. */
+export interface WorkItemActivityShapeParams {
+  fields?: readonly WorkItemActivityField[];
+  expand?: readonly WorkItemActivityExpand[];
+}
+
 /** The audit log for a work item. Read-only — `list`/`retrieve` only. */
 export class Activities extends V2Resource<WorkItemActivity, never, never> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/activities/";
@@ -33,42 +39,62 @@ export class Activities extends V2Resource<WorkItemActivity, never, never> {
     retrieve: "activities_retrieve",
   };
 
-  private pk(workItemId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { work_item_id: workItemId };
-    if (id !== undefined) params.pk = id;
-    return params;
-  }
-
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemActivityField, "all"> & keyof WorkItemActivity>(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     params: ListWorkItemActivitiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemActivity, F | "id">>>;
-  list(workItemId: string, params?: ListWorkItemActivitiesParams): Promise<Page<WorkItemActivity>>;
-  list(workItemId: string, params?: ListWorkItemActivitiesParams): Promise<Page<WorkItemActivity>> {
-    return this.doList(this.pk(workItemId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemActivitiesParams
+  ): Promise<Page<WorkItemActivity>>;
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemActivitiesParams
+  ): Promise<Page<WorkItemActivity>> {
+    return this.doList({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   /** Every activity, following pages automatically. */
-  iterate(workItemId: string, params?: ListWorkItemActivitiesParams): AsyncGenerator<WorkItemActivity> {
-    return this.doIterate(this.pk(workItemId), params as Record<string, unknown>);
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemActivitiesParams
+  ): AsyncGenerator<WorkItemActivity> {
+    return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemActivityField, "all"> & keyof WorkItemActivity>(
-    workItemId: string,
-    activityId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    activity: string,
     params: { fields: readonly F[]; expand?: readonly WorkItemActivityExpand[] }
   ): Promise<Pick<WorkItemActivity, F | "id">>;
   retrieve(
-    workItemId: string,
-    activityId: string,
-    params?: { fields?: readonly WorkItemActivityField[]; expand?: readonly WorkItemActivityExpand[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    activity: string,
+    params?: WorkItemActivityShapeParams
   ): Promise<WorkItemActivity>;
   retrieve(
-    workItemId: string,
-    activityId: string,
-    params?: { fields?: readonly WorkItemActivityField[]; expand?: readonly WorkItemActivityExpand[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    activity: string,
+    params?: WorkItemActivityShapeParams
   ): Promise<WorkItemActivity> {
-    return this.doRetrieve(this.pk(workItemId, activityId), params as Record<string, unknown>);
+    return this.doRetrieve(
+      { slug, project_id: project, work_item_id: workItem, pk: activity },
+      params as Record<string, unknown>
+    );
   }
 }

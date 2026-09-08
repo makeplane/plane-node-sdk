@@ -25,15 +25,12 @@ import { methodsOffering } from "./tree-walk";
  * The only methods allowed to omit a `fields` their operation offers, keyed
  * `ClassName.method`, each with why.
  *
- * Two of the four are here; the other two belong to resources still on the opt-out list
- * (an entry for a method outside the swept set is refused below as stale), and are named
- * so the task that migrates them copies the reasoning rather than re-deciding it:
+ * Three of the four are here; the fourth belongs to a resource still on the opt-out list
+ * (an entry for a method outside the swept set is refused below as stale), and is named
+ * so the task that migrates it copies the reasoning rather than re-deciding it:
  *
  * - `Webhooks.regenerate` — the response's `secret_key` is minted once and never returned
  *   again, so a projection that dropped it would destroy the only copy.
- * - `Attachments.create` (work item) — the live envelope is richer than the golden
- *   documents and its `upload_data` presigned fields exist only in this reply, so a
- *   projection could strand the caller mid-upload with no way to re-fetch them.
  *
  * A new entry needs a response that genuinely cannot be re-fetched; "large response" or
  * "nobody asked for it" is not one.
@@ -43,6 +40,9 @@ export const ONE_TIME_RESPONSES: Readonly<Record<string, string>> = {
     "the presigned `upload_data` in the reply exists only there and cannot be re-fetched, " +
     "so a projection could drop it beyond recovery and strand the caller mid-upload",
   "UserAssets.create": "the user-scoped twin of `Assets.create`, with the same one-time presigned upload data",
+  "Attachments.create":
+    "the live envelope is richer than the golden documents and its presigned upload data " +
+    "exists only in this reply, so a projection could strand the caller mid-upload",
 };
 
 const PROJECTABLE = methodsOffering(FIELDS as unknown as Record<string, readonly string[]>);

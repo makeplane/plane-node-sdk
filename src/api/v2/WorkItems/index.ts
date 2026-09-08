@@ -97,9 +97,6 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   protected loadedIdNames = WORK_ITEM_ID_NAMES;
 
   public comments: Comments;
-  // Not yet on the flat shape, and so not yet reachable from a fetched row — see the
-  // opt-out list in `tests/unit/v2/tree-walk.ts`, which is what makes that a scheduled
-  // migration rather than an omission.
   public attachments: Attachments;
   public links: Links;
   public worklogs: WorkLogs;
@@ -119,8 +116,15 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   }
 
   protected navigationOf(meta: LoadedMeta): NavigationFactories<WorkItemNavigation> {
+    const ids = meta.ids as [string, string, string];
     return {
-      comments: () => owned(this.comments, meta.ids as [string, string, string], meta.idNames),
+      comments: () => owned(this.comments, ids, meta.idNames),
+      attachments: () => owned(this.attachments, ids, meta.idNames),
+      links: () => owned(this.links, ids, meta.idNames),
+      worklogs: () => owned(this.worklogs, ids, meta.idNames),
+      activities: () => owned(this.activities, ids, meta.idNames),
+      relations: () => owned(this.relations, ids, meta.idNames),
+      dependencies: () => owned(this.dependencies, ids, meta.idNames),
     };
   }
 

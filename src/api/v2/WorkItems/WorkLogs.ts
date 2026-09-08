@@ -23,7 +23,13 @@ export interface ListWorkItemWorklogsParams {
   count?: boolean;
 }
 
-/** Logged-time entries on a work item (api_v2). Named `WorkLogs`, not `Worklogs`, to match the v1 sub-resource idiom. */
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface WorkItemWorklogShapeParams {
+  fields?: readonly WorkItemWorklogField[];
+  expand?: readonly WorkItemWorklogExpand[];
+}
+
+/** Logged-time entries on a work item. Named `WorkLogs`, not `Worklogs`, to match the v1 sub-resource idiom. */
 export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog, UpdateWorkItemWorklog> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/worklogs/";
   protected operations: Record<string, OperationId> = {
@@ -34,63 +40,95 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
     delete: "worklogs_destroy",
   };
 
-  private pk(workItemId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { work_item_id: workItemId };
-    if (id !== undefined) params.pk = id;
-    return params;
-  }
-
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemWorklogField, "all"> & keyof WorkItemWorklog>(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     params: ListWorkItemWorklogsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemWorklog, F | "id">>>;
-  list(workItemId: string, params?: ListWorkItemWorklogsParams): Promise<Page<WorkItemWorklog>>;
-  list(workItemId: string, params?: ListWorkItemWorklogsParams): Promise<Page<WorkItemWorklog>> {
-    return this.doList(this.pk(workItemId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemWorklogsParams
+  ): Promise<Page<WorkItemWorklog>>;
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemWorklogsParams
+  ): Promise<Page<WorkItemWorklog>> {
+    return this.doList({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   /** Every worklog, following pages automatically. */
-  iterate(workItemId: string, params?: ListWorkItemWorklogsParams): AsyncGenerator<WorkItemWorklog> {
-    return this.doIterate(this.pk(workItemId), params as Record<string, unknown>);
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemWorklogsParams
+  ): AsyncGenerator<WorkItemWorklog> {
+    return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemWorklogField, "all"> & keyof WorkItemWorklog>(
-    workItemId: string,
-    worklogId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    worklog: string,
     params: { fields: readonly F[]; expand?: readonly WorkItemWorklogExpand[] }
   ): Promise<Pick<WorkItemWorklog, F | "id">>;
   retrieve(
-    workItemId: string,
-    worklogId: string,
-    params?: { fields?: readonly WorkItemWorklogField[]; expand?: readonly WorkItemWorklogExpand[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    worklog: string,
+    params?: WorkItemWorklogShapeParams
   ): Promise<WorkItemWorklog>;
   retrieve(
-    workItemId: string,
-    worklogId: string,
-    params?: { fields?: readonly WorkItemWorklogField[]; expand?: readonly WorkItemWorklogExpand[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    worklog: string,
+    params?: WorkItemWorklogShapeParams
   ): Promise<WorkItemWorklog> {
-    return this.doRetrieve(this.pk(workItemId, worklogId), params as Record<string, unknown>);
+    return this.doRetrieve(
+      { slug, project_id: project, work_item_id: workItem, pk: worklog },
+      params as Record<string, unknown>
+    );
   }
 
   create(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     data: CreateWorkItemWorklog,
-    params?: { fields?: readonly WorkItemWorklogField[]; expand?: readonly WorkItemWorklogExpand[] }
+    params?: WorkItemWorklogShapeParams
   ): Promise<WorkItemWorklog> {
-    return this.doCreate(data, this.pk(workItemId), params as Record<string, unknown>);
+    return this.doCreate(
+      data,
+      { slug, project_id: project, work_item_id: workItem },
+      params as Record<string, unknown>
+    );
   }
 
   update(
-    workItemId: string,
-    worklogId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    worklog: string,
     data: UpdateWorkItemWorklog,
-    params?: { fields?: readonly WorkItemWorklogField[]; expand?: readonly WorkItemWorklogExpand[] }
+    params?: WorkItemWorklogShapeParams
   ): Promise<WorkItemWorklog> {
-    return this.doUpdate(data, this.pk(workItemId, worklogId), params as Record<string, unknown>);
+    return this.doUpdate(
+      data,
+      { slug, project_id: project, work_item_id: workItem, pk: worklog },
+      params as Record<string, unknown>
+    );
   }
 
-  delete(workItemId: string, worklogId: string): Promise<void> {
-    return this.doDelete(this.pk(workItemId, worklogId));
+  delete(slug: string, project: string, workItem: string, worklog: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, work_item_id: workItem, pk: worklog });
   }
 }

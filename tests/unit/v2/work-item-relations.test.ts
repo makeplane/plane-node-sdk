@@ -12,20 +12,19 @@ const PROJECT = "ENG";
 const WORK_ITEM = "wi-1";
 
 const makeTransport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
-const RESOURCE_SCOPE = { slug: SLUG, project_id: PROJECT };
 
 afterEach(() => nock.cleanAll());
 
 describe("WorkItems.relations (v2)", () => {
   const collection = `/api/v2/workspaces/${SLUG}/projects/${PROJECT}/work-items/${WORK_ITEM}/relations/`;
-  const make = () => new Relations(makeTransport(), RESOURCE_SCOPE);
+  const make = () => new Relations(makeTransport());
 
   it("list returns one grouped object, not a page", async () => {
     nock(BASE)
       .get(collection)
       .reply(200, { blocks: ["wi-2"], "blocked by": [] });
 
-    const result = await make().list(WORK_ITEM);
+    const result = await make().list(SLUG, PROJECT, WORK_ITEM);
 
     // No `.data`/`.pagination` envelope — this IS the grouped object.
     expect(result).toEqual({ blocks: ["wi-2"], "blocked by": [] });
@@ -38,7 +37,7 @@ describe("WorkItems.relations (v2)", () => {
       .post(collection, body)
       .reply(200, { blocks: ["wi-2"] });
 
-    const result = await make().create(WORK_ITEM, body);
+    const result = await make().create(SLUG, PROJECT, WORK_ITEM, body);
 
     expect(scope.isDone()).toBe(true);
     expect(result).toEqual({ blocks: ["wi-2"] });
@@ -47,7 +46,7 @@ describe("WorkItems.relations (v2)", () => {
   it("deletes by related_work_item_id, not a relation-row id", async () => {
     const scope = nock(BASE).delete(`${collection}wi-2/`).reply(204);
 
-    await expect(make().delete(WORK_ITEM, "wi-2")).resolves.toBeUndefined();
+    await expect(make().delete(SLUG, PROJECT, WORK_ITEM, "wi-2")).resolves.toBeUndefined();
 
     expect(scope.isDone()).toBe(true);
   });
@@ -61,7 +60,7 @@ describe("WorkItems.relations (v2)", () => {
 
 describe("WorkItems.dependencies (v2)", () => {
   const collection = `/api/v2/workspaces/${SLUG}/projects/${PROJECT}/work-items/${WORK_ITEM}/dependencies/`;
-  const make = () => new Dependencies(makeTransport(), RESOURCE_SCOPE);
+  const make = () => new Dependencies(makeTransport());
 
   it("list returns one grouped object with the six fixed keys, not a page", async () => {
     nock(BASE)
@@ -75,7 +74,7 @@ describe("WorkItems.dependencies (v2)", () => {
         start_before: [],
       });
 
-    const result = await make().list(WORK_ITEM);
+    const result = await make().list(SLUG, PROJECT, WORK_ITEM);
 
     expect(result.blocking).toEqual(["wi-2"]);
     expect(result.blocked_by).toEqual([]);
@@ -94,7 +93,7 @@ describe("WorkItems.dependencies (v2)", () => {
         start_before: [],
       });
 
-    await make().create(WORK_ITEM, body);
+    await make().create(SLUG, PROJECT, WORK_ITEM, body);
 
     expect(scope.isDone()).toBe(true);
   });
@@ -102,7 +101,7 @@ describe("WorkItems.dependencies (v2)", () => {
   it("deletes by related_work_item_id, not a dependency-row id", async () => {
     const scope = nock(BASE).delete(`${collection}wi-2/`).reply(204);
 
-    await expect(make().delete(WORK_ITEM, "wi-2")).resolves.toBeUndefined();
+    await expect(make().delete(SLUG, PROJECT, WORK_ITEM, "wi-2")).resolves.toBeUndefined();
 
     expect(scope.isDone()).toBe(true);
   });

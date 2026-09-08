@@ -19,7 +19,12 @@ export interface ListWorkItemLinksParams {
   count?: boolean;
 }
 
-/** Links attached to a work item (api_v2). */
+/** `?fields=` on a single-row read or write. */
+export interface WorkItemLinkFieldsParams {
+  fields?: readonly WorkItemLinkField[];
+}
+
+/** Links attached to a work item. */
 export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWorkItemLink> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/links/";
   protected operations: Record<string, OperationId> = {
@@ -30,63 +35,85 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
     delete: "links_destroy",
   };
 
-  private pk(workItemId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { work_item_id: workItemId };
-    if (id !== undefined) params.pk = id;
-    return params;
-  }
-
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemLinkField, "all"> & keyof WorkItemLink>(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     params: ListWorkItemLinksParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemLink, F | "id">>>;
-  list(workItemId: string, params?: ListWorkItemLinksParams): Promise<Page<WorkItemLink>>;
-  list(workItemId: string, params?: ListWorkItemLinksParams): Promise<Page<WorkItemLink>> {
-    return this.doList(this.pk(workItemId), params as Record<string, unknown>);
+  list(slug: string, project: string, workItem: string, params?: ListWorkItemLinksParams): Promise<Page<WorkItemLink>>;
+  list(slug: string, project: string, workItem: string, params?: ListWorkItemLinksParams): Promise<Page<WorkItemLink>> {
+    return this.doList({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   /** Every link, following pages automatically. */
-  iterate(workItemId: string, params?: ListWorkItemLinksParams): AsyncGenerator<WorkItemLink> {
-    return this.doIterate(this.pk(workItemId), params as Record<string, unknown>);
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemLinksParams
+  ): AsyncGenerator<WorkItemLink> {
+    return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemLinkField, "all"> & keyof WorkItemLink>(
-    workItemId: string,
-    linkId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    link: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemLink, F | "id">>;
   retrieve(
-    workItemId: string,
-    linkId: string,
-    params?: { fields?: readonly WorkItemLinkField[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    link: string,
+    params?: WorkItemLinkFieldsParams
   ): Promise<WorkItemLink>;
   retrieve(
-    workItemId: string,
-    linkId: string,
-    params?: { fields?: readonly WorkItemLinkField[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    link: string,
+    params?: WorkItemLinkFieldsParams
   ): Promise<WorkItemLink> {
-    return this.doRetrieve(this.pk(workItemId, linkId), params as Record<string, unknown>);
+    return this.doRetrieve(
+      { slug, project_id: project, work_item_id: workItem, pk: link },
+      params as Record<string, unknown>
+    );
   }
 
   create(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     data: CreateWorkItemLink,
-    params?: { fields?: readonly WorkItemLinkField[] }
+    params?: WorkItemLinkFieldsParams
   ): Promise<WorkItemLink> {
-    return this.doCreate(data, this.pk(workItemId), params as Record<string, unknown>);
+    return this.doCreate(
+      data,
+      { slug, project_id: project, work_item_id: workItem },
+      params as Record<string, unknown>
+    );
   }
 
   update(
-    workItemId: string,
-    linkId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    link: string,
     data: UpdateWorkItemLink,
-    params?: { fields?: readonly WorkItemLinkField[] }
+    params?: WorkItemLinkFieldsParams
   ): Promise<WorkItemLink> {
-    return this.doUpdate(data, this.pk(workItemId, linkId), params as Record<string, unknown>);
+    return this.doUpdate(
+      data,
+      { slug, project_id: project, work_item_id: workItem, pk: link },
+      params as Record<string, unknown>
+    );
   }
 
-  delete(workItemId: string, linkId: string): Promise<void> {
-    return this.doDelete(this.pk(workItemId, linkId));
+  delete(slug: string, project: string, workItem: string, link: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, work_item_id: workItem, pk: link });
   }
 }

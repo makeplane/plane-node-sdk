@@ -23,6 +23,11 @@ export interface ListWorkItemAttachmentsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface WorkItemAttachmentFieldsParams {
+  fields?: readonly WorkItemAttachmentField[];
+}
+
 /**
  * Work item attachments. `create` returns upload credentials; `update` confirms the upload.
  */
@@ -40,65 +45,101 @@ export class Attachments extends V2Resource<
     delete: "attachments_destroy",
   };
 
-  private pk(workItemId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { work_item_id: workItemId };
-    if (id !== undefined) params.pk = id;
-    return params;
-  }
-
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemAttachmentField, "all"> & keyof WorkItemAttachment>(
-    workItemId: string,
+    slug: string,
+    project: string,
+    workItem: string,
     params: ListWorkItemAttachmentsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemAttachment, F | "id">>>;
-  list(workItemId: string, params?: ListWorkItemAttachmentsParams): Promise<Page<WorkItemAttachment>>;
-  list(workItemId: string, params?: ListWorkItemAttachmentsParams): Promise<Page<WorkItemAttachment>> {
-    return this.doList(this.pk(workItemId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemAttachmentsParams
+  ): Promise<Page<WorkItemAttachment>>;
+  list(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemAttachmentsParams
+  ): Promise<Page<WorkItemAttachment>> {
+    return this.doList({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   /** Every attachment, following pages automatically. */
-  iterate(workItemId: string, params?: ListWorkItemAttachmentsParams): AsyncGenerator<WorkItemAttachment> {
-    return this.doIterate(this.pk(workItemId), params as Record<string, unknown>);
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemAttachmentsParams
+  ): AsyncGenerator<WorkItemAttachment> {
+    return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemAttachmentField, "all"> & keyof WorkItemAttachment>(
-    workItemId: string,
-    attachmentId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    attachment: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemAttachment, F | "id">>;
   retrieve(
-    workItemId: string,
-    attachmentId: string,
-    params?: { fields?: readonly WorkItemAttachmentField[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    attachment: string,
+    params?: WorkItemAttachmentFieldsParams
   ): Promise<WorkItemAttachment>;
   retrieve(
-    workItemId: string,
-    attachmentId: string,
-    params?: { fields?: readonly WorkItemAttachmentField[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    attachment: string,
+    params?: WorkItemAttachmentFieldsParams
   ): Promise<WorkItemAttachment> {
-    return this.doRetrieve(this.pk(workItemId, attachmentId), params as Record<string, unknown>);
+    return this.doRetrieve(
+      { slug, project_id: project, work_item_id: workItem, pk: attachment },
+      params as Record<string, unknown>
+    );
   }
 
-  /** Step 1: get upload credentials. Follow up with `update(..., { is_uploaded: true })` once the bytes land. */
+  /**
+   * Step 1: get upload credentials. Follow up with `update(..., { is_uploaded: true })`
+   * once the bytes land.
+   *
+   * Deliberately offers no `fields`, though `attachments_create` declares it: the live
+   * envelope is richer than the golden documents and its presigned upload data exists
+   * only in this reply, so a projection could strand the caller mid-upload with no way
+   * to re-fetch it. Named in `ONE_TIME_RESPONSES` in
+   * `tests/unit/v2/fields-coverage.test.ts`.
+   */
   create(
-    workItemId: string,
-    data: WorkItemAttachmentUploadRequest,
-    params?: { fields?: readonly WorkItemAttachmentField[] }
+    slug: string,
+    project: string,
+    workItem: string,
+    data: WorkItemAttachmentUploadRequest
   ): Promise<WorkItemAttachment> {
-    return this.doCreate(data, this.pk(workItemId), params as Record<string, unknown>);
+    return this.doCreate(data, { slug, project_id: project, work_item_id: workItem });
   }
 
   /** Step 2: confirm the upload. */
   update(
-    workItemId: string,
-    attachmentId: string,
+    slug: string,
+    project: string,
+    workItem: string,
+    attachment: string,
     data: WorkItemAttachmentConfirmRequest,
-    params?: { fields?: readonly WorkItemAttachmentField[] }
+    params?: WorkItemAttachmentFieldsParams
   ): Promise<WorkItemAttachment> {
-    return this.doUpdate(data, this.pk(workItemId, attachmentId), params as Record<string, unknown>);
+    return this.doUpdate(
+      data,
+      { slug, project_id: project, work_item_id: workItem, pk: attachment },
+      params as Record<string, unknown>
+    );
   }
 
-  delete(workItemId: string, attachmentId: string): Promise<void> {
-    return this.doDelete(this.pk(workItemId, attachmentId));
+  delete(slug: string, project: string, workItem: string, attachment: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, work_item_id: workItem, pk: attachment });
   }
 }

@@ -1,6 +1,12 @@
 import type { WorkItem } from "../../../models/v2/WorkItem";
 import type { Loaded, Owned } from "../kernel/loaded";
+import type { Activities } from "../WorkItems/Activities";
+import type { Attachments } from "../WorkItems/Attachments";
 import type { Comments } from "../WorkItems/Comments";
+import type { Dependencies } from "../WorkItems/Dependencies";
+import type { Links } from "../WorkItems/Links";
+import type { Relations } from "../WorkItems/Relations";
+import type { WorkLogs } from "../WorkItems/WorkLogs";
 
 /**
  * The path ids a child of a work item row needs, in URL order, ending with the work
@@ -20,6 +26,12 @@ export const WORK_ITEM_ID_NAMES = ["slug", "project", "workItem"] as const;
  */
 export interface WorkItemNavigation {
   readonly comments: Owned<Comments, WorkItemIds>;
+  readonly attachments: Owned<Attachments, WorkItemIds>;
+  readonly links: Owned<Links, WorkItemIds>;
+  readonly worklogs: Owned<WorkLogs, WorkItemIds>;
+  readonly activities: Owned<Activities, WorkItemIds>;
+  readonly relations: Owned<Relations, WorkItemIds>;
+  readonly dependencies: Owned<Dependencies, WorkItemIds>;
 }
 
 /**

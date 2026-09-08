@@ -1,6 +1,7 @@
 import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
 import { Projects } from "../../../src/api/v2/Projects";
+import { WorkItems } from "../../../src/api/v2/WorkItems";
 import { State } from "../../../src/models/v2/State";
 import { Page } from "../../../src/models/v2/common";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
@@ -8,6 +9,7 @@ import { LoadedProject } from "../../../src/api/v2/loaded/Project";
 
 const BASE = "https://api.example.com";
 const makeProjects = () => new Projects(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+const makeWorkItems = () => new WorkItems(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -67,6 +69,35 @@ describe("navigable rows (v2)", () => {
 
     expect(scope.isDone()).toBe(true);
     expect(comments.data[0].id).toBe("c-1");
+  });
+
+  it("reaches every one of a fetched work item's own children, not just comments", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/work-items/wi-1/").reply(200, { id: "wi-1" });
+    const dependencies = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/work-items/wi-1/dependencies/")
+      .reply(200, { blocked_by: ["wi-2"] });
+    const worklogs = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/work-items/wi-1/worklogs/")
+      .reply(200, { data: [{ id: "w-1" }], pagination: { style: "offset" } });
+
+    const workItem = await makeWorkItems().retrieve("acme", "ENG", "wi-1");
+
+    // Every child is a typed property, not just the one the exemplar wired first.
+    expect(Object.keys(Object.getOwnPropertyDescriptors(workItem)).sort()).toEqual(
+      expect.arrayContaining([
+        "activities",
+        "attachments",
+        "comments",
+        "dependencies",
+        "links",
+        "relations",
+        "worklogs",
+      ])
+    );
+    expect((await workItem.dependencies.list()).blocked_by).toEqual(["wi-2"]);
+    expect((await workItem.worklogs.list()).data[0].id).toBe("w-1");
+    expect(dependencies.isDone()).toBe(true);
+    expect(worklogs.isDone()).toBe(true);
   });
 
   it("routes every row-returning method through the loader, list and iterate included", async () => {
