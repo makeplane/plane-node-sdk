@@ -45,6 +45,9 @@ export interface WorkItemCommentShapeParams {
  * `workItem.comments.list()`.
  */
 export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment, UpdateWorkItemComment> {
+  /** Exported from the v2 barrel as `WorkItemComments`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkItemComments";
+
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/comments/";
   protected operations: Record<string, AnyOperationId> = {
     list: "comments_list",

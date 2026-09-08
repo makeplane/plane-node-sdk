@@ -292,6 +292,29 @@ export function owned<TResource extends object, TIds extends readonly string[]>(
 }
 
 /**
+ * The name the public barrel exports a resource class under.
+ *
+ * Not the same thing as `constructor.name`, which is what this used to use: eleven
+ * sub-resource classes keep an unqualified file-local name and are exported qualified
+ * (`WorkItemComments`, `ReleaseLinks`, `WorkspaceAssets`, …) precisely because the
+ * unqualified spelling says nothing about which resource it belongs to, and two of those
+ * spellings are claimed twice. A message that told the reader to call the file-local name
+ * flat therefore named a symbol they could not import, and the remedy it prescribed sent
+ * them nowhere.
+ *
+ * The barrel cannot be read from here — `../index` imports this module, so the lookup
+ * would be a cycle — so an aliased class declares its public name as a static, and
+ * `exported-names.test.ts` pins every one of them to the barrel in both directions: a
+ * static naming something the barrel does not export fails, and an alias with no static
+ * fails. A string literal also survives a minifier, which `constructor.name` does not;
+ * that name stays only as the fallback for the ninety classes exported under it.
+ */
+function exportedName(instance: object): string {
+  const constructor = instance.constructor as { publicName?: string; name: string };
+  return constructor.publicName ?? constructor.name;
+}
+
+/**
  * Make reaching a grandchild through an owned view say why it cannot work.
  *
  * `Owned` drops every non-callable member, so `project.workItems.comments` is already a
@@ -316,12 +339,14 @@ function refuseGrandchildren(view: Record<string, unknown>, resource: object, id
       enumerable: false,
       configurable: true,
       get(): never {
+        const parent = exportedName(resource);
+        const child = exportedName(value);
         throw new TypeError(
-          `${resource.constructor.name}.${name} is a child resource, not a method, so it is not ` +
+          `${parent}.${name} is a child resource, not a method, so it is not ` +
             `reachable through a navigated view: this view supplies [${idNames.join(", ")}], and ` +
-            `${value.constructor.name} additionally needs the id of the ${resource.constructor.name} ` +
+            `${child} additionally needs the id of the ${parent} ` +
             `row itself, which only a fetched row carries. Either fetch that row and navigate from ` +
-            `it, or call ${value.constructor.name} flat with every id.`
+            `it, or call ${child} flat with every id.`
         );
       },
     });

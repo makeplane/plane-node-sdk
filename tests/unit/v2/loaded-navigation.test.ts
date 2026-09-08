@@ -414,10 +414,18 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
           );
           continue;
         }
-        // The message has to name the way *out*, not just the way in.
+        // The message has to name the way *out*, not just the way in — and name it by the
+        // spelling the barrel exports, not by `constructor.name`. Those diverge for eleven
+        // aliased classes, which is how the refusal came to say "call Comments flat" when
+        // the importable symbol is `WorkItemComments`. `exported-names.test.ts` is what
+        // keeps the two in step; this only has to ask the right question.
+        const publicName =
+          (child.constructor as { publicName?: string; name: string }).publicName ?? child.constructor.name;
         const message = thrown.message;
-        if (!message.includes(child.constructor.name) || !message.includes(grandchild)) {
-          offenders.push(`${entry.name}.${attribute}.${grandchild} refused without naming itself: ${message}`);
+        if (!message.includes(publicName) || !message.includes(grandchild)) {
+          offenders.push(
+            `${entry.name}.${attribute}.${grandchild} refused without naming itself as \`${publicName}\`: ${message}`
+          );
         }
       }
     }

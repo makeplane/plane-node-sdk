@@ -12,6 +12,9 @@ import { AnyOperationId, V2Resource } from "../kernel/resource";
  * pair `(workItem, relatedWorkItem)` is what identifies the one to remove.
  */
 export class Relations extends V2Resource<WorkItemRelationList, WorkItemRelationCreateRequest, never> {
+  /** Exported from the v2 barrel as `WorkItemRelations`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkItemRelations";
+
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/relations/";
   protected operations: Record<string, AnyOperationId> = {
     list: "work_item_relations_list",

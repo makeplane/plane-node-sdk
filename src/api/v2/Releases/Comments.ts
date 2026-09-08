@@ -33,6 +33,9 @@ export interface ReleaseCommentShapeParams {
  * release: `release.comments.list()`.
  */
 export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, UpdateReleaseComment> {
+  /** Exported from the v2 barrel as `ReleaseComments`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "ReleaseComments";
+
   protected path = "/workspaces/{slug}/releases/{release_id}/comments/";
   protected operations: Record<string, OperationId> = {
     list: "release_comments_list",

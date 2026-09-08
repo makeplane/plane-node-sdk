@@ -68,8 +68,8 @@ export const ONE_TIME_RESPONSES: Readonly<Record<string, OneTimeResponse>> = {
     docPhrase: "offers no `fields`, though `assets_create` declares it: the presigned",
   },
   "UserAssets#UserAssets.create": {
-    why: "the user-scoped twin of `Assets.create`, with the same one-time presigned upload data",
-    docPhrase: "the user-scoped twin of `Assets.create`, and offers no `fields` for the same reason",
+    why: "the user-scoped twin of `WorkspaceAssets.create`, with the same one-time presigned upload data",
+    docPhrase: "the user-scoped twin of `WorkspaceAssets.create`, and offers no `fields` for the same reason",
   },
   "WorkItems/Attachments#Attachments.create": {
     why:

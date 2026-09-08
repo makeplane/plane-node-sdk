@@ -31,6 +31,9 @@ export interface ReleaseLinkShapeParams {
  * release: `release.links.list()`.
  */
 export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateReleaseLink> {
+  /** Exported from the v2 barrel as `ReleaseLinks`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "ReleaseLinks";
+
   protected path = "/workspaces/{slug}/releases/{release_id}/links/";
   protected operations: Record<string, OperationId> = {
     list: "release_links_list",

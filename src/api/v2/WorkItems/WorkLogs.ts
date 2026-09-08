@@ -33,6 +33,9 @@ export interface WorkItemWorklogShapeParams {
 
 /** Logged-time entries on a work item. Named `WorkLogs`, not `Worklogs`, to match the v1 sub-resource idiom. */
 export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog, UpdateWorkItemWorklog> {
+  /** Exported from the v2 barrel as `WorkItemWorklogs`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkItemWorklogs";
+
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/worklogs/";
   protected operations: Record<string, OperationId> = {
     list: "worklogs_list",

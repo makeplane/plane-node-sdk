@@ -35,6 +35,9 @@ export interface WorkItemActivityShapeParams {
 
 /** The audit log for a work item. Read-only — `list`/`retrieve` only. */
 export class Activities extends V2Resource<WorkItemActivity, never, never> {
+  /** Exported from the v2 barrel as `WorkItemActivities`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkItemActivities";
+
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/activities/";
   protected operations: Record<string, OperationId> = {
     list: "activities_list",

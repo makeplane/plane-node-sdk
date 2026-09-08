@@ -28,6 +28,9 @@ export interface WorkItemLinkFieldsParams {
 
 /** Links attached to a work item. */
 export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWorkItemLink> {
+  /** Exported from the v2 barrel as `WorkItemLinks`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkItemLinks";
+
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/links/";
   protected operations: Record<string, OperationId> = {
     list: "links_list",

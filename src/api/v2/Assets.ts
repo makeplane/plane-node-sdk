@@ -29,6 +29,9 @@ export interface WorkspaceAssetFieldsParams {
 
 /** Workspace file assets — two-step upload: `create` returns S3 credentials, `update` (empty PATCH) confirms. `list` only shows uploaded assets. */
 export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadRequest, WorkspaceAssetConfirmRequest> {
+  /** Exported from the v2 barrel as `WorkspaceAssets`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkspaceAssets";
+
   protected path = "/workspaces/{slug}/assets/";
   protected operations: Record<string, OperationId> = {
     list: "assets_list",

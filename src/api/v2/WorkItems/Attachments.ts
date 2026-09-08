@@ -38,6 +38,9 @@ export class Attachments extends V2Resource<
   WorkItemAttachmentUploadRequest,
   WorkItemAttachmentConfirmRequest
 > {
+  /** Exported from the v2 barrel as `WorkItemAttachments`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "WorkItemAttachments";
+
   protected path = "/workspaces/{slug}/projects/{project_id}/work-items/{work_item_id}/attachments/";
   protected operations: Record<string, OperationId> = {
     list: "attachments_list",

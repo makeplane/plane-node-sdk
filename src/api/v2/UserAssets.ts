@@ -72,7 +72,7 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
   /**
    * Step 1: get upload credentials. Follow up with `update(...)` once the bytes land.
    *
-   * The user-scoped twin of `Assets.create`, and offers no `fields` for the same reason:
+   * The user-scoped twin of `WorkspaceAssets.create`, and offers no `fields` for the same reason:
    * the presigned upload data is in this reply only and cannot be re-fetched. Named in
    * `ONE_TIME_RESPONSES` in `tests/unit/v2/fields-coverage.test.ts`.
    */

@@ -3,6 +3,9 @@ import { AnyOperationId, V2Resource } from "../kernel/resource";
 
 /** A release's changelog, reached flat as `v2.workspaces.releases.changelog.retrieve(slug, release)`, or from a fetched release as `release.changelog.retrieve()`. A singleton: `GET` auto-creates it empty. */
 export class Changelog extends V2Resource<ReleaseChangelog, never, UpdateReleaseChangelog> {
+  /** Exported from the v2 barrel as `ReleaseChangelogResource`; `exported-names.test.ts` pins the two together. */
+  static readonly publicName = "ReleaseChangelogResource";
+
   protected path = "/workspaces/{slug}/releases/{release_id}/changelog/";
   protected operations: Record<string, AnyOperationId> = {
     retrieve: "releases_changelog_retrieve",
