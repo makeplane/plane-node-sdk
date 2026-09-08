@@ -14,22 +14,22 @@ import type { Loaded, Owned } from "../kernel/loaded";
  */
 
 /** The path ids a child of a project-scoped automation row needs, in URL order. */
-export type AutomationIds = [slug: string, project: string, automation: string];
+export type ProjectAutomationIds = [slug: string, project: string, automation: string];
 
-/** The parameter names behind {@link AutomationIds}, in the same order. */
-export const AUTOMATION_ID_NAMES = ["slug", "project", "automation"] as const;
+/** The parameter names behind {@link ProjectAutomationIds}, in the same order. */
+export const PROJECT_AUTOMATION_ID_NAMES = ["slug", "project", "automation"] as const;
 
 /** Everything a fetched project-scoped automation can reach: its graph and its audit log. */
-export interface AutomationNavigation {
-  readonly nodes: Owned<ProjectAutomationNodes, AutomationIds>;
-  readonly edges: Owned<ProjectAutomationEdges, AutomationIds>;
-  readonly activities: Owned<ProjectAutomationActivities, AutomationIds>;
+export interface ProjectAutomationNavigation {
+  readonly nodes: Owned<ProjectAutomationNodes, ProjectAutomationIds>;
+  readonly edges: Owned<ProjectAutomationEdges, ProjectAutomationIds>;
+  readonly activities: Owned<ProjectAutomationActivities, ProjectAutomationIds>;
 }
 
 /** A fetched project-scoped automation row that is also the place its graph lives. */
-export type LoadedAutomationRow<TRow> = Loaded<TRow, AutomationNavigation>;
+export type LoadedProjectAutomationRow<TRow> = Loaded<TRow, ProjectAutomationNavigation>;
 
-export type LoadedAutomation = LoadedAutomationRow<Automation>;
+export type LoadedProjectAutomation = LoadedProjectAutomationRow<Automation>;
 
 /** The path ids a child of a workspace-scoped automation row needs, in URL order. */
 export type WorkspaceAutomationIds = [slug: string, automation: string];

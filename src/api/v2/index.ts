@@ -44,7 +44,22 @@ export { States } from "./States";
 export { Workspaces } from "./Workspaces";
 export type { WorkspaceField, WorkspaceFieldsParams } from "./Workspaces";
 export { Wiki } from "./Wiki";
-export { Activities, Attachments, Comments, Dependencies, Links, Relations, WorkItems, WorkLogs } from "./WorkItems";
+// The seven work-item children are exported under their qualified names, matching the
+// Python SDK and the `Comments as ReleaseComments` precedent further down. Bare
+// `Comments`/`Links`/`Activities` say nothing about which resource they belong to, and
+// two of those names are already claimed by `Releases`.
+export {
+  Activities as WorkItemActivities,
+  Attachments as WorkItemAttachments,
+  Comments as WorkItemComments,
+  Dependencies as WorkItemDependencies,
+  Links as WorkItemLinks,
+  Relations as WorkItemRelations,
+  WorkItems,
+  // `Worklogs`, not `WorkLogs`: the API spells it one word, and `ProjectWorklogs` in this
+  // same barrel already does.
+  WorkLogs as WorkItemWorklogs,
+} from "./WorkItems";
 export type {
   ListWorkItemActivitiesParams,
   ListWorkItemAttachmentsParams,
@@ -82,12 +97,12 @@ export { WORKSPACE_ID_NAMES } from "./loaded/Workspace";
 export type { LoadedWorkspace, LoadedWorkspaceRow, WorkspaceIds, WorkspaceNavigation } from "./loaded/Workspace";
 // The rows task 3's families answer with — one module per family, both scopes together
 // where a family has two (work item types/properties, automations).
-export { AUTOMATION_ID_NAMES, WORKSPACE_AUTOMATION_ID_NAMES } from "./loaded/Automation";
+export { PROJECT_AUTOMATION_ID_NAMES, WORKSPACE_AUTOMATION_ID_NAMES } from "./loaded/Automation";
 export type {
-  AutomationIds,
-  AutomationNavigation,
-  LoadedAutomation,
-  LoadedAutomationRow,
+  ProjectAutomationIds,
+  ProjectAutomationNavigation,
+  LoadedProjectAutomation,
+  LoadedProjectAutomationRow,
   LoadedWorkspaceAutomation,
   LoadedWorkspaceAutomationRow,
   WorkspaceAutomationIds,
@@ -159,7 +174,16 @@ export { BULK_MAX_ITEMS, EXPAND, FIELDS, OPENAPI_VERSION, ORDER_BY } from "./gen
 // Every other v2 resource, reachable through the `workspaces` root and wired onto the
 // `Workspaces`/`Projects`/`Wiki` nodes above.
 export * from "./Artifacts";
-export * from "./Assets";
+// `Assets` is the *workspace* asset resource (`/workspaces/{slug}/assets/`); the
+// user-scoped twin is `UserAssets`. Exported qualified, matching Python, so the bare name
+// does not read as "assets in general".
+export { Assets as WorkspaceAssets } from "./Assets";
+export type {
+  ListWorkspaceAssetsParams,
+  WorkspaceAssetField,
+  WorkspaceAssetFieldsParams,
+  WorkspaceAssetOrderBy,
+} from "./Assets";
 export * from "./AuditLogs";
 export * from "./Automations";
 export * from "./Collections";

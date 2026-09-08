@@ -19,7 +19,7 @@ describe("GroupSyncConfigResource (v2)", () => {
       .get("/api/v2/workspaces/acme/group-sync/config/")
       .reply(200, { id: "1", is_enabled: true, group_attribute_key: "groups" });
 
-    const config = await makeConfig().get("acme");
+    const config = await makeConfig().retrieve("acme");
 
     expect(config.is_enabled).toBe(true);
     expect(config.group_attribute_key).toBe("groups");

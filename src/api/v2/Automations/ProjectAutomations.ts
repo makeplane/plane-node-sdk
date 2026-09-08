@@ -10,7 +10,12 @@ import { FIELDS, ORDER_BY } from "../generated/constants";
 import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
 import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
-import { AUTOMATION_ID_NAMES, AutomationNavigation, LoadedAutomation, LoadedAutomationRow } from "../loaded/Automation";
+import {
+  PROJECT_AUTOMATION_ID_NAMES,
+  ProjectAutomationNavigation,
+  LoadedProjectAutomation,
+  LoadedProjectAutomationRow,
+} from "../loaded/Automation";
 import { ProjectAutomationActivities } from "./ProjectAutomationActivities";
 import { ProjectAutomationEdges } from "./ProjectAutomationEdges";
 import { ProjectAutomationNodes } from "./ProjectAutomationNodes";
@@ -46,7 +51,7 @@ export class ProjectAutomations extends LoadsNavigableRows<
   Automation,
   CreateAutomation,
   UpdateAutomation,
-  AutomationNavigation
+  ProjectAutomationNavigation
 > {
   protected path = "/workspaces/{slug}/projects/{project_id}/automations/";
   protected extraPaths = {
@@ -61,7 +66,7 @@ export class ProjectAutomations extends LoadsNavigableRows<
     delete: "project_automations_destroy",
     setStatus: "project_automations_status",
   };
-  protected loadedIdNames = AUTOMATION_ID_NAMES;
+  protected loadedIdNames = PROJECT_AUTOMATION_ID_NAMES;
 
   public nodes: ProjectAutomationNodes;
   public edges: ProjectAutomationEdges;
@@ -74,7 +79,7 @@ export class ProjectAutomations extends LoadsNavigableRows<
     this.activities = new ProjectAutomationActivities(transport);
   }
 
-  protected navigationOf(meta: LoadedMeta): NavigationFactories<AutomationNavigation> {
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<ProjectAutomationNavigation> {
     const ids = meta.ids as [string, string, string];
     return {
       nodes: () => owned(this.nodes, ids, meta.idNames),
@@ -94,9 +99,13 @@ export class ProjectAutomations extends LoadsNavigableRows<
     slug: string,
     project: string,
     params: ListProjectAutomationsParams & { fields: readonly F[] }
-  ): Promise<Page<LoadedAutomationRow<Pick<Automation, F | "id">>>>;
-  list(slug: string, project: string, params?: ListProjectAutomationsParams): Promise<Page<LoadedAutomation>>;
-  async list(slug: string, project: string, params?: ListProjectAutomationsParams): Promise<Page<LoadedAutomation>> {
+  ): Promise<Page<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>>;
+  list(slug: string, project: string, params?: ListProjectAutomationsParams): Promise<Page<LoadedProjectAutomation>>;
+  async list(
+    slug: string,
+    project: string,
+    params?: ListProjectAutomationsParams
+  ): Promise<Page<LoadedProjectAutomation>> {
     const page = await this.doList(this._at(slug, project), params as Record<string, unknown>);
     return this.loadPage(page, [slug, project], params?.fields);
   }
@@ -106,17 +115,17 @@ export class ProjectAutomations extends LoadsNavigableRows<
     slug: string,
     project: string,
     params: Omit<ListProjectAutomationsParams, "offset" | "count"> & { fields: readonly F[] }
-  ): AsyncGenerator<LoadedAutomationRow<Pick<Automation, F | "id">>>;
+  ): AsyncGenerator<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>;
   iterate(
     slug: string,
     project: string,
     params?: Omit<ListProjectAutomationsParams, "offset" | "count">
-  ): AsyncGenerator<LoadedAutomation>;
+  ): AsyncGenerator<LoadedProjectAutomation>;
   iterate(
     slug: string,
     project: string,
     params?: Omit<ListProjectAutomationsParams, "offset" | "count">
-  ): AsyncGenerator<LoadedAutomation> {
+  ): AsyncGenerator<LoadedProjectAutomation> {
     return this.loadIterate(
       this.doIterate(this._at(slug, project), params as Record<string, unknown>),
       [slug, project],
@@ -129,25 +138,25 @@ export class ProjectAutomations extends LoadsNavigableRows<
     project: string,
     automation: string,
     params: { fields: readonly F[] }
-  ): Promise<LoadedAutomationRow<Pick<Automation, F | "id">>>;
+  ): Promise<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>;
   retrieve(
     slug: string,
     project: string,
     automation: string,
     params?: ProjectAutomationShapeParams
-  ): Promise<LoadedAutomation>;
+  ): Promise<LoadedProjectAutomation>;
   async retrieve(
     slug: string,
     project: string,
     automation: string,
     params?: ProjectAutomationShapeParams
-  ): Promise<LoadedAutomation> {
+  ): Promise<LoadedProjectAutomation> {
     const row = await this.doRetrieve(this._at(slug, project, automation), params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);
   }
 
   /** The one automation with this name; throws if none or several match. */
-  async findByName(slug: string, project: string, name: string): Promise<LoadedAutomation> {
+  async findByName(slug: string, project: string, name: string): Promise<LoadedProjectAutomation> {
     const row = await this.doFindOne({ name }, this._at(slug, project));
     return this.load(row, [slug, project]);
   }
@@ -157,19 +166,19 @@ export class ProjectAutomations extends LoadsNavigableRows<
     project: string,
     data: CreateAutomation,
     params: ProjectAutomationShapeParams & { fields: readonly F[] }
-  ): Promise<LoadedAutomationRow<Pick<Automation, F | "id">>>;
+  ): Promise<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>;
   create(
     slug: string,
     project: string,
     data: CreateAutomation,
     params?: ProjectAutomationShapeParams
-  ): Promise<LoadedAutomation>;
+  ): Promise<LoadedProjectAutomation>;
   async create(
     slug: string,
     project: string,
     data: CreateAutomation,
     params?: ProjectAutomationShapeParams
-  ): Promise<LoadedAutomation> {
+  ): Promise<LoadedProjectAutomation> {
     const row = await this.doCreate(data, this._at(slug, project), params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);
   }
@@ -180,21 +189,21 @@ export class ProjectAutomations extends LoadsNavigableRows<
     automation: string,
     data: UpdateAutomation,
     params: ProjectAutomationShapeParams & { fields: readonly F[] }
-  ): Promise<LoadedAutomationRow<Pick<Automation, F | "id">>>;
+  ): Promise<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>;
   update(
     slug: string,
     project: string,
     automation: string,
     data: UpdateAutomation,
     params?: ProjectAutomationShapeParams
-  ): Promise<LoadedAutomation>;
+  ): Promise<LoadedProjectAutomation>;
   async update(
     slug: string,
     project: string,
     automation: string,
     data: UpdateAutomation,
     params?: ProjectAutomationShapeParams
-  ): Promise<LoadedAutomation> {
+  ): Promise<LoadedProjectAutomation> {
     const row = await this.doUpdate(data, this._at(slug, project, automation), params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);
   }

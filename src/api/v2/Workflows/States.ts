@@ -40,9 +40,9 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     delete: "workflow_states_destroy",
   };
 
-  private _at(slug: string, project: string, workflow: string, workflowState?: string): Record<string, string> {
+  private _at(slug: string, project: string, workflow: string, state?: string): Record<string, string> {
     const params: Record<string, string> = { slug, project_id: project, workflow_id: workflow };
-    if (workflowState !== undefined) params.pk = workflowState;
+    if (state !== undefined) params.pk = state;
     return params;
   }
 
@@ -94,24 +94,24 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     slug: string,
     project: string,
     workflow: string,
-    workflowState: string,
+    state: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkflowState, F | "id">>;
   retrieve(
     slug: string,
     project: string,
     workflow: string,
-    workflowState: string,
+    state: string,
     params?: { fields?: readonly WorkflowStateField[] }
   ): Promise<WorkflowState>;
   retrieve(
     slug: string,
     project: string,
     workflow: string,
-    workflowState: string,
+    state: string,
     params?: { fields?: readonly WorkflowStateField[] }
   ): Promise<WorkflowState> {
-    return this.doRetrieve(this._at(slug, project, workflow, workflowState), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, project, workflow, state), params as Record<string, unknown>);
   }
 
   /**
@@ -151,7 +151,7 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     slug: string,
     project: string,
     workflow: string,
-    workflowState: string,
+    state: string,
     data: UpdateWorkflowState,
     params: WorkflowStateShapeParams & { fields: readonly F[] }
   ): Promise<Pick<WorkflowState, F | "id">>;
@@ -159,7 +159,7 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     slug: string,
     project: string,
     workflow: string,
-    workflowState: string,
+    state: string,
     data: UpdateWorkflowState,
     params?: WorkflowStateShapeParams
   ): Promise<WorkflowState>;
@@ -167,14 +167,14 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     slug: string,
     project: string,
     workflow: string,
-    workflowState: string,
+    state: string,
     data: UpdateWorkflowState,
     params?: WorkflowStateShapeParams
   ): Promise<WorkflowState> {
-    return this.doUpdate(data, this._at(slug, project, workflow, workflowState), params as Record<string, unknown>);
+    return this.doUpdate(data, this._at(slug, project, workflow, state), params as Record<string, unknown>);
   }
 
-  delete(slug: string, project: string, workflow: string, workflowState: string): Promise<void> {
-    return this.doDelete(this._at(slug, project, workflow, workflowState));
+  delete(slug: string, project: string, workflow: string, state: string): Promise<void> {
+    return this.doDelete(this._at(slug, project, workflow, state));
   }
 }

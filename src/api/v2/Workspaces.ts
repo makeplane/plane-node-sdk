@@ -98,7 +98,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
   /**
    * IdP group sync. A grouping node, not a resource: it consumes no path id of its own, so
    * it is not a navigation property on a fetched row (its children each take `slug`
-   * themselves). Reach it as `v2.workspaces.groupSync.config.get(slug)`.
+   * themselves). Reach it as `v2.workspaces.groupSync.config.retrieve(slug)`.
    */
   public groupSync: GroupSync;
   /**

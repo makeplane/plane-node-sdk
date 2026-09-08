@@ -11,12 +11,19 @@ export class GroupSyncConfigResource extends V2Resource<GroupSyncConfig, never, 
   protected path = "/workspaces/{slug}/group-sync/config/";
   // No entry needed: this operation takes no `fields`/`order_by`/`expand`.
   protected operations: Record<string, AnyOperationId> = {
-    get: "group_sync_config_retrieve",
+    retrieve: "group_sync_config_retrieve",
     update: "group_sync_config_update",
   };
 
-  get(slug: string): Promise<GroupSyncConfig> {
-    return this.doRetrieveSingleton<GroupSyncConfig>({ slug }, "get");
+  /**
+   * The workspace's group-sync configuration.
+   *
+   * Spelled `retrieve`, not `get`, like every other singleton read in the SDK
+   * (`features.retrieve`, `permissions.me`, `releases.changelog.retrieve`) and like the
+   * Python SDK. One verb per shape of call, whether or not the route has a primary key.
+   */
+  retrieve(slug: string): Promise<GroupSyncConfig> {
+    return this.doRetrieveSingleton<GroupSyncConfig>({ slug }, "retrieve");
   }
 
   update(slug: string, data: UpdateGroupSyncConfig): Promise<GroupSyncConfig> {

@@ -17,7 +17,7 @@ maybe("GroupSync (v2, live)", () => {
 
   it("reads the workspace config singleton", async () => {
     try {
-      const config = await groupSync().config.get(slug());
+      const config = await groupSync().config.retrieve(slug());
       expect(config.id).toBeTruthy();
     } catch (error) {
       if (error instanceof PlaneApiError && error.status === 402) return; // feature not enabled — expected on some plans

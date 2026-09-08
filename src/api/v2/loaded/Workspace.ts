@@ -58,7 +58,7 @@ export const WORKSPACE_ID_NAMES = ["slug"] as const;
  *
  * `wiki` and `groupSync` are a different case and stay absent permanently: neither is a
  * `V2Resource` (they consume no path id of their own), so neither is a child a loaded row
- * can bind. Reach them as `v2.workspaces.groupSync.config.get(slug)` and
+ * can bind. Reach them as `v2.workspaces.groupSync.config.retrieve(slug)` and
  * `v2.workspaces.wiki.pages.list(slug)`.
  */
 export interface WorkspaceNavigation {

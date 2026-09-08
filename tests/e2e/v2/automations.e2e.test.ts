@@ -7,7 +7,7 @@
  * URL needs are already bound.
  */
 import { PlaneClient } from "../../../src/client/plane-client";
-import { LoadedAutomation, LoadedWorkspaceAutomation } from "../../../src/api/v2/loaded/Automation";
+import { LoadedProjectAutomation, LoadedWorkspaceAutomation } from "../../../src/api/v2/loaded/Automation";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -83,7 +83,7 @@ maybe("v2 project automations (live)", () => {
   });
 
   describe("nodes, edges, and activities", () => {
-    let automation: LoadedAutomation;
+    let automation: LoadedProjectAutomation;
 
     beforeAll(async () => {
       automation = await automations().create(slug(), project(), {

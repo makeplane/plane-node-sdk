@@ -63,12 +63,12 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
 
   retrieve<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
     slug: string,
-    invite: string,
+    invitation: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkspaceInvite, F | "id">>;
-  retrieve(slug: string, invite: string, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite>;
-  retrieve(slug: string, invite: string, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite> {
-    return this.doRetrieve({ slug, pk: invite }, params as Record<string, unknown>);
+  retrieve(slug: string, invitation: string, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite>;
+  retrieve(slug: string, invitation: string, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite> {
+    return this.doRetrieve({ slug, pk: invitation }, params as Record<string, unknown>);
   }
 
   create<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
@@ -82,8 +82,8 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
   }
 
   /** Revoke an invitation. The API rejects revoking one already accepted (400). */
-  delete(slug: string, invite: string): Promise<void> {
-    return this.doDelete({ slug, pk: invite });
+  delete(slug: string, invitation: string): Promise<void> {
+    return this.doDelete({ slug, pk: invitation });
   }
 
   /**
