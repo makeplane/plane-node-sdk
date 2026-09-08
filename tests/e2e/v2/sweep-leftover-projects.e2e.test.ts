@@ -21,7 +21,7 @@ maybe("v2 sweepLeftoverProjects age gate (live)", () => {
 
   afterEach(async () => {
     if (project) {
-      await client.v2.projects.delete(env.workspaceSlug, project.id).catch(() => undefined);
+      await client.v2.workspaces.projects.delete(env.workspaceSlug, project.id).catch(() => undefined);
     }
   });
 
@@ -32,7 +32,7 @@ maybe("v2 sweepLeftoverProjects age gate (live)", () => {
 
     // The assertion that matters: a real GET against the live server, not just
     // trusting the sweep's own return count.
-    await expect(client.v2.projects.retrieve(env.workspaceSlug, project.id)).resolves.toMatchObject({
+    await expect(client.v2.workspaces.projects.retrieve(env.workspaceSlug, project.id)).resolves.toMatchObject({
       id: project.id,
     });
   });
@@ -44,6 +44,6 @@ maybe("v2 sweepLeftoverProjects age gate (live)", () => {
     const swept = await sweepLeftoverProjects(client, env.workspaceSlug, asIfThirtyOneMinutesLater);
 
     expect(swept).toBeGreaterThanOrEqual(1);
-    await expect(client.v2.projects.retrieve(env.workspaceSlug, project.id)).rejects.toThrow();
+    await expect(client.v2.workspaces.projects.retrieve(env.workspaceSlug, project.id)).rejects.toThrow();
   });
 });

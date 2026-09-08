@@ -14,7 +14,7 @@ maybe("Intakes (v2 live)", () => {
   const resource = () => suite.projectRow.intakes;
 
   beforeAll(async () => {
-    await suite.client.v2.projects.update(suite.workspaceSlug, suite.projectId, { intake_view: true });
+    await suite.client.v2.workspaces.projects.update(suite.workspaceSlug, suite.projectId, { intake_view: true });
   });
 
   it("creates, retrieves, lists, and folds a triage decision into one PATCH", async () => {

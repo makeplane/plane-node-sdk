@@ -44,7 +44,7 @@ export interface ResourceSpec<TRead, TWrite, TPatch> {
   key: "states" | "labels";
   makeWrite(name: string, overrides?: Partial<TWrite>): TWrite;
   makePatch(fields: Partial<TWrite>): TPatch;
-  /** The flat form: `v2.projects.<key>`, both path ids passed on every call. */
+  /** The flat form: `v2.workspaces.projects.<key>`, both path ids passed on every call. */
   flat(client: PlaneClient, workspaceSlug: string, project: string): ResourceOps<TRead, TWrite, TPatch>;
   /** The navigated form: the same methods off a fetched project row, with the ids bound. */
   navigated(project: LoadedProject): ResourceOps<TRead, TWrite, TPatch>;
@@ -55,7 +55,7 @@ const statesSpec: ResourceSpec<State, CreateState, UpdateState> = {
   makeWrite: (name, overrides = {}) => ({ name, color: DEFAULT_COLOR, ...overrides }),
   makePatch: (fields) => ({ ...fields }),
   flat: (client, slug, project) => {
-    const states = client.v2.projects.states;
+    const states = client.v2.workspaces.projects.states;
     return {
       list: (params) => states.list(slug, project, params),
       iterate: (params) => states.iterate(slug, project, params),
@@ -78,7 +78,7 @@ const labelsSpec: ResourceSpec<Label, CreateLabel, UpdateLabel> = {
   makeWrite: (name, overrides = {}) => ({ name, color: DEFAULT_COLOR, ...overrides }),
   makePatch: (fields) => ({ ...fields }),
   flat: (client, slug, project) => {
-    const labels = client.v2.projects.labels;
+    const labels = client.v2.workspaces.projects.labels;
     return {
       list: (params) => labels.list(slug, project, params),
       iterate: (params) => labels.iterate(slug, project, params),

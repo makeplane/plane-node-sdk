@@ -48,7 +48,7 @@ Tests live in `tests/unit/` and `tests/e2e/`. Tests require a `.env.test` file (
 and they are the same objects:
 
 - **Flat.** A resource is a plain attribute at the position its URL puts it
-  (`v2.projects.states`, `v2.workspaces.teamspaces`, `v2.projects.workItems.comments`)
+  (`v2.workspaces.projects.states`, `v2.workspaces.teamspaces`, `v2.workspaces.projects.workItems.comments`)
   and takes the ids its URL names as **leading positional parameters, in path order**:
   `states.list(slug, project, params?)`. No public v2 method takes a `workspaceSlug`
   or `project` _option_ — path ids are positional and first; leaf ids
@@ -63,8 +63,10 @@ and they are the same objects:
   and record the rename, as `Estimate.points` → `estimatePoints` and
   `WorkItemProperty.options` → `propertyOptions` did).
 
-`v2.workspaces` and `v2.projects` are the two band roots; `Workspace.ts`/`Project.ts`
-are the **deprecated** locator chain, kept only until `tests/e2e/` stops calling them.
+`v2.workspaces` and `v2.workspaces.projects` are the two band roots, and every resource
+sits at exactly one attribute path — the one its URL names. The bound `Workspace`/
+`Project` locator chain is **deleted**, and so is `V2Resource`'s `scope` constructor
+argument that fed it: path ids reach the kernel only as leading positional parameters.
 `Wiki.ts` and `GroupSync/` are grouping nodes: they consume no path id of their own, so
 they are never navigation properties on a row.
 

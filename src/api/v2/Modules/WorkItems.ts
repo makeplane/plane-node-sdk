@@ -3,7 +3,7 @@ import { AnyOperationId, V2Resource } from "../kernel/resource";
 /**
  * Work-item membership of a module.
  *
- * Reached flat — `v2.projects.modules.workItems.add(slug, project, module, ids)` — or from
+ * Reached flat — `v2.workspaces.projects.modules.workItems.add(slug, project, module, ids)` — or from
  * a fetched module, which supplies all three leading ids: `module.workItems.add(ids)`.
  * 1..100 ids per call; resolves to the ids actually changed.
  */

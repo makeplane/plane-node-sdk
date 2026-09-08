@@ -36,7 +36,7 @@ export interface CycleShapeParams {
 /**
  * Project cycles.
  *
- * Reached flat — `v2.projects.cycles.list(slug, project)` — or from a fetched project,
+ * Reached flat — `v2.workspaces.projects.cycles.list(slug, project)` — or from a fetched project,
  * which supplies both leading ids: `project.cycles.list()`. Every row-returning method
  * answers a {@link LoadedCycle}, so `cycle.workItems.add([...])` needs nothing repeated.
  *

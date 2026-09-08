@@ -18,7 +18,7 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 estimates (live)", () => {
   const suite = useV2Project("est", env);
 
-  const estimates = () => suite.client.v2.projects.estimates;
+  const estimates = () => suite.client.v2.workspaces.projects.estimates;
   const slug = () => suite.workspaceSlug;
   const project = () => suite.projectId;
 

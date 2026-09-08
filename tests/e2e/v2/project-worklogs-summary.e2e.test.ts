@@ -11,7 +11,9 @@ maybe("v2 project worklogs summary (live)", () => {
   const suite = useV2Project("worklogs-summary", env);
 
   beforeAll(async () => {
-    await suite.client.v2.projects.update(suite.workspaceSlug, suite.projectId, { is_time_tracking_enabled: true });
+    await suite.client.v2.workspaces.projects.update(suite.workspaceSlug, suite.projectId, {
+      is_time_tracking_enabled: true,
+    });
   });
 
   it("returns a bare array for the project (empty when nothing's been logged)", async () => {

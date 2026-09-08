@@ -32,7 +32,7 @@ interface ResourceSpec<TRead extends { id: string }, TWrite, TPatch> {
   identityField: "name" | "title";
   makeWrite(label: string, overrides?: Partial<TWrite>): TWrite;
   makePatch(fields: Partial<TWrite>): TPatch;
-  /** The flat form: `v2.projects.<key>`, both path ids passed on every call. */
+  /** The flat form: `v2.workspaces.projects.<key>`, both path ids passed on every call. */
   flat: (client: PlaneClient, workspaceSlug: string, project: string) => ResourceOps<TRead, TWrite, TPatch>;
   /** The navigated form: the same methods off a fetched project row, with the ids bound. */
   navigated: (project: LoadedProject) => ResourceOps<TRead, TWrite, TPatch>;
@@ -101,7 +101,7 @@ const cyclesSpec: ResourceSpec<Cycle, CreateCycle, UpdateCycle> = {
   identityField: "name",
   makeWrite: (name, overrides = {}) => ({ name, ...overrides }),
   makePatch: (fields) => ({ ...fields }),
-  flat: (client, slug, project) => bindProject(client.v2.projects.cycles, slug, project),
+  flat: (client, slug, project) => bindProject(client.v2.workspaces.projects.cycles, slug, project),
   navigated: (project) => project.cycles,
 };
 
@@ -110,7 +110,7 @@ const modulesSpec: ResourceSpec<Module, CreateModule, UpdateModule> = {
   identityField: "name",
   makeWrite: (name, overrides = {}) => ({ name, ...overrides }),
   makePatch: (fields) => ({ ...fields }),
-  flat: (client, slug, project) => bindProject(client.v2.projects.modules, slug, project),
+  flat: (client, slug, project) => bindProject(client.v2.workspaces.projects.modules, slug, project),
   navigated: (project) => project.modules,
 };
 
@@ -124,7 +124,7 @@ const milestonesSpec: ResourceSpec<Milestone, CreateMilestone, UpdateMilestone> 
     const { name, ...rest } = fields as Record<string, unknown>;
     return (name === undefined ? rest : { ...rest, title: name }) as UpdateMilestone;
   },
-  flat: (client, slug, project) => bindProject(client.v2.projects.milestones, slug, project),
+  flat: (client, slug, project) => bindProject(client.v2.workspaces.projects.milestones, slug, project),
   navigated: (project) => project.milestones,
 };
 

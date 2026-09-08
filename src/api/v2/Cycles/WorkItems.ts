@@ -3,7 +3,7 @@ import { AnyOperationId, V2Resource } from "../kernel/resource";
 /**
  * Work-item membership of a cycle.
  *
- * Reached flat — `v2.projects.cycles.workItems.add(slug, project, cycle, ids)` — or from a
+ * Reached flat — `v2.workspaces.projects.cycles.workItems.add(slug, project, cycle, ids)` — or from a
  * fetched cycle, which supplies all three leading ids: `cycle.workItems.add(ids)`.
  * 1..100 ids per call; resolves to the ids actually changed.
  */

@@ -9,10 +9,10 @@ export class GroupSync {
   public projectMappings: GroupSyncProjectMappings;
   public workspaceMappings: GroupSyncWorkspaceMappings;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    this.config = new GroupSyncConfigResource(transport, scope);
-    this.projectMappings = new GroupSyncProjectMappings(transport, scope);
-    this.workspaceMappings = new GroupSyncWorkspaceMappings(transport, scope);
+  constructor(transport: V2Transport) {
+    this.config = new GroupSyncConfigResource(transport);
+    this.projectMappings = new GroupSyncProjectMappings(transport);
+    this.workspaceMappings = new GroupSyncWorkspaceMappings(transport);
   }
 }
 

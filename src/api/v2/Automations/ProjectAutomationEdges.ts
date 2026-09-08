@@ -26,7 +26,7 @@ export interface ProjectAutomationEdgeShapeParams {
 /**
  * Edges between nodes of a project-scoped automation's graph.
  *
- * Reached flat — `v2.projects.automations.edges.list(slug, project, automation)` — or from a fetched automation: `automation.edges.list()`.
+ * Reached flat — `v2.workspaces.projects.automations.edges.list(slug, project, automation)` — or from a fetched automation: `automation.edges.list()`.
  */
 export class ProjectAutomationEdges extends V2Resource<AutomationEdge, CreateAutomationEdge, UpdateAutomationEdge> {
   protected path = "/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/edges/";

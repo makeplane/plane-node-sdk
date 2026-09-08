@@ -1,6 +1,6 @@
 /**
  * `add`/`remove` is a bridge sub-resource on `Modules`, reached flat as
- * `v2.projects.modules.workItems.add(slug, project, module, ids)` — or, as here, three
+ * `v2.workspaces.projects.modules.workItems.add(slug, project, module, ids)` — or, as here, three
  * navigations deep: a fetched project hands back `modules`, a fetched module hands back
  * `workItems`, and the bridge call names only the ids it adds.
  *
@@ -47,7 +47,7 @@ maybe("v2 module work-item management (live)", () => {
   });
 
   it("the flat call reaches the same bridge", async () => {
-    const modules = suite.client.v2.projects.modules;
+    const modules = suite.client.v2.workspaces.projects.modules;
     const added = await modules.workItems.add(suite.workspaceSlug, suite.projectId, testModule.id, [workItemId]);
     expect(added).toContain(workItemId);
 

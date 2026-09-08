@@ -33,7 +33,7 @@ export interface MilestoneShapeParams {
 /**
  * Project milestones.
  *
- * Reached flat — `v2.projects.milestones.list(slug, project)` — or from a fetched project,
+ * Reached flat — `v2.workspaces.projects.milestones.list(slug, project)` — or from a fetched project,
  * which supplies both leading ids: `project.milestones.list()`. Every row-returning method
  * answers a {@link LoadedMilestone}, so `milestone.workItems.add([...])` needs nothing
  * repeated.

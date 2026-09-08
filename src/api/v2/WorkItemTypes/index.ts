@@ -44,7 +44,7 @@ export interface WorkItemTypeShapeParams {
 /**
  * Project-scoped work item types; `schema`/`enable`/`import` exist only here.
  *
- * Reached flat — `v2.projects.workItemTypes.list(slug, project)` — or from a fetched
+ * Reached flat — `v2.workspaces.projects.workItemTypes.list(slug, project)` — or from a fetched
  * project: `project.workItemTypes.list()`. Every row-returning method answers a
  * {@link LoadedWorkItemType}, so `type.properties.link([...])` repeats no id. `properties`
  * attaches the link/unlink resource; the definitions themselves live on

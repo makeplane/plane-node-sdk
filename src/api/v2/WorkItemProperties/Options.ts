@@ -26,7 +26,7 @@ export interface ListWorkItemPropertyOptionsParams {
  * Options of an OPTION-typed property, scoped under a project + property; `list`/`retrieve`
  * have no `fields` param.
  *
- * Reached flat — `v2.projects.workItemProperties.options.list(slug, project, property)` —
+ * Reached flat — `v2.workspaces.projects.workItemProperties.options.list(slug, project, property)` —
  * or from a fetched property, where it is `property.propertyOptions.list()`: the row's own
  * `options` field is the inlined choice list, so the navigation property is spelled
  * differently (see `WorkItemPropertyNavigation`).

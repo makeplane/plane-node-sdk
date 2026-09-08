@@ -40,7 +40,7 @@ export interface WorkItemPropertyShapeParams {
  * Custom work item property definitions scoped to a project; see
  * `WorkspaceWorkItemProperties` for the sibling.
  *
- * Reached flat — `v2.projects.workItemProperties.list(slug, project)` — or from a fetched
+ * Reached flat — `v2.workspaces.projects.workItemProperties.list(slug, project)` — or from a fetched
  * project: `project.workItemProperties.list()`. Every row-returning method answers a
  * {@link LoadedWorkItemProperty}, whose choices are reached as
  * `property.propertyOptions.list()` — **not** `options`, which is a real field on the row

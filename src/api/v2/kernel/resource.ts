@@ -84,21 +84,18 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
   protected abstract operations: Record<string, AnyOperationId>;
 
   /**
-   * @param scope **Retired.** The pre-flat mechanism: path placeholders a locator bound
-   * once (`{ slug }`, `{ slug, project_id }`) so methods could omit them. Migrated
-   * resources pass nothing and take their ids per call; it survives only so the
-   * not-yet-migrated classes keep working mid-migration, and the last task of the
-   * variant-F plan deletes it along with the `Workspace`/`Project` locators. Do not use
-   * it in new code — `tests/unit/v2/path-id-naming.test.ts` sweeps for the flat shape.
+   * A resource is constructed with the transport and nothing else.
+   *
+   * There is deliberately no bound `scope`. The pre-flat kernel took one — path
+   * placeholders a `Workspace`/`Project` locator filled once so methods could omit them —
+   * and it went with those locators: every id is a leading positional parameter now, and
+   * a second, invisible source of path ids is exactly what made a wrong URL well-formed.
    */
-  constructor(
-    protected transport: V2Transport,
-    protected scope: Record<string, string> = {}
-  ) {}
+  constructor(protected transport: V2Transport) {}
 
   /**
-   * Fill `template` from `pathParams` (and any retired `scope`), percent-encoding each
-   * value so an id can never inject extra URL segments.
+   * Fill `template` from `pathParams`, percent-encoding each value so an id can never
+   * inject extra URL segments.
    *
    * `action` is the calling method's name and only feeds the error: a template key with
    * no value behind it raises {@link MissingPathIdError}, which names the resource, the
@@ -107,11 +104,10 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
    * well-formed URL pointing at the wrong thing.
    */
   protected formatPath(template: string, action: string, pathParams: Record<string, string>): string {
-    const merged = { ...this.scope, ...pathParams };
     return template.replace(/\{(\w+)\}/g, (_match, key: string) => {
-      const value = merged[key];
+      const value = pathParams[key];
       if (value === undefined || value === null || value === "") {
-        const supplied = Object.entries(merged)
+        const supplied = Object.entries(pathParams)
           .filter(([, candidate]) => candidate !== undefined && candidate !== null && candidate !== "")
           .map(([name]) => name)
           .sort();
@@ -124,11 +120,6 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
   /** The URL for `action`: its {@link extraPaths} override if it declares one, else `path`. */
   protected urlFor(action: string, pathParams: Record<string, string>): string {
     return this.formatPath(this.extraPaths[action] ?? this.path, action, pathParams);
-  }
-
-  /** Build a URL from an arbitrary template — an escape hatch for cross-family-shaped operations. */
-  protected urlForTemplate(template: string, action: string, pathParams: Record<string, string>): string {
-    return this.formatPath(template, action, pathParams);
   }
 
   protected collectionUrl(pathParams: Record<string, string>, action = "<call>"): string {

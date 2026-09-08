@@ -11,17 +11,13 @@ import { V2Transport } from "./kernel/transport";
  * are flat and take the slug per call, so `new Wiki(transport)` is what `Workspaces`
  * attaches and both `v2.workspaces.wiki.pages.list(slug)` and
  * `v2.workspaces.wiki.collections.list(slug)` work.
- *
- * `slug` stays optional only because the retiring `Workspace` locator still passes one;
- * nothing reads it, and it goes with that class.
  */
 export class Wiki {
   public readonly pages: WikiPages;
   public readonly collections: Collections;
 
-  constructor(transport: V2Transport, slug?: string) {
-    const scope: Record<string, string> = slug === undefined ? {} : { slug };
-    this.pages = new WikiPages(transport, scope);
+  constructor(transport: V2Transport) {
+    this.pages = new WikiPages(transport);
     this.collections = new Collections(transport);
   }
 }

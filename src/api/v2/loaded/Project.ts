@@ -40,10 +40,8 @@ export const PROJECT_ID_NAMES = ["slug", "project"] as const;
  * row that reached 3 of its 15 children with every other test green — this is the check
  * that catches that.
  *
- * The band still on the pre-flat shape is deliberately absent rather than exempt: those
- * classes take their `{slug}`/`{project_id}` from the retired locator scope, so `owned()`
- * has nothing to bind. `tests/unit/v2/bands.test.ts` requires every migrated member of the
- * project band to be attached to `Projects`, and counts the rest against a ratchet.
+ * `tests/unit/v2/bands.test.ts` requires every member of the project band to be attached
+ * to `Projects`, and nothing foreign to be.
  */
 export interface ProjectNavigation {
   readonly states: Owned<States, ProjectIds>;

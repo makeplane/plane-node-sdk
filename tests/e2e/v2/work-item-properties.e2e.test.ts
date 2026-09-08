@@ -20,7 +20,7 @@ maybe("v2 work item properties (live)", () => {
   const suite = useV2Project("wip", env);
 
   const ws = () => suite.client.v2.workspaces;
-  const proj = () => suite.client.v2.projects;
+  const proj = () => suite.client.v2.workspaces.projects;
   const slug = () => suite.workspaceSlug;
   const project = () => suite.projectId;
 

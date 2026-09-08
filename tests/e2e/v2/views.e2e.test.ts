@@ -42,8 +42,16 @@ maybe("Views (v2, live)", () => {
       try {
         // The navigated row is already bound to whichever key `rowId` picked, so the
         // uuid/identifier equivalence can only be asserted flat.
-        const byId = await suite.client.v2.projects.views.retrieve(suite.workspaceSlug, suite.projectId, created.id);
-        const byKey = await suite.client.v2.projects.views.retrieve(suite.workspaceSlug, suite.projectKey, created.id);
+        const byId = await suite.client.v2.workspaces.projects.views.retrieve(
+          suite.workspaceSlug,
+          suite.projectId,
+          created.id
+        );
+        const byKey = await suite.client.v2.workspaces.projects.views.retrieve(
+          suite.workspaceSlug,
+          suite.projectKey,
+          created.id
+        );
         expect(byId.id).toBe(byKey.id);
       } finally {
         await proj.views.delete(created.id).catch(() => undefined);

@@ -74,7 +74,7 @@ export interface WorkItemShapeParams {
 /**
  * Work items — CRUD plus per-item sub-resources. Write DTOs accept human values, not ids.
  *
- * Reached flat — `v2.projects.workItems.list(slug, project)` — or from a fetched
+ * Reached flat — `v2.workspaces.projects.workItems.list(slug, project)` — or from a fetched
  * project, which supplies both leading ids: `project.workItems.list()`. Every
  * row-returning method answers a {@link LoadedWorkItem}: the row's own data plus the
  * path ids its children need, so `workItem.comments.list()` needs nothing repeated.

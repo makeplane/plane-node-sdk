@@ -20,7 +20,9 @@ maybe("v2 work item sub-resources (live)", () => {
   let workItem: LoadedWorkItem;
 
   beforeAll(async () => {
-    await suite.client.v2.projects.update(suite.workspaceSlug, suite.projectId, { is_time_tracking_enabled: true });
+    await suite.client.v2.workspaces.projects.update(suite.workspaceSlug, suite.projectId, {
+      is_time_tracking_enabled: true,
+    });
     workItem = await suite.projectRow.workItems.create({ name: uniqueName("wis-parent") });
   });
 

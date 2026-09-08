@@ -37,7 +37,7 @@ export interface ModuleShapeParams {
 /**
  * Project modules.
  *
- * Reached flat — `v2.projects.modules.list(slug, project)` — or from a fetched project,
+ * Reached flat — `v2.workspaces.projects.modules.list(slug, project)` — or from a fetched project,
  * which supplies both leading ids: `project.modules.list()`. Every row-returning method
  * answers a {@link LoadedModule}, so `module.workItems.add([...])` needs nothing repeated.
  */

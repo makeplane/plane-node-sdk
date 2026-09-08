@@ -1,7 +1,7 @@
 /**
  * list/retrieve/create/update/delete driven over states+labels via `SPECS` (support/specs.ts), one shared project.
  *
- * Every case runs twice: once flat (`v2.projects.states.list(slug, project)`) and once
+ * Every case runs twice: once flat (`v2.workspaces.projects.states.list(slug, project)`) and once
  * navigated (`projectRow.states.list()`). The two reach the same HTTP but not through the
  * same code — only the navigated path goes through `owned()`, which prepends the row's
  * path ids positionally. That prepending cannot be wrong in a way the unit sweeps see: a
@@ -164,7 +164,7 @@ maybe("v2 typed field projection (live)", () => {
   });
 
   it("narrows .states.list to the requested fields (inline literal)", async () => {
-    const states = client.v2.projects.states;
+    const states = client.v2.workspaces.projects.states;
     const created = await states.create(suite.workspaceSlug, suite.projectId, {
       name: uniqueName("states-typed"),
       color: "#112233",
@@ -185,7 +185,7 @@ maybe("v2 typed field projection (live)", () => {
   });
 
   it("narrows .labels.list with a dynamically-typed LabelField[]", async () => {
-    const labels = client.v2.projects.labels;
+    const labels = client.v2.workspaces.projects.labels;
     const dynamicFields: LabelField[] = ["id", "color"];
     const created = await labels.create(suite.workspaceSlug, suite.projectId, {
       name: uniqueName("labels-typed"),

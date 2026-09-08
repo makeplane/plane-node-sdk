@@ -27,7 +27,7 @@ export interface LabelFieldsParams {
 /**
  * Project labels.
  *
- * Reached flat — `v2.projects.labels.list(slug, project)` — or from a fetched project,
+ * Reached flat — `v2.workspaces.projects.labels.list(slug, project)` — or from a fetched project,
  * which supplies both leading ids: `project.labels.list()`. `project` accepts a project
  * UUID or its bare identifier (e.g. `ENG`).
  */

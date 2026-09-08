@@ -22,7 +22,7 @@ maybe("v2 workflows (live)", () => {
   beforeAll(async () => {
     workflows = suite.projectRow.workflows;
 
-    await suite.client.v2.projects.features.update(suite.workspaceSlug, suite.projectId, {
+    await suite.client.v2.workspaces.projects.features.update(suite.workspaceSlug, suite.projectId, {
       is_workflow_enabled: true,
     });
 

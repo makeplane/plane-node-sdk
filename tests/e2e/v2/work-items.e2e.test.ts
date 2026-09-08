@@ -58,8 +58,8 @@ maybe("v2 work items (live)", () => {
       try {
         // Flat on both sides: a navigated row is bound to whichever key `rowId` chose,
         // so it cannot address the project the other way.
-        const byId = await client.v2.projects.workItems.list(suite.workspaceSlug, suite.projectId);
-        const byKey = await client.v2.projects.workItems.list(suite.workspaceSlug, suite.projectKey);
+        const byId = await client.v2.workspaces.projects.workItems.list(suite.workspaceSlug, suite.projectId);
+        const byKey = await client.v2.workspaces.projects.workItems.list(suite.workspaceSlug, suite.projectKey);
         expect(byId.data.some((row) => row.id === created.id)).toBe(true);
         expect(new Set(byId.data.map((r) => r.id))).toEqual(new Set(byKey.data.map((r) => r.id)));
       } finally {

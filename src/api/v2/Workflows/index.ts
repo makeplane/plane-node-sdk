@@ -30,7 +30,7 @@ export interface WorkflowShapeParams {
 /**
  * Project workflow graphs — CRUD plus `states`/`transitions`. No upsert/bulk-write here.
  *
- * Reached flat — `v2.projects.workflows.list(slug, project)` — or from a fetched project:
+ * Reached flat — `v2.workspaces.projects.workflows.list(slug, project)` — or from a fetched project:
  * `project.workflows.list()`. Every row-returning method answers a {@link LoadedWorkflow},
  * so `workflow.states.list()` repeats no id.
  */

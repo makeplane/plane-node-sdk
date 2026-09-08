@@ -33,7 +33,7 @@ maybe("v2 project work item types flow (live)", () => {
   // Flat throughout, like `work-item-types.e2e.test.ts`: this flow crosses the
   // workspace/project seam that governance mode moves, and a bound row would fix the
   // path before the branch that is under test.
-  const proj = () => suite.client.v2.projects;
+  const proj = () => suite.client.v2.workspaces.projects;
   const slug = () => suite.workspaceSlug;
   const project = () => suite.projectId;
 

@@ -58,7 +58,7 @@ type AnyFunction = (...args: never[]) => unknown;
  * through a conditional type, so the transform below resolves against the *general*
  * signature and a navigated `list({ fields: [...] })` answers `Page<State>` rather than
  * the narrowed row. Reaching for the narrowed type means calling the resource flat —
- * `v2.projects.states.list(slug, project, { fields: [...] })` — which is why the flat
+ * `v2.workspaces.projects.states.list(slug, project, { fields: [...] })` — which is why the flat
  * form stays public rather than becoming an implementation detail. (Matching the
  * overload set instead makes this strictly worse, not better: the inference erases `F`
  * to its constraint and answers `Pick<State, every field>`, which claims presence for

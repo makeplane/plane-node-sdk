@@ -3,7 +3,7 @@ import { AnyOperationId, V2Resource } from "../kernel/resource";
 /**
  * Work-item membership of a milestone.
  *
- * Reached flat — `v2.projects.milestones.workItems.add(slug, project, milestone, ids)` — or
+ * Reached flat — `v2.workspaces.projects.milestones.workItems.add(slug, project, milestone, ids)` — or
  * from a fetched milestone, which supplies all three leading ids:
  * `milestone.workItems.add(ids)`. 1..100 ids per call; resolves to the ids actually changed.
  */

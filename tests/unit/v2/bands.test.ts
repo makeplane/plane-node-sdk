@@ -4,16 +4,16 @@
  *
  * There are two bands, and they have the same shape. `Workspaces` is the root of the
  * workspace band (`v2.workspaces`); `Projects` is the root of the project band
- * (`v2.projects`). A family is only reachable from a fetched row once it is attached to
+ * (`v2.workspaces.projects`). A family is only reachable from a fetched row once it is attached to
  * its root.
  *
  * **Where the expected membership comes from, and why it changed.** This sweep used to
- * enumerate each band from the retiring `Workspace`/`Project` locators: they held the
- * families, so they were the list. That worked while they were being emptied, but it
- * makes the sweep derive its expectations *from* the very wiring the last task deletes —
- * delete the locators and the assertions would have compared two shrinking sets and
- * passed by agreeing with themselves, which is the one failure mode every sweep in this
- * suite exists to refuse.
+ * enumerate each band from the `Workspace`/`Project` locators: they held the families, so
+ * they were the list. That worked while they were being emptied, but it made the sweep
+ * derive its expectations *from* the very wiring that was about to be deleted — and when
+ * the locators went, the assertions would have compared two shrinking sets and passed by
+ * agreeing with themselves, which is the one failure mode every sweep in this suite
+ * exists to refuse. (The locators are gone now; this derivation did not notice.)
  *
  * So membership is now derived from each resource's **URL template**, which is generated
  * from the api_v2 golden and knows nothing about how the SDK is wired:
@@ -41,9 +41,11 @@
  * 2. **Everything attached is a band member.** A resource whose path takes ids the root's
  *    rows do not carry would have `owned()` prepend a slug where a project id belongs and
  *    build a well-formed, wrong URL.
- * 3. **Nothing attached is still pre-flat.** A pre-flat class on a flat root reads its
- *    path ids from the retired locator scope, which the root does not supply, so
- *    `v2.workspaces.customers.list()` would raise `MissingPathIdError` rather than work.
+ * 3. **Nothing attached is still pre-flat.** A pre-flat class took its path ids from the
+ *    locator's bound `scope` rather than per call, so on a flat root — which supplies no
+ *    scope — `v2.workspaces.customers.list()` raised `MissingPathIdError` rather than
+ *    working. `V2Resource` no longer accepts a scope at all, so this half is now
+ *    structurally unreachable; it is kept as the shape of the answer, ratcheted at 0.
  */
 
 import { V2Namespace } from "../../../src/api/v2";
@@ -149,8 +151,8 @@ const BANDS: readonly Band[] = [
   },
   {
     name: "project",
-    root: namespace.projects,
-    rootPath: "v2.projects",
+    root: namespace.workspaces.projects,
+    rootPath: "v2.workspaces.projects",
     prefix: "/workspaces/{slug}/projects/{project_id}/",
     memberFloor: 18,
   },

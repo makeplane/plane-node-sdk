@@ -80,9 +80,9 @@ export type ProjectSummaryCount =
  * Every row-returning method answers a {@link LoadedProject}: the row's own data plus
  * the path ids its children need, so `project.states.list()` works without repeating
  * `slug` or the project key. The project band hangs off this class, and
- * `tests/unit/v2/bands.test.ts` requires each family to arrive here as it migrates —
- * a family that is flat-shaped but only on the retiring `Project` locator is unreachable
- * from `v2.projects` and from every fetched project row.
+ * `tests/unit/v2/bands.test.ts` requires each family to arrive here — a project-band
+ * family attached anywhere else is unreachable from `v2.workspaces.projects` and from
+ * every fetched project row.
  */
 export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateProject, ProjectNavigation> {
   protected path = "/workspaces/{slug}/projects/";

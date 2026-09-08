@@ -53,7 +53,7 @@ export function makeProjectIdentifier(label: string): string {
 }
 
 /**
- * Create the suite's disposable project through `v2.projects` — the shipped resource,
+ * Create the suite's disposable project through `v2.workspaces.projects` — the shipped resource,
  * not the raw transport.
  *
  * This used to POST straight through `transport.request` because there was no v2
@@ -66,7 +66,7 @@ export function makeProjectIdentifier(label: string): string {
  */
 export async function createProject(client: PlaneClient, workspaceSlug: string, label: string): Promise<TestProject> {
   const identifier = makeProjectIdentifier(label);
-  const row = await client.v2.projects.create(workspaceSlug, {
+  const row = await client.v2.workspaces.projects.create(workspaceSlug, {
     name: `${TEST_PROJECT_NAME_PREFIX}${label} ${Date.now().toString(36)}`,
     identifier,
   });
@@ -78,7 +78,7 @@ export async function createProject(client: PlaneClient, workspaceSlug: string, 
 
 export async function deleteProject(client: PlaneClient, workspaceSlug: string, project: TestProject): Promise<void> {
   try {
-    await client.v2.projects.delete(workspaceSlug, project.id);
+    await client.v2.workspaces.projects.delete(workspaceSlug, project.id);
   } catch (error) {
     // Best-effort: an already-gone project is fine, but log so a real leak
     // (permissions, rate limiting) doesn't go unnoticed.
@@ -110,7 +110,7 @@ export async function sweepLeftoverProjects(
   // can't hang the sweep indefinitely.
   const MAX_ROWS = 2000;
   let seen = 0;
-  for await (const project of client.v2.projects.iterate(workspaceSlug, { per_page: 100 })) {
+  for await (const project of client.v2.workspaces.projects.iterate(workspaceSlug, { per_page: 100 })) {
     if (++seen > MAX_ROWS) break;
     if (!project.identifier?.startsWith(PREFIX) || !project.name?.startsWith(TEST_PROJECT_NAME_PREFIX)) continue;
     // No created_at at all is treated as "not provably stale" (skip, not sweep)

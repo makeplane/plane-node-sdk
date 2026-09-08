@@ -122,7 +122,7 @@ function typeProbes(): void {
   // The `Owned` limitation, stated as a compiling assignment rather than only in prose: a
   // navigated call resolves against the *general* overload, so `fields` is still accepted
   // and the row still comes back full. Reaching for the narrowed row means calling flat —
-  // `v2.projects.workItems.comments.list(slug, project, workItem, { fields })`. See
+  // `v2.workspaces.projects.workItems.comments.list(slug, project, workItem, { fields })`. See
   // `Owned<…>`'s own doc comment, the README's "Field projection" section, and
   // `field-projection.test.ts`.
   const stillTheFullRow: Promise<Page<WorkItemComment>> = workItemRow.comments.list({

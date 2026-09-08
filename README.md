@@ -63,10 +63,10 @@ import { PlaneClient } from "@makeplane/plane-node-sdk";
 const client = new PlaneClient({ baseUrl: "https://api.plane.so", apiKey: "..." });
 
 // GET /workspaces/acme/projects/ENG/states/
-await client.v2.projects.states.list("acme", "ENG");
+await client.v2.workspaces.projects.states.list("acme", "ENG");
 
 // GET /workspaces/acme/projects/ENG/work-items/wi-1/comments/
-await client.v2.projects.workItems.comments.list("acme", "ENG", "wi-1");
+await client.v2.workspaces.projects.workItems.comments.list("acme", "ENG", "wi-1");
 
 // GET /workspaces/acme/teamspaces/
 await client.v2.workspaces.teamspaces.list("acme");
@@ -105,7 +105,7 @@ Chaining works because a row _knows which ids fetched it_. `list` and `iterate` 
 navigable rows too, so paging does not lose navigation:
 
 ```ts
-for await (const project of client.v2.projects.iterate("acme")) {
+for await (const project of client.v2.workspaces.projects.iterate("acme")) {
   await project.states.list(); // still navigable
 }
 ```
@@ -124,9 +124,10 @@ Three details worth knowing:
   view — `project.workItems.comments` does not exist, because a comment needs a work
   item's own id, which only a fetched work item carries. Fetch the work item first.
 
-`client.v2.workspace(slug)` and `.project(key)` are the retired locator chain. They are
-`@deprecated`, bind nothing (every resource takes its ids per call), and exist only until
-the SDK's own end-to-end suite stops calling them. New code should use either form above.
+There is no third form. `client.v2.workspace(slug).project(key)` — the bound locator
+chain earlier previews carried — is **deleted**, not deprecated: it bound nothing (every
+resource takes its ids per call, so `workspace(slug).roles.list(slug)` passed the slug
+twice) and every family it held is on `v2.workspaces` already.
 
 ### Field projection is a compile-time promise
 
@@ -135,7 +136,7 @@ row you get back has two fields plus `id`; reading anything else is a compile er
 an `undefined` at runtime:
 
 ```ts
-const page = await client.v2.projects.states.list("acme", "ENG", { fields: ["id", "name"] });
+const page = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: ["id", "name"] });
 for (const state of page.data) {
   console.log(state.id, state.name); // typed — only id/name exist on this row
   // console.log(state.color);       // compile error: `color` was not requested
@@ -147,7 +148,7 @@ An inline array literal needs no `as const`. The same holds for `iterate`, for
 `upsert` accept `fields` and narrow their answer the same way.
 
 ```ts
-const created = await client.v2.projects.states.create(
+const created = await client.v2.workspaces.projects.states.create(
   "acme",
   "ENG",
   { name: "In Review", color: "#4ECDC4" },
@@ -168,11 +169,11 @@ const client = new PlaneClient({ baseUrl: "https://api.plane.so", apiKey: "..." 
 
 // Narrowed to these two names, even though the value is chosen at run time.
 const wanted: ("id" | "name")[] = includeColor ? ["id", "name"] : ["id"];
-const page = await client.v2.projects.states.list("acme", "ENG", { fields: wanted });
+const page = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: wanted });
 
 // Typed as the whole union instead, this narrows to "every field" — i.e. the full row.
 const anything: v2.StateField[] = includeColor ? ["id", "name", "color"] : ["id", "name"];
-const unnarrowed = await client.v2.projects.states.list("acme", "ENG", { fields: anything });
+const unnarrowed = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: anything });
 ```
 
 `"all"` is a legal field value meaning "every field" and correctly yields the full row
@@ -184,7 +185,7 @@ actually came back when the list was built dynamically.
 resolves against the general signature, so it accepts `fields` but does **not** narrow:
 
 ```ts
-const eng = await client.v2.projects.retrieve("acme", "ENG");
+const eng = await client.v2.workspaces.projects.retrieve("acme", "ENG");
 const listed = await eng.states.list({ fields: ["id", "name"] }); // Page<State>, not narrowed
 ```
 
@@ -192,7 +193,7 @@ TypeScript erases a type parameter when it infers through the conditional type b
 navigation property, so the narrowing overload cannot be carried across. Matching the
 overload set instead would be worse, not better: the inference would erase `F` to its
 constraint and claim _every_ field is present. When you want the narrowed row, call the
-resource flat — `client.v2.projects.states.list("acme", "ENG", { fields: [...] })`.
+resource flat — `client.v2.workspaces.projects.states.list("acme", "ENG", { fields: [...] })`.
 
 ### Memberships
 
@@ -205,13 +206,13 @@ Properties on a work item type use `link`/`unlink` instead, matching the web app
 ```ts
 const v2ns = client.v2;
 
-await v2ns.projects.cycles.workItems.add("acme", "ENG", cycleId, [itemId]); // -> ["<item id>"]
-await v2ns.projects.modules.workItems.remove("acme", "ENG", moduleId, [itemId]);
+await v2ns.workspaces.projects.cycles.workItems.add("acme", "ENG", cycleId, [itemId]); // -> ["<item id>"]
+await v2ns.workspaces.projects.modules.workItems.remove("acme", "ENG", moduleId, [itemId]);
 await v2ns.workspaces.releases.labels.add("acme", releaseId, [labelId]);
 await v2ns.workspaces.initiatives.projects.add("acme", initiativeId, [projectId]);
 await v2ns.workspaces.wiki.collections.members.add("acme", collectionId, [{ member_id: userId, access: 1 }]);
-await v2ns.projects.workItemTypes.properties.link("acme", "ENG", typeId, [propertyId]);
-await v2ns.projects.workItemTypes.properties.unlink("acme", "ENG", typeId, propertyId);
+await v2ns.workspaces.projects.workItemTypes.properties.link("acme", "ENG", typeId, [propertyId]);
+await v2ns.workspaces.projects.workItemTypes.properties.unlink("acme", "ENG", typeId, propertyId);
 ```
 
 `releases.labels` is the one place where a fetched row and the flat path differ: the
@@ -228,9 +229,9 @@ options and contexts. Both errors extend `PlaneError`, not `PlaneApiError`. On c
 `story_points`), not the label shown in the app.
 
 ```ts
-await client.v2.projects.states.findByName("acme", "ENG", "Todo");
+await client.v2.workspaces.projects.states.findByName("acme", "ENG", "Todo");
 await client.v2.workspaces.roles.findBySlug("acme", "admin", { namespace: "workspace" });
-await client.v2.projects.estimates.points.findByKey("acme", "ENG", estimateId, 3);
+await client.v2.workspaces.projects.estimates.points.findByKey("acme", "ENG", estimateId, 3);
 ```
 
 ### Pagination
@@ -242,7 +243,7 @@ reading an envelope-specific field; reading one without narrowing is a compile e
 since it may not exist on the other half of the union:
 
 ```ts
-const page = await client.v2.projects.states.list("acme", "ENG");
+const page = await client.v2.workspaces.projects.states.list("acme", "ENG");
 if (v2.isOffsetPage(page)) {
   console.log(page.total_count); // only reachable once narrowed
 } else if (v2.isCursorPage(page)) {
@@ -260,7 +261,7 @@ the server as a 400.
 ### Wiki
 
 `v2.workspaces.wiki.pages` is every global page in the workspace (not one project —
-that is `v2.projects.pages`); `v2.workspaces.wiki.collections` is wiki collections. A
+that is `v2.workspaces.projects.pages`); `v2.workspaces.wiki.collections` is wiki collections. A
 page write's `collection_id` can be omitted for a public page (it lands in the
 workspace's default "General" collection); a private page needs an explicit
 `collection_id` of a collection the caller owns.
@@ -296,7 +297,7 @@ carrying the first failure's `errors`. The cap is 50 items per call
 no-op.
 
 ```ts
-const result = await client.v2.projects.states.bulkCreate("acme", "ENG", [{ name: "QA", color: "#ffffff" }]);
+const result = await client.v2.workspaces.projects.states.bulkCreate("acme", "ENG", [{ name: "QA", color: "#ffffff" }]);
 v2.raiseForFailures(result);
 ```
 

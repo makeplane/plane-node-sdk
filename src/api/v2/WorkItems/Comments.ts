@@ -38,7 +38,7 @@ export interface WorkItemCommentShapeParams {
  * Comments on a work item (api_v2). Its own upsert/bulk actions, distinct operation ids
  * from the CRUD ones.
  *
- * Reached flat — `v2.projects.workItems.comments.list(slug, project, workItem)` — or
+ * Reached flat — `v2.workspaces.projects.workItems.comments.list(slug, project, workItem)` — or
  * from a fetched work item, which supplies all three leading ids:
  * `workItem.comments.list()`.
  */

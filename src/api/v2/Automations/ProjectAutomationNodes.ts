@@ -35,7 +35,7 @@ export interface ProjectAutomationNodeShapeParams {
 /**
  * Nodes in a project-scoped automation's trigger/action/condition graph.
  *
- * Reached flat — `v2.projects.automations.nodes.list(slug, project, automation)` — or from a fetched automation: `automation.nodes.list()`.
+ * Reached flat — `v2.workspaces.projects.automations.nodes.list(slug, project, automation)` — or from a fetched automation: `automation.nodes.list()`.
  */
 export class ProjectAutomationNodes extends V2Resource<AutomationNode, CreateAutomationNode, UpdateAutomationNode> {
   protected path = "/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/nodes/";

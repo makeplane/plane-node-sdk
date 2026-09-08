@@ -29,7 +29,7 @@ export interface EstimatePointShapeParams {
 /**
  * The values on an {@link Estimate}'s scale.
  *
- * Reached flat — `v2.projects.estimates.points.list(slug, project, estimate)` — or from a
+ * Reached flat — `v2.workspaces.projects.estimates.points.list(slug, project, estimate)` — or from a
  * fetched estimate, where it is `estimate.estimatePoints.list()`: the row's own `points`
  * key is the inline scale `?expand=points` returns, so the navigation property is spelled
  * differently (see `EstimateNavigation`).

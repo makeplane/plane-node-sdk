@@ -7,9 +7,9 @@ export class WorkItemTemplates {
   public project: ProjectWorkItemTemplates;
   public workspace: WorkspaceWorkItemTemplates;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    this.project = new ProjectWorkItemTemplates(transport, scope);
-    this.workspace = new WorkspaceWorkItemTemplates(transport, scope);
+  constructor(transport: V2Transport) {
+    this.project = new ProjectWorkItemTemplates(transport);
+    this.workspace = new WorkspaceWorkItemTemplates(transport);
   }
 }
 

@@ -19,7 +19,7 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 project automations (live)", () => {
   const suite = useV2Project("auto", env);
 
-  const automations = () => suite.client.v2.projects.automations;
+  const automations = () => suite.client.v2.workspaces.projects.automations;
   const slug = () => suite.workspaceSlug;
   const project = () => suite.projectId;
 

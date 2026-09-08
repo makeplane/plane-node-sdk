@@ -15,7 +15,7 @@ export interface V2Suite {
    * The suite's project as a fetched, navigable row — the loaded-row way in.
    *
    * `projectRow.states.list()` is the same call as
-   * `client.v2.projects.states.list(workspaceSlug, projectId)`, with the two ids bound.
+   * `client.v2.workspaces.projects.states.list(workspaceSlug, projectId)`, with the two ids bound.
    * Both shapes are public and neither is a wrapper over the other's HTTP, so a suite
    * that only drives the flat form leaves `owned()`'s id-prepending untested against a
    * real server. Files that read better navigated use this; files that need the `fields`

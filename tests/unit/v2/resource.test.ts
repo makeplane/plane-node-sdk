@@ -208,35 +208,30 @@ describe("V2Resource", () => {
     await expect(rows.archive("acme", "ENG", "abc", { fields: ["nope"] })).rejects.toThrow(/nope/);
   });
 
-  it("supports an alternate path template via urlForTemplate/doListAt/doRetrieveAt/doIterateAt", async () => {
+  it("supports an alternate path template via extraPaths/urlFor with doListAt/doRetrieveAt/doIterateAt", async () => {
+    // `extraPaths` + `urlFor` is the *only* way to reach an alternate template. There used
+    // to be a second — a protected `urlForTemplate(template, …)` taking the template
+    // inline — and it was removed: a method built on it puts its real template outside
+    // `extraPaths`, where `tree-walk.ts`'s `templateFor` cannot see it, so the path-id and
+    // filters sweeps would have compared that method's leading parameters against the
+    // class `path` instead. An escape hatch nothing used and every sweep was blind to.
     class WorkItemRows extends V2Resource<Row, { name: string }, { name?: string }> {
       protected path = "/workspaces/{slug}/projects/{project_id}/work-items/";
+      protected extraPaths = {
+        listWorkspace: "/workspaces/{slug}/work-items/",
+        retrieveByIdentifier: "/workspaces/{slug}/work-items/{identifier}/",
+      };
       protected operations: Record<string, OperationId> = {
         listWorkspace: "workspace_work_items_list",
         retrieveByIdentifier: "work_items_retrieve_by_identifier",
       };
 
       listWorkspace = (slug: string, params?: Record<string, unknown>) =>
-        this.doListAt(
-          this.urlForTemplate("/workspaces/{slug}/work-items/", "listWorkspace", { slug }),
-          "listWorkspace",
-          params
-        );
+        this.doListAt(this.urlFor("listWorkspace", { slug }), "listWorkspace", params);
       iterateWorkspace = (slug: string, params?: Record<string, unknown>) =>
-        this.doIterateAt(
-          this.urlForTemplate("/workspaces/{slug}/work-items/", "listWorkspace", { slug }),
-          "listWorkspace",
-          params
-        );
+        this.doIterateAt(this.urlFor("listWorkspace", { slug }), "listWorkspace", params);
       retrieveByIdentifier = (slug: string, identifier: string, params?: Record<string, unknown>) =>
-        this.doRetrieveAt(
-          this.urlForTemplate("/workspaces/{slug}/work-items/{identifier}/", "retrieveByIdentifier", {
-            slug,
-            identifier,
-          }),
-          "retrieveByIdentifier",
-          params
-        );
+        this.doRetrieveAt(this.urlFor("retrieveByIdentifier", { slug, identifier }), "retrieveByIdentifier", params);
     }
 
     const rows = new WorkItemRows(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));

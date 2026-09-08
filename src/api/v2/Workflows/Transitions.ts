@@ -29,7 +29,7 @@ export interface WorkflowTransitionShapeParams {
  * Transition edges of a workflow graph; `create` identifies the source state by its
  * project State id.
  *
- * Reached flat — `v2.projects.workflows.transitions.list(slug, project, workflow)` — or
+ * Reached flat — `v2.workspaces.projects.workflows.transitions.list(slug, project, workflow)` — or
  * from a fetched workflow: `workflow.transitions.list()`.
  */
 export class WorkflowTransitions extends V2Resource<

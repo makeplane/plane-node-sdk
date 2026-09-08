@@ -21,7 +21,7 @@ export interface ListWorkItemTypePropertiesParams {
  * Custom properties linked to a project-scoped work item type — `link`/`unlink` plus
  * reads; the definitions themselves live on `WorkItemProperties`.
  *
- * Reached flat — `v2.projects.workItemTypes.properties.list(slug, project, type)` — or
+ * Reached flat — `v2.workspaces.projects.workItemTypes.properties.list(slug, project, type)` — or
  * from a fetched type: `type.properties.list()`. The verbs copy the web app's CTA, which
  * is why they are `link`/`unlink` rather than `add`/`remove`.
  */

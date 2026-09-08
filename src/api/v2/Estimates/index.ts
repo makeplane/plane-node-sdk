@@ -38,7 +38,7 @@ export interface EstimateShapeParams {
 /**
  * Project estimate systems, each a named scale of points.
  *
- * Reached flat — `v2.projects.estimates.list(slug, project)` — or from a fetched project,
+ * Reached flat — `v2.workspaces.projects.estimates.list(slug, project)` — or from a fetched project,
  * which supplies both leading ids: `project.estimates.list()`. Every row-returning method
  * answers a {@link LoadedEstimate}, whose scale is reached as
  * `estimate.estimatePoints.list()` — **not** `points`, which is the name of the inline

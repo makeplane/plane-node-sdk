@@ -24,7 +24,7 @@ export interface WorkflowStateShapeParams {
 /**
  * Project states attached to a workflow.
  *
- * Reached flat — `v2.projects.workflows.states.list(slug, project, workflow)` — or from a
+ * Reached flat — `v2.workspaces.projects.workflows.states.list(slug, project, workflow)` — or from a
  * fetched workflow: `workflow.states.list()`. The write verb is `attach`, not `create`:
  * the state already exists on the project and this links it into the graph.
  */

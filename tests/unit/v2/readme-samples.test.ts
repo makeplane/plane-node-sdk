@@ -121,11 +121,11 @@ describe("README samples", () => {
 describe("what the README says will not compile", () => {
   it("states each claim to the compiler", async () => {
     const probe = async (client: import("../../../src").PlaneClient): Promise<void> => {
-      const page = await client.v2.projects.states.list("acme", "ENG", { fields: ["id", "name"] });
+      const page = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: ["id", "name"] });
       // @ts-expect-error "reading anything else is a compile error" — `color` was not requested
       void page.data[0].color;
 
-      const created = await client.v2.projects.states.create(
+      const created = await client.v2.workspaces.projects.states.create(
         "acme",
         "ENG",
         { name: "In Review", color: "#4ECDC4" },
@@ -136,28 +136,28 @@ describe("what the README says will not compile", () => {
 
       const dynamic: string[] = ["id", "name"];
       // @ts-expect-error "plain `string[]` is **not** assignable to `readonly StateField[]`"
-      await client.v2.projects.states.list("acme", "ENG", { fields: dynamic });
+      await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: dynamic });
 
       // "The row is narrowed to the list's **element type**": a runtime-built list typed
       // as two names narrows to those two…
       const wanted: ("id" | "name")[] = ["id", "name"];
-      const narrowed = await client.v2.projects.states.list("acme", "ENG", { fields: wanted });
+      const narrowed = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: wanted });
       // @ts-expect-error … so `color` is not on the row
       void narrowed.data[0].color;
 
       // … while one typed as the whole union narrows to every field, i.e. the full row.
       const anything: v2Namespace.StateField[] = ["id", "name"];
-      const wide = await client.v2.projects.states.list("acme", "ENG", { fields: anything });
+      const wide = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: anything });
       void wide.data[0].color;
 
       // @ts-expect-error "a literal outside that union is a compile error"
-      await client.v2.projects.states.list("acme", "ENG", { order_by: "not_a_sort_order" });
+      await client.v2.workspaces.projects.states.list("acme", "ENG", { order_by: "not_a_sort_order" });
 
-      const unnarrowed = await client.v2.projects.states.list("acme", "ENG");
+      const unnarrowed = await client.v2.workspaces.projects.states.list("acme", "ENG");
       // @ts-expect-error "reading one without narrowing is a compile error"
       void unnarrowed.total_count;
 
-      const eng = await client.v2.projects.retrieve("acme", "ENG");
+      const eng = await client.v2.workspaces.projects.retrieve("acme", "ENG");
       // "a navigated call … accepts `fields` but does **not** narrow": assigning to the
       // full row type is what proves it, and it compiles.
       const listed: import("../../../src/models/v2/common").Page<import("../../../src/models/v2/State").State> =
@@ -175,7 +175,7 @@ describe("what the README says will not compile", () => {
       await release.labels.list();
 
       // "`all` … correctly yields the full row type"
-      const everything = await client.v2.projects.states.list("acme", "ENG", { fields: ["all"] });
+      const everything = await client.v2.workspaces.projects.states.list("acme", "ENG", { fields: ["all"] });
       void everything.data[0].color;
     };
 

@@ -1,31 +1,30 @@
 import { Configuration } from "../../Configuration";
-import { Projects } from "./Projects";
 import { UserAssets } from "./UserAssets";
 import { Users } from "./UsersMe";
-import { Workspace } from "./Workspace";
 import { Workspaces } from "./Workspaces";
 import { V2Transport } from "./kernel/transport";
 
 /**
  * Root of the v2 surface, reached as `client.v2`.
  *
- * Two ways in, both flat: a resource is a plain attribute and takes the ids its URL
- * names — `v2.projects.states.list(slug, project)` — and a row it hands back carries
- * those ids, so `(await v2.projects.retrieve(slug, "ENG")).states.list()` needs nothing
- * repeated.
+ * Two ways in, both flat: a resource is a plain attribute **at the position its URL puts
+ * it** — `v2.workspaces.projects.states.list(slug, project)` — and a row it hands back
+ * carries those ids, so `(await v2.workspaces.projects.retrieve(slug, "ENG")).states.list()`
+ * needs nothing repeated.
  *
- * `workspace(slug)` is the retired locator chain — deprecated and binding nothing. The
- * e2e suite has stopped calling it; see {@link Workspace} for what still holds it in
- * place.
+ * There is exactly one attribute path to any resource. `projects` used to hang off this
+ * root *as well as* off `workspaces`, which put the whole 38-node project subtree on two
+ * paths at once: it contradicted the flat rule (a project's URL is
+ * `/workspaces/{slug}/projects/`, so `workspaces` is where it belongs), it disagreed with
+ * the Python SDK, and documentation generated from the two would have disagreed too.
  */
 export class V2Namespace {
   public transport: V2Transport;
   public users: Users;
   public userAssets: UserAssets;
-  public projects: Projects;
   /**
    * The workspace root: `v2.workspaces.retrieve(slug)` answers a row that reaches every
-   * workspace-scoped family without the slug being repeated.
+   * workspace-scoped family — projects included — without the slug being repeated.
    */
   public workspaces: Workspaces;
 
@@ -33,18 +32,7 @@ export class V2Namespace {
     this.transport = new V2Transport(config);
     this.users = new Users(this.transport);
     this.userAssets = new UserAssets(this.transport);
-    this.projects = new Projects(this.transport);
     this.workspaces = new Workspaces(this.transport);
-  }
-
-  /**
-   * Bind a workspace. Makes no request.
-   *
-   * @deprecated Reach resources flat (`v2.workspaces.roles.list(slug)`) or from a fetched
-   * workspace row. See {@link Workspace} for why this still exists.
-   */
-  workspace(workspaceSlug: string): Workspace {
-    return new Workspace(this.transport, workspaceSlug);
   }
 }
 
@@ -53,10 +41,8 @@ export { Labels } from "./Labels";
 export { Milestones, MilestoneWorkItems } from "./Milestones";
 export { Modules, ModuleWorkItems } from "./Modules";
 export { States } from "./States";
-export { Workspace } from "./Workspace";
 export { Workspaces } from "./Workspaces";
 export type { WorkspaceField, WorkspaceFieldsParams } from "./Workspaces";
-export { Project } from "./Project";
 export { Wiki } from "./Wiki";
 export { Activities, Attachments, Comments, Dependencies, Links, Relations, WorkItems, WorkLogs } from "./WorkItems";
 export type {
@@ -170,7 +156,8 @@ export type {
 } from "./generated/constants";
 export { BULK_MAX_ITEMS, EXPAND, FIELDS, OPENAPI_VERSION, ORDER_BY } from "./generated/constants";
 
-// Every other v2 resource, reachable directly and wired onto `Workspace`/`Project`/`Wiki` above.
+// Every other v2 resource, reachable through the `workspaces` root and wired onto the
+// `Workspaces`/`Projects`/`Wiki` nodes above.
 export * from "./Artifacts";
 export * from "./Assets";
 export * from "./AuditLogs";
