@@ -187,3 +187,63 @@ describe("Projects.roleDistribution (v2)", () => {
     expect(scope.isDone()).toBe(true);
   });
 });
+
+/**
+ * The project band, reached from a fetched project row.
+ *
+ * `bands.test.ts` proves each family is *attached* and `loaded-navigation.test.ts` proves
+ * the row has a property per child; neither can tell a correct URL from an internally
+ * consistent wrong one. So each child is called here and its exact request URL asserted —
+ * `nock` refuses anything else, and `scope.isDone()` refuses a call that never went out.
+ */
+describe("the project band from a fetched project (v2)", () => {
+  const fetchProject = async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+    return makeProjects().retrieve("acme", "ENG");
+  };
+  const emptyPage = { data: [], pagination: { style: "offset" } };
+
+  it.each([
+    ["members", "/api/v2/workspaces/acme/projects/ENG/members/", emptyPage],
+    ["pages", "/api/v2/workspaces/acme/projects/ENG/pages/", emptyPage],
+    ["views", "/api/v2/workspaces/acme/projects/ENG/views/", emptyPage],
+    ["intakes", "/api/v2/workspaces/acme/projects/ENG/intake-issues/", emptyPage],
+    ["workItemTemplates", "/api/v2/workspaces/acme/projects/ENG/work-item-templates/", emptyPage],
+  ])("lists %s at its own URL", async (child, url, body) => {
+    const project = await fetchProject();
+    const scope = nock(BASE).get(url).reply(200, body);
+
+    await (project as unknown as Record<string, { list: () => Promise<unknown> }>)[child].list();
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reads the project's feature flags without repeating either id", async () => {
+    const project = await fetchProject();
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/features/")
+      .reply(200, { is_cycle_enabled: true });
+
+    await project.features.retrieve();
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reads the caller's effective project permissions", async () => {
+    const project = await fetchProject();
+    const scope = nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/permissions/me/").reply(200, { role: "admin" });
+
+    await project.permissions.me();
+
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("reads the project worklog summary", async () => {
+    const project = await fetchProject();
+    const scope = nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/worklogs/summary/").reply(200, []);
+
+    await project.worklogs.summary();
+
+    expect(scope.isDone()).toBe(true);
+  });
+});

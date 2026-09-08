@@ -1,13 +1,21 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
 import { Project, UpdateProject, ProjectPriority, ProjectSummary, CreateProject } from "../../models/v2/Project";
 import { ProjectRoleDistribution as ProjectRoleDistributionShape } from "../../models/v2/ProjectRoleDistribution";
+import { ProjectFeatures } from "./Features";
 import { EXPAND, FIELDS, ORDER_BY } from "./generated/constants";
+import { Intakes } from "./Intakes";
 import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "./kernel/loaded";
 import { AnyOperationId } from "./kernel/resource";
 import { V2Transport } from "./kernel/transport";
 import { Labels } from "./Labels";
 import { LoadedProject, LoadedProjectRow, PROJECT_ID_NAMES, ProjectNavigation } from "./loaded/Project";
+import { ProjectMembers } from "./Members";
+import { ProjectPages } from "./Pages";
+import { ProjectPermissions } from "./Permissions";
+import { ProjectWorklogs } from "./ProjectWorklogs";
 import { States } from "./States";
+import { ProjectViews } from "./Views";
+import { ProjectWorkItemTemplates } from "./WorkItemTemplates/ProjectTemplates";
 import { WorkItems } from "./WorkItems";
 
 export type ProjectField = (typeof FIELDS)["projects_list"][number];
@@ -63,8 +71,10 @@ export type ProjectSummaryCount =
  *
  * Every row-returning method answers a {@link LoadedProject}: the row's own data plus
  * the path ids its children need, so `project.states.list()` works without repeating
- * `slug` or the project key. The project band hangs off this class — `states`, `labels`
- * and `workItems` today, the rest as their own migrations land.
+ * `slug` or the project key. The project band hangs off this class, and
+ * `tests/unit/v2/bands.test.ts` requires each family to arrive here as it migrates —
+ * a family that is flat-shaped but only on the retiring `Project` locator is unreachable
+ * from `v2.projects` and from every fetched project row.
  */
 export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateProject, ProjectNavigation> {
   protected path = "/workspaces/{slug}/projects/";
@@ -91,12 +101,28 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
   public states: States;
   public labels: Labels;
   public workItems: WorkItems;
+  public members: ProjectMembers;
+  public pages: ProjectPages;
+  public views: ProjectViews;
+  public features: ProjectFeatures;
+  public permissions: ProjectPermissions;
+  public intakes: Intakes;
+  public workItemTemplates: ProjectWorkItemTemplates;
+  public worklogs: ProjectWorklogs;
 
   constructor(transport: V2Transport) {
     super(transport);
     this.states = new States(transport);
     this.labels = new Labels(transport);
     this.workItems = new WorkItems(transport);
+    this.members = new ProjectMembers(transport);
+    this.pages = new ProjectPages(transport);
+    this.views = new ProjectViews(transport);
+    this.features = new ProjectFeatures(transport);
+    this.permissions = new ProjectPermissions(transport);
+    this.intakes = new Intakes(transport);
+    this.workItemTemplates = new ProjectWorkItemTemplates(transport);
+    this.worklogs = new ProjectWorklogs(transport);
   }
 
   protected navigationOf(meta: LoadedMeta): NavigationFactories<ProjectNavigation> {
@@ -105,6 +131,14 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
       states: () => owned(this.states, ids, meta.idNames),
       labels: () => owned(this.labels, ids, meta.idNames),
       workItems: () => owned(this.workItems, ids, meta.idNames),
+      members: () => owned(this.members, ids, meta.idNames),
+      pages: () => owned(this.pages, ids, meta.idNames),
+      views: () => owned(this.views, ids, meta.idNames),
+      features: () => owned(this.features, ids, meta.idNames),
+      permissions: () => owned(this.permissions, ids, meta.idNames),
+      intakes: () => owned(this.intakes, ids, meta.idNames),
+      workItemTemplates: () => owned(this.workItemTemplates, ids, meta.idNames),
+      worklogs: () => owned(this.worklogs, ids, meta.idNames),
     };
   }
 
