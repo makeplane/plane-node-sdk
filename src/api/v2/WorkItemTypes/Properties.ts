@@ -14,6 +14,8 @@ export interface ListWorkItemTypePropertiesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -67,19 +69,21 @@ export class WorkItemTypeProperties extends V2Resource<WorkItemProperty, never, 
     slug: string,
     project: string,
     type: string,
-    params: ListWorkItemTypePropertiesParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemTypePropertiesParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<WorkItemProperty, F | "id">>;
   iterate(
     slug: string,
     project: string,
     type: string,
-    params?: ListWorkItemTypePropertiesParams
+    params?: Omit<ListWorkItemTypePropertiesParams, "offset" | "count">
   ): AsyncGenerator<WorkItemProperty>;
   iterate(
     slug: string,
     project: string,
     type: string,
-    params?: ListWorkItemTypePropertiesParams
+    params?: Omit<ListWorkItemTypePropertiesParams, "offset" | "count">
   ): AsyncGenerator<WorkItemProperty> {
     return this.doIterate(this._at(slug, project, type), params as Record<string, unknown>);
   }

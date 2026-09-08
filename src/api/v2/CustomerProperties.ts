@@ -25,6 +25,8 @@ export interface ListCustomerPropertiesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -57,10 +59,16 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
   /** Every customer property, following pages automatically. */
   iterate<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
     slug: string,
-    params: ListCustomerPropertiesParams & { fields: readonly F[] }
+    params: Omit<ListCustomerPropertiesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<CustomerProperty, F | "id">>;
-  iterate(slug: string, params?: ListCustomerPropertiesParams): AsyncGenerator<CustomerProperty>;
-  iterate(slug: string, params?: ListCustomerPropertiesParams): AsyncGenerator<CustomerProperty> {
+  iterate(
+    slug: string,
+    params?: Omit<ListCustomerPropertiesParams, "offset" | "count">
+  ): AsyncGenerator<CustomerProperty>;
+  iterate(
+    slug: string,
+    params?: Omit<ListCustomerPropertiesParams, "offset" | "count">
+  ): AsyncGenerator<CustomerProperty> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

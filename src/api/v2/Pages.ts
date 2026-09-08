@@ -27,6 +27,8 @@ export interface ListWikiPagesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -62,10 +64,18 @@ export class ProjectPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
   iterate<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
     slug: string,
     project: string,
-    params: ListWikiPagesParams & { fields: readonly F[] }
+    params: Omit<ListWikiPagesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WikiPage, F | "id">>;
-  iterate(slug: string, project: string, params?: ListWikiPagesParams): AsyncGenerator<WikiPage>;
-  iterate(slug: string, project: string, params?: ListWikiPagesParams): AsyncGenerator<WikiPage> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListWikiPagesParams, "offset" | "count">
+  ): AsyncGenerator<WikiPage>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListWikiPagesParams, "offset" | "count">
+  ): AsyncGenerator<WikiPage> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 

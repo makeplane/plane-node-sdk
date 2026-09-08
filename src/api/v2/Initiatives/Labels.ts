@@ -15,6 +15,8 @@ export interface ListInitiativeLabelsParams {
   per_page?: number;
   /** `"cursor"` needs a cursor-safe `order_by` (e.g. `"created_at"`) or it 400s. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -61,10 +63,13 @@ export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiati
   /** Every initiative label, following pages automatically. */
   iterate<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
     slug: string,
-    params: ListInitiativeLabelsParams & { fields: readonly F[] }
+    params: Omit<ListInitiativeLabelsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<InitiativeLabel, F | "id">>;
-  iterate(slug: string, params?: ListInitiativeLabelsParams): AsyncGenerator<InitiativeLabel>;
-  iterate(slug: string, params?: ListInitiativeLabelsParams): AsyncGenerator<InitiativeLabel> {
+  iterate(slug: string, params?: Omit<ListInitiativeLabelsParams, "offset" | "count">): AsyncGenerator<InitiativeLabel>;
+  iterate(
+    slug: string,
+    params?: Omit<ListInitiativeLabelsParams, "offset" | "count">
+  ): AsyncGenerator<InitiativeLabel> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

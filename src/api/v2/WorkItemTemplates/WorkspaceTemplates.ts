@@ -16,6 +16,8 @@ export interface ListWorkspaceWorkItemTemplatesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -52,10 +54,18 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
   /** Every workspace template, following pages automatically. */
   iterate<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
     slug: string,
-    params: ListWorkspaceWorkItemTemplatesParams & { fields: readonly F[] }
+    params: Omit<ListWorkspaceWorkItemTemplatesParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<WorkItemTemplate, F | "id">>;
-  iterate(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate>;
-  iterate(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate> {
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkspaceWorkItemTemplatesParams, "offset" | "count">
+  ): AsyncGenerator<WorkItemTemplate>;
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkspaceWorkItemTemplatesParams, "offset" | "count">
+  ): AsyncGenerator<WorkItemTemplate> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

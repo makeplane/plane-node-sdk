@@ -1,6 +1,12 @@
+import nock from "nock";
+import { Configuration } from "../../../src/Configuration";
+import { States } from "../../../src/api/v2/States";
 import { iterate, isCursorPage } from "../../../src/api/v2/kernel/pagination";
+import { V2Transport } from "../../../src/api/v2/kernel/transport";
 import { Page } from "../../../src/models/v2/common";
 import { PlaneError } from "../../../src/errors/PlaneError";
+
+const BASE = "https://api.example.com";
 
 interface Row {
   id: string;
@@ -120,5 +126,46 @@ describe("pagination", () => {
     expect(ids).toEqual(["1", "2"]);
     expect(seen[0].offset).toBeUndefined();
     expect(seen[1].offset).toBe(0);
+  });
+});
+
+/**
+ * The manual half of cursor paging, and the reason `cursor` is a public parameter.
+ *
+ * `iterate` spends a `next_cursor` for you. A caller who wants one page at a time — a
+ * paged UI, a resumable job that stores its position — needs to send one back by hand,
+ * and until this parameter existed there was nowhere to put it: the SDK could hand back
+ * a `next_cursor` and offer no way to spend it. `pagination-coverage.test.ts` enumerates
+ * that rule over every list method; this shows the round trip actually reaches the wire.
+ */
+describe("spending a cursor by hand", () => {
+  afterEach(() => nock.cleanAll());
+
+  it("sends a caller-supplied cursor as ?cursor= and answers the next keyset page", async () => {
+    const first = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/states/")
+      .query({ paginate: "cursor" })
+      .reply(200, {
+        data: [{ id: "s-1" }],
+        pagination: { style: "cursor" },
+        has_more: true,
+        next_cursor: "c1",
+      });
+    const second = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/states/")
+      .query({ paginate: "cursor", cursor: "c1" })
+      .reply(200, { data: [{ id: "s-2" }], pagination: { style: "cursor" }, has_more: false, next_cursor: null });
+
+    const states = new States(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+
+    const page = await states.list("acme", "ENG", { paginate: "cursor" });
+    expect(isCursorPage(page)).toBe(true);
+    const next = isCursorPage(page) ? page.next_cursor : undefined;
+    expect(next).toBe("c1");
+
+    const rest = await states.list("acme", "ENG", { paginate: "cursor", cursor: next ?? undefined });
+    expect(rest.data[0].id).toBe("s-2");
+    expect(first.isDone()).toBe(true);
+    expect(second.isDone()).toBe(true);
   });
 });

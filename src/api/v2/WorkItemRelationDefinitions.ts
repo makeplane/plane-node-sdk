@@ -51,10 +51,18 @@ export class WorkItemRelationDefinitions extends V2Resource<
   /** Every relation definition, following pages automatically. */
   iterate<F extends Exclude<WorkItemRelationDefinitionField, "all"> & keyof WorkItemRelationDefinition>(
     slug: string,
-    params: ListWorkItemRelationDefinitionsParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemRelationDefinitionsParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<WorkItemRelationDefinition, F | "id">>;
-  iterate(slug: string, params?: ListWorkItemRelationDefinitionsParams): AsyncGenerator<WorkItemRelationDefinition>;
-  iterate(slug: string, params?: ListWorkItemRelationDefinitionsParams): AsyncGenerator<WorkItemRelationDefinition> {
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkItemRelationDefinitionsParams, "offset" | "count">
+  ): AsyncGenerator<WorkItemRelationDefinition>;
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkItemRelationDefinitionsParams, "offset" | "count">
+  ): AsyncGenerator<WorkItemRelationDefinition> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

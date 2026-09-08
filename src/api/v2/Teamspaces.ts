@@ -19,6 +19,8 @@ export interface ListTeamspacesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -52,10 +54,10 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
   /** Every teamspace, following pages automatically. */
   iterate<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
     slug: string,
-    params: ListTeamspacesParams & { fields: readonly F[] }
+    params: Omit<ListTeamspacesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Teamspace, F | "id">>;
-  iterate(slug: string, params?: ListTeamspacesParams): AsyncGenerator<Teamspace>;
-  iterate(slug: string, params?: ListTeamspacesParams): AsyncGenerator<Teamspace> {
+  iterate(slug: string, params?: Omit<ListTeamspacesParams, "offset" | "count">): AsyncGenerator<Teamspace>;
+  iterate(slug: string, params?: Omit<ListTeamspacesParams, "offset" | "count">): AsyncGenerator<Teamspace> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

@@ -16,6 +16,8 @@ export interface ListLabelsParams {
   per_page?: number;
   /** `"cursor"` opts into the cursor envelope; pair with a cursor-safe `order_by` or expect a 400. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -60,10 +62,10 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
   iterate<F extends Exclude<LabelField, "all"> & keyof Label>(
     slug: string,
     project: string,
-    params: ListLabelsParams & { fields: readonly F[] }
+    params: Omit<ListLabelsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Label, F | "id">>;
-  iterate(slug: string, project: string, params?: ListLabelsParams): AsyncGenerator<Label>;
-  iterate(slug: string, project: string, params?: ListLabelsParams): AsyncGenerator<Label> {
+  iterate(slug: string, project: string, params?: Omit<ListLabelsParams, "offset" | "count">): AsyncGenerator<Label>;
+  iterate(slug: string, project: string, params?: Omit<ListLabelsParams, "offset" | "count">): AsyncGenerator<Label> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 

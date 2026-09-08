@@ -26,6 +26,8 @@ export interface ListCustomersParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -88,10 +90,10 @@ export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, Upda
   /** Every customer, following pages automatically. */
   iterate<F extends Exclude<CustomerField, "all"> & keyof Customer>(
     slug: string,
-    params: ListCustomersParams & { fields: readonly F[] }
+    params: Omit<ListCustomersParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedCustomerRow<Pick<Customer, F | "id">>>;
-  iterate(slug: string, params?: ListCustomersParams): AsyncGenerator<LoadedCustomer>;
-  iterate(slug: string, params?: ListCustomersParams): AsyncGenerator<LoadedCustomer> {
+  iterate(slug: string, params?: Omit<ListCustomersParams, "offset" | "count">): AsyncGenerator<LoadedCustomer>;
+  iterate(slug: string, params?: Omit<ListCustomersParams, "offset" | "count">): AsyncGenerator<LoadedCustomer> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 

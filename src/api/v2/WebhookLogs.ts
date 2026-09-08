@@ -13,6 +13,8 @@ export interface ListWebhookLogsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -51,10 +53,18 @@ export class WebhookLogs extends V2Resource<WebhookLog, never, never> {
   iterate<F extends Exclude<WebhookLogField, "all"> & keyof WebhookLog>(
     slug: string,
     webhook: string,
-    params: ListWebhookLogsParams & { fields: readonly F[] }
+    params: Omit<ListWebhookLogsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WebhookLog, F | "id">>;
-  iterate(slug: string, webhook: string, params?: ListWebhookLogsParams): AsyncGenerator<WebhookLog>;
-  iterate(slug: string, webhook: string, params?: ListWebhookLogsParams): AsyncGenerator<WebhookLog> {
+  iterate(
+    slug: string,
+    webhook: string,
+    params?: Omit<ListWebhookLogsParams, "offset" | "count">
+  ): AsyncGenerator<WebhookLog>;
+  iterate(
+    slug: string,
+    webhook: string,
+    params?: Omit<ListWebhookLogsParams, "offset" | "count">
+  ): AsyncGenerator<WebhookLog> {
     return this.doIterate({ slug, webhook_id: webhook }, params as Record<string, unknown>);
   }
 

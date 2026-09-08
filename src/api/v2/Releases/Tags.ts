@@ -15,6 +15,8 @@ export interface ListReleaseTagsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -46,10 +48,10 @@ export class ReleaseTags extends V2Resource<ReleaseTag, CreateReleaseTag, Update
   /** Every release tag definition, following pages automatically. */
   iterate<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
     slug: string,
-    params: ListReleaseTagsParams & { fields: readonly F[] }
+    params: Omit<ListReleaseTagsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseTag, F | "id">>;
-  iterate(slug: string, params?: ListReleaseTagsParams): AsyncGenerator<ReleaseTag>;
-  iterate(slug: string, params?: ListReleaseTagsParams): AsyncGenerator<ReleaseTag> {
+  iterate(slug: string, params?: Omit<ListReleaseTagsParams, "offset" | "count">): AsyncGenerator<ReleaseTag>;
+  iterate(slug: string, params?: Omit<ListReleaseTagsParams, "offset" | "count">): AsyncGenerator<ReleaseTag> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

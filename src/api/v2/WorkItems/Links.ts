@@ -16,6 +16,8 @@ export interface ListWorkItemLinksParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -52,19 +54,19 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
     slug: string,
     project: string,
     workItem: string,
-    params: ListWorkItemLinksParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemLinksParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemLink, F | "id">>;
   iterate(
     slug: string,
     project: string,
     workItem: string,
-    params?: ListWorkItemLinksParams
+    params?: Omit<ListWorkItemLinksParams, "offset" | "count">
   ): AsyncGenerator<WorkItemLink>;
   iterate(
     slug: string,
     project: string,
     workItem: string,
-    params?: ListWorkItemLinksParams
+    params?: Omit<ListWorkItemLinksParams, "offset" | "count">
   ): AsyncGenerator<WorkItemLink> {
     return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }

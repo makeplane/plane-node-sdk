@@ -19,6 +19,8 @@ export interface ListWorkItemPropertyContextsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -77,17 +79,19 @@ export class WorkItemPropertyContexts extends V2Resource<
   iterate<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
     slug: string,
     property: string,
-    params: ListWorkItemPropertyContextsParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemPropertyContextsParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<WorkItemPropertyContext, F | "id">>;
   iterate(
     slug: string,
     property: string,
-    params?: ListWorkItemPropertyContextsParams
+    params?: Omit<ListWorkItemPropertyContextsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemPropertyContext>;
   iterate(
     slug: string,
     property: string,
-    params?: ListWorkItemPropertyContextsParams
+    params?: Omit<ListWorkItemPropertyContextsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemPropertyContext> {
     return this.doIterate(this._at(slug, property), params as Record<string, unknown>);
   }

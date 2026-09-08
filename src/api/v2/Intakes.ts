@@ -25,6 +25,8 @@ export interface ListIntakeWorkItemsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -59,10 +61,18 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
   iterate<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
     slug: string,
     project: string,
-    params: ListIntakeWorkItemsParams & { fields: readonly F[] }
+    params: Omit<ListIntakeWorkItemsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<IntakeWorkItem, F | "id">>;
-  iterate(slug: string, project: string, params?: ListIntakeWorkItemsParams): AsyncGenerator<IntakeWorkItem>;
-  iterate(slug: string, project: string, params?: ListIntakeWorkItemsParams): AsyncGenerator<IntakeWorkItem> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListIntakeWorkItemsParams, "offset" | "count">
+  ): AsyncGenerator<IntakeWorkItem>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListIntakeWorkItemsParams, "offset" | "count">
+  ): AsyncGenerator<IntakeWorkItem> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 

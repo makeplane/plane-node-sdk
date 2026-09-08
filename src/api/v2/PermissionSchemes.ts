@@ -14,6 +14,8 @@ export interface ListPermissionSchemesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -43,10 +45,16 @@ export class PermissionSchemes extends V2Resource<PermissionScheme, never, never
   /** Every permission scheme, following pages automatically. */
   iterate<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
     slug: string,
-    params: ListPermissionSchemesParams & { fields: readonly F[] }
+    params: Omit<ListPermissionSchemesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<PermissionScheme, F | "id">>;
-  iterate(slug: string, params?: ListPermissionSchemesParams): AsyncGenerator<PermissionScheme>;
-  iterate(slug: string, params?: ListPermissionSchemesParams): AsyncGenerator<PermissionScheme> {
+  iterate(
+    slug: string,
+    params?: Omit<ListPermissionSchemesParams, "offset" | "count">
+  ): AsyncGenerator<PermissionScheme>;
+  iterate(
+    slug: string,
+    params?: Omit<ListPermissionSchemesParams, "offset" | "count">
+  ): AsyncGenerator<PermissionScheme> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

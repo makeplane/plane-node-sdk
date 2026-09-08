@@ -26,6 +26,8 @@ export interface ListRolesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -62,10 +64,10 @@ export class Roles extends V2Resource<Role, never, never> {
   /** Every role, following pages automatically. */
   iterate<F extends Exclude<RoleField, "all"> & keyof Role>(
     slug: string,
-    params: ListRolesParams & { fields: readonly F[] }
+    params: Omit<ListRolesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Role, F | "id">>;
-  iterate(slug: string, params?: ListRolesParams): AsyncGenerator<Role>;
-  iterate(slug: string, params?: ListRolesParams): AsyncGenerator<Role> {
+  iterate(slug: string, params?: Omit<ListRolesParams, "offset" | "count">): AsyncGenerator<Role>;
+  iterate(slug: string, params?: Omit<ListRolesParams, "offset" | "count">): AsyncGenerator<Role> {
     return this.doIterate({ slug }, withRoleSlug(params));
   }
 

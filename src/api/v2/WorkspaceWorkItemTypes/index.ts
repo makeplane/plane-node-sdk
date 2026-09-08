@@ -69,10 +69,16 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
   /** Every work item type in the workspace, following pages automatically — navigable rows included. */
   iterate<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
     slug: string,
-    params: ListWorkItemTypesParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemTypesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
-  iterate(slug: string, params?: ListWorkItemTypesParams): AsyncGenerator<LoadedWorkspaceWorkItemType>;
-  iterate(slug: string, params?: ListWorkItemTypesParams): AsyncGenerator<LoadedWorkspaceWorkItemType> {
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkItemTypesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkspaceWorkItemType>;
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkItemTypesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkspaceWorkItemType> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 

@@ -5546,6 +5546,90 @@ export const FILTERS = {
   ] as const,
 } as const;
 
+/**
+ * The pagination-envelope parameters each operation declares.
+ *
+ * Not filters — these shape `Page<T>` rather than which rows match — so they have their
+ * own map and their own sweep, `tests/unit/v2/pagination-coverage.test.ts`: a list method
+ * whose params type omits one of these makes that half of the envelope unreachable.
+ * `paginate` in particular is what selects the keyset envelope, and a method that offers
+ * it must also offer `cursor` or the `next_cursor` it hands back cannot be spent.
+ *
+ * Note that `cursor` appears in no operation here: the golden documents the four the
+ * server validates and leaves the cursor itself undeclared. The sweep therefore derives
+ * the `cursor` requirement from `paginate` rather than from this map.
+ */
+export const PAGINATION = {
+  activities_list: ["count", "offset", "paginate", "per_page"] as const,
+  assets_list: ["count", "offset", "paginate", "per_page"] as const,
+  attachments_list: ["count", "offset", "paginate", "per_page"] as const,
+  audit_logs_list: ["count", "offset", "paginate", "per_page"] as const,
+  comments_list: ["count", "offset", "paginate", "per_page"] as const,
+  customer_properties_list: ["count", "offset", "paginate", "per_page"] as const,
+  customer_requests_list: ["count", "offset", "paginate", "per_page"] as const,
+  customers_list: ["count", "offset", "paginate", "per_page"] as const,
+  cycles_list: ["count", "offset", "paginate", "per_page"] as const,
+  estimate_points_list: ["count", "offset", "paginate", "per_page"] as const,
+  estimates_list: ["count", "offset", "paginate", "per_page"] as const,
+  group_sync_project_mappings_list: ["count", "offset", "paginate", "per_page"] as const,
+  group_sync_workspace_mappings_list: ["count", "offset", "paginate", "per_page"] as const,
+  initiative_labels_list: ["count", "offset", "paginate", "per_page"] as const,
+  initiatives_list: ["count", "offset", "paginate", "per_page"] as const,
+  intakes_list: ["count", "offset", "paginate", "per_page"] as const,
+  labels_list: ["count", "offset", "paginate", "per_page"] as const,
+  links_list: ["count", "offset", "paginate", "per_page"] as const,
+  members_list: ["count", "offset", "paginate", "per_page"] as const,
+  milestones_list: ["count", "offset", "paginate", "per_page"] as const,
+  modules_list: ["count", "offset", "paginate", "per_page"] as const,
+  pages_list: ["count", "offset", "paginate", "per_page"] as const,
+  permission_schemes_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_automation_activities_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_automation_edges_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_automation_nodes_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_automations_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_members_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_pages_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_views_list: ["count", "offset", "paginate", "per_page"] as const,
+  project_work_item_templates_list: ["count", "offset", "paginate", "per_page"] as const,
+  projects_list: ["count", "offset", "paginate", "per_page"] as const,
+  release_comments_list: ["count", "offset", "paginate", "per_page"] as const,
+  release_labels_list: ["count", "offset", "paginate", "per_page"] as const,
+  release_links_list: ["count", "offset", "paginate", "per_page"] as const,
+  release_tags_list: ["count", "offset", "paginate", "per_page"] as const,
+  releases_list: ["count", "offset", "paginate", "per_page"] as const,
+  roles_list: ["count", "offset", "paginate", "per_page"] as const,
+  states_list: ["count", "offset", "paginate", "per_page"] as const,
+  stickies_list: ["count", "offset", "paginate", "per_page"] as const,
+  teamspaces_list: ["count", "offset", "paginate", "per_page"] as const,
+  user_assets_list: ["count", "offset", "paginate", "per_page"] as const,
+  webhook_logs_list: ["count", "offset", "paginate", "per_page"] as const,
+  webhooks_list: ["count", "offset", "paginate", "per_page"] as const,
+  work_item_properties_list: ["count", "offset", "paginate", "per_page"] as const,
+  work_item_property_contexts_list: ["count", "offset", "paginate", "per_page"] as const,
+  work_item_property_options_list: ["count", "offset", "paginate", "per_page"] as const,
+  work_item_relation_definitions_list: ["count", "offset", "per_page"] as const,
+  work_item_type_properties_list: ["count", "offset", "paginate", "per_page"] as const,
+  work_item_types_list: ["count", "offset", "paginate", "per_page"] as const,
+  work_items_list: ["count", "offset", "paginate", "per_page"] as const,
+  workflow_states_list: ["count", "offset", "paginate", "per_page"] as const,
+  workflow_transitions_list: ["count", "offset", "paginate", "per_page"] as const,
+  workflows_list: ["count", "offset", "paginate", "per_page"] as const,
+  worklogs_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_automation_activities_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_automation_edges_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_automation_nodes_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_automations_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_members_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_pages_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_views_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_work_item_properties_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_work_item_property_options_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_work_item_templates_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_work_item_type_properties_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_work_item_types_list: ["count", "offset", "paginate", "per_page"] as const,
+  workspace_work_items_list: ["count", "offset", "paginate", "per_page"] as const,
+} as const;
+
 export const STATE_FIELDS = FIELDS["states_list"];
 export const LABEL_FIELDS = FIELDS["labels_list"];
 export const WORK_ITEM_FIELDS = FIELDS["work_items_list"];

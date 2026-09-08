@@ -33,6 +33,8 @@ export interface ListWorkItemTypesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -105,10 +107,18 @@ export class WorkItemTypes extends LoadsNavigableRows<
   iterate<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
     slug: string,
     project: string,
-    params: ListWorkItemTypesParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemTypesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
-  iterate(slug: string, project: string, params?: ListWorkItemTypesParams): AsyncGenerator<LoadedWorkItemType>;
-  iterate(slug: string, project: string, params?: ListWorkItemTypesParams): AsyncGenerator<LoadedWorkItemType> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListWorkItemTypesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkItemType>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListWorkItemTypesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkItemType> {
     return this.loadIterate(
       this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
       [slug, project],

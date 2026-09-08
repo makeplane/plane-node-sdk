@@ -17,6 +17,8 @@ export interface ListWorkspaceAssetsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -49,10 +51,10 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
   /** Every uploaded asset, following pages automatically. */
   iterate<F extends Exclude<WorkspaceAssetField, "all"> & keyof WorkspaceAsset>(
     slug: string,
-    params: ListWorkspaceAssetsParams & { fields: readonly F[] }
+    params: Omit<ListWorkspaceAssetsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkspaceAsset, F | "id">>;
-  iterate(slug: string, params?: ListWorkspaceAssetsParams): AsyncGenerator<WorkspaceAsset>;
-  iterate(slug: string, params?: ListWorkspaceAssetsParams): AsyncGenerator<WorkspaceAsset> {
+  iterate(slug: string, params?: Omit<ListWorkspaceAssetsParams, "offset" | "count">): AsyncGenerator<WorkspaceAsset>;
+  iterate(slug: string, params?: Omit<ListWorkspaceAssetsParams, "offset" | "count">): AsyncGenerator<WorkspaceAsset> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

@@ -20,6 +20,8 @@ export interface ListWorkspaceWorkItemPropertyOptionsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -64,7 +66,7 @@ export class WorkspaceWorkItemPropertyOptions extends V2Resource<
   iterate(
     slug: string,
     property: string,
-    params?: ListWorkspaceWorkItemPropertyOptionsParams
+    params?: Omit<ListWorkspaceWorkItemPropertyOptionsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemPropertyOptionLite> {
     return this.doIterate(this._at(slug, property), params as Record<string, unknown>);
   }

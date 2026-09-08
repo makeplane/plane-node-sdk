@@ -29,6 +29,8 @@ export interface ListWorkspaceWorkItemPropertiesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -99,15 +101,17 @@ export class WorkspaceWorkItemProperties extends LoadsNavigableRows<
   /** Every workspace property, following pages automatically — navigable rows included. */
   iterate<F extends Exclude<WorkspaceWorkItemPropertyField, "all"> & keyof WorkItemProperty>(
     slug: string,
-    params: ListWorkspaceWorkItemPropertiesParams & { fields: readonly F[] }
+    params: Omit<ListWorkspaceWorkItemPropertiesParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<LoadedWorkspaceWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
   iterate(
     slug: string,
-    params?: ListWorkspaceWorkItemPropertiesParams
+    params?: Omit<ListWorkspaceWorkItemPropertiesParams, "offset" | "count">
   ): AsyncGenerator<LoadedWorkspaceWorkItemProperty>;
   iterate(
     slug: string,
-    params?: ListWorkspaceWorkItemPropertiesParams
+    params?: Omit<ListWorkspaceWorkItemPropertiesParams, "offset" | "count">
   ): AsyncGenerator<LoadedWorkspaceWorkItemProperty> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }

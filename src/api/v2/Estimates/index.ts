@@ -26,6 +26,8 @@ export interface ListEstimatesParams {
   per_page?: number;
   /** `"cursor"` needs a cursor-safe `order_by` (e.g. `"created_at"`) or it 400s. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -89,10 +91,18 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
   iterate<F extends Exclude<EstimateField, "all"> & keyof Estimate>(
     slug: string,
     project: string,
-    params: ListEstimatesParams & { fields: readonly F[] }
+    params: Omit<ListEstimatesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedEstimateRow<Pick<Estimate, F | "id">>>;
-  iterate(slug: string, project: string, params?: ListEstimatesParams): AsyncGenerator<LoadedEstimate>;
-  iterate(slug: string, project: string, params?: ListEstimatesParams): AsyncGenerator<LoadedEstimate> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListEstimatesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedEstimate>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListEstimatesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedEstimate> {
     return this.loadIterate(
       this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
       [slug, project],

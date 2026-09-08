@@ -20,6 +20,8 @@ export interface ListWorkItemWorklogsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -67,19 +69,19 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
     slug: string,
     project: string,
     workItem: string,
-    params: ListWorkItemWorklogsParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemWorklogsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemWorklog, F | "id">>;
   iterate(
     slug: string,
     project: string,
     workItem: string,
-    params?: ListWorkItemWorklogsParams
+    params?: Omit<ListWorkItemWorklogsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemWorklog>;
   iterate(
     slug: string,
     project: string,
     workItem: string,
-    params?: ListWorkItemWorklogsParams
+    params?: Omit<ListWorkItemWorklogsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemWorklog> {
     return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }

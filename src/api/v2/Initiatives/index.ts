@@ -27,6 +27,8 @@ export interface ListInitiativesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -90,10 +92,10 @@ export class Initiatives extends LoadsNavigableRows<
   /** Every initiative, following pages automatically. */
   iterate<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
     slug: string,
-    params: ListInitiativesParams & { fields: readonly F[] }
+    params: Omit<ListInitiativesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedInitiativeRow<Pick<Initiative, F | "id">>>;
-  iterate(slug: string, params?: ListInitiativesParams): AsyncGenerator<LoadedInitiative>;
-  iterate(slug: string, params?: ListInitiativesParams): AsyncGenerator<LoadedInitiative> {
+  iterate(slug: string, params?: Omit<ListInitiativesParams, "offset" | "count">): AsyncGenerator<LoadedInitiative>;
+  iterate(slug: string, params?: Omit<ListInitiativesParams, "offset" | "count">): AsyncGenerator<LoadedInitiative> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 

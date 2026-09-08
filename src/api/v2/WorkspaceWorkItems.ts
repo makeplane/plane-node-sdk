@@ -34,10 +34,10 @@ export class WorkspaceWorkItems extends V2Resource<WorkItem, never, never> {
   /** Every work item in the workspace, following pages automatically. */
   iterate<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
     slug: string,
-    params: ListWorkItemsParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItem, F | "id">>;
-  iterate(slug: string, params?: ListWorkItemsParams): AsyncGenerator<WorkItem>;
-  iterate(slug: string, params?: ListWorkItemsParams): AsyncGenerator<WorkItem> {
+  iterate(slug: string, params?: Omit<ListWorkItemsParams, "offset" | "count">): AsyncGenerator<WorkItem>;
+  iterate(slug: string, params?: Omit<ListWorkItemsParams, "offset" | "count">): AsyncGenerator<WorkItem> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

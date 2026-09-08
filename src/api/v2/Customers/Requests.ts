@@ -14,6 +14,8 @@ export interface ListCustomerRequestsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -59,10 +61,18 @@ export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomer
   iterate<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
     slug: string,
     customer: string,
-    params: ListCustomerRequestsParams & { fields: readonly F[] }
+    params: Omit<ListCustomerRequestsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<CustomerRequest, F | "id">>;
-  iterate(slug: string, customer: string, params?: ListCustomerRequestsParams): AsyncGenerator<CustomerRequest>;
-  iterate(slug: string, customer: string, params?: ListCustomerRequestsParams): AsyncGenerator<CustomerRequest> {
+  iterate(
+    slug: string,
+    customer: string,
+    params?: Omit<ListCustomerRequestsParams, "offset" | "count">
+  ): AsyncGenerator<CustomerRequest>;
+  iterate(
+    slug: string,
+    customer: string,
+    params?: Omit<ListCustomerRequestsParams, "offset" | "count">
+  ): AsyncGenerator<CustomerRequest> {
     return this.doIterate(this._at(slug, customer), params as Record<string, unknown>);
   }
 

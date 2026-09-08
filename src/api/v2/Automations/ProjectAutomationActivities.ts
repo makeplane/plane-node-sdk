@@ -16,6 +16,8 @@ export interface ListProjectAutomationActivitiesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -64,19 +66,21 @@ export class ProjectAutomationActivities extends V2Resource<AutomationActivity, 
     slug: string,
     project: string,
     automation: string,
-    params: ListProjectAutomationActivitiesParams & { fields: readonly F[] }
+    params: Omit<ListProjectAutomationActivitiesParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<AutomationActivity, F | "id">>;
   iterate(
     slug: string,
     project: string,
     automation: string,
-    params?: ListProjectAutomationActivitiesParams
+    params?: Omit<ListProjectAutomationActivitiesParams, "offset" | "count">
   ): AsyncGenerator<AutomationActivity>;
   iterate(
     slug: string,
     project: string,
     automation: string,
-    params?: ListProjectAutomationActivitiesParams
+    params?: Omit<ListProjectAutomationActivitiesParams, "offset" | "count">
   ): AsyncGenerator<AutomationActivity> {
     return this.doIterate(this._at(slug, project, automation), params as Record<string, unknown>);
   }

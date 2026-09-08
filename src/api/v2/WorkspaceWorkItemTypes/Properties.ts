@@ -41,10 +41,20 @@ export class WorkspaceWorkItemTypeProperties extends V2Resource<WorkItemProperty
   iterate<F extends Exclude<WorkItemTypePropertyField, "all"> & keyof WorkItemProperty>(
     slug: string,
     type: string,
-    params: ListWorkItemTypePropertiesParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemTypePropertiesParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<WorkItemProperty, F | "id">>;
-  iterate(slug: string, type: string, params?: ListWorkItemTypePropertiesParams): AsyncGenerator<WorkItemProperty>;
-  iterate(slug: string, type: string, params?: ListWorkItemTypePropertiesParams): AsyncGenerator<WorkItemProperty> {
+  iterate(
+    slug: string,
+    type: string,
+    params?: Omit<ListWorkItemTypePropertiesParams, "offset" | "count">
+  ): AsyncGenerator<WorkItemProperty>;
+  iterate(
+    slug: string,
+    type: string,
+    params?: Omit<ListWorkItemTypePropertiesParams, "offset" | "count">
+  ): AsyncGenerator<WorkItemProperty> {
     return this.doIterate(this._at(slug, type), params as Record<string, unknown>);
   }
 

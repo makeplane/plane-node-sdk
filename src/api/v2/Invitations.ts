@@ -16,6 +16,8 @@ export interface ListInvitationsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -52,10 +54,10 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
   /** Every invitation, following pages automatically. */
   iterate<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
     slug: string,
-    params: ListInvitationsParams & { fields: readonly F[] }
+    params: Omit<ListInvitationsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkspaceInvite, F | "id">>;
-  iterate(slug: string, params?: ListInvitationsParams): AsyncGenerator<WorkspaceInvite>;
-  iterate(slug: string, params?: ListInvitationsParams): AsyncGenerator<WorkspaceInvite> {
+  iterate(slug: string, params?: Omit<ListInvitationsParams, "offset" | "count">): AsyncGenerator<WorkspaceInvite>;
+  iterate(slug: string, params?: Omit<ListInvitationsParams, "offset" | "count">): AsyncGenerator<WorkspaceInvite> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

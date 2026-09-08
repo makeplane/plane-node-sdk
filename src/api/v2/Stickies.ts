@@ -16,6 +16,8 @@ export interface ListStickiesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -48,10 +50,10 @@ export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
   /** Every sticky, following pages automatically. */
   iterate<F extends Exclude<StickyField, "all"> & keyof Sticky>(
     slug: string,
-    params: ListStickiesParams & { fields: readonly F[] }
+    params: Omit<ListStickiesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Sticky, F | "id">>;
-  iterate(slug: string, params?: ListStickiesParams): AsyncGenerator<Sticky>;
-  iterate(slug: string, params?: ListStickiesParams): AsyncGenerator<Sticky> {
+  iterate(slug: string, params?: Omit<ListStickiesParams, "offset" | "count">): AsyncGenerator<Sticky>;
+  iterate(slug: string, params?: Omit<ListStickiesParams, "offset" | "count">): AsyncGenerator<Sticky> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

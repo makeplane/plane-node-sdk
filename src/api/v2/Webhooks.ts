@@ -21,6 +21,8 @@ export interface ListWebhooksParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -67,10 +69,10 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
   /** Every webhook in the workspace, following pages automatically. */
   iterate<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
     slug: string,
-    params: ListWebhooksParams & { fields: readonly F[] }
+    params: Omit<ListWebhooksParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWebhookRow<Pick<Webhook, F | "id">>>;
-  iterate(slug: string, params?: ListWebhooksParams): AsyncGenerator<LoadedWebhook>;
-  iterate(slug: string, params?: ListWebhooksParams): AsyncGenerator<LoadedWebhook> {
+  iterate(slug: string, params?: Omit<ListWebhooksParams, "offset" | "count">): AsyncGenerator<LoadedWebhook>;
+  iterate(slug: string, params?: Omit<ListWebhooksParams, "offset" | "count">): AsyncGenerator<LoadedWebhook> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 

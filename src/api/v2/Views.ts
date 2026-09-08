@@ -22,6 +22,8 @@ export interface ListProjectViewsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -59,10 +61,18 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
   iterate<F extends Exclude<ViewField, "all"> & keyof View>(
     slug: string,
     project: string,
-    params: ListProjectViewsParams & { fields: readonly F[] }
+    params: Omit<ListProjectViewsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<View, F | "id">>;
-  iterate(slug: string, project: string, params?: ListProjectViewsParams): AsyncGenerator<View>;
-  iterate(slug: string, project: string, params?: ListProjectViewsParams): AsyncGenerator<View> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListProjectViewsParams, "offset" | "count">
+  ): AsyncGenerator<View>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListProjectViewsParams, "offset" | "count">
+  ): AsyncGenerator<View> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 

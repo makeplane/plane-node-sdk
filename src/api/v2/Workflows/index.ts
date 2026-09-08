@@ -19,6 +19,8 @@ export interface ListWorkflowsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -78,10 +80,18 @@ export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, Upda
   iterate<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
     slug: string,
     project: string,
-    params: ListWorkflowsParams & { fields: readonly F[] }
+    params: Omit<ListWorkflowsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkflowRow<Pick<Workflow, F | "id">>>;
-  iterate(slug: string, project: string, params?: ListWorkflowsParams): AsyncGenerator<LoadedWorkflow>;
-  iterate(slug: string, project: string, params?: ListWorkflowsParams): AsyncGenerator<LoadedWorkflow> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListWorkflowsParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkflow>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListWorkflowsParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkflow> {
     return this.loadIterate(
       this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
       [slug, project],

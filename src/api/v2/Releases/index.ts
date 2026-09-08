@@ -25,6 +25,8 @@ export interface ListReleasesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
   search?: string;
   is_latest?: boolean;
@@ -102,10 +104,10 @@ export class Releases extends LoadsNavigableRows<Release, CreateRelease, UpdateR
   /** Every release in the workspace, following pages automatically. */
   iterate<F extends Exclude<ReleaseField, "all"> & keyof Release>(
     slug: string,
-    params: ListReleasesParams & { fields: readonly F[] }
+    params: Omit<ListReleasesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedReleaseRow<Pick<Release, F | "id">>>;
-  iterate(slug: string, params?: ListReleasesParams): AsyncGenerator<LoadedRelease>;
-  iterate(slug: string, params?: ListReleasesParams): AsyncGenerator<LoadedRelease> {
+  iterate(slug: string, params?: Omit<ListReleasesParams, "offset" | "count">): AsyncGenerator<LoadedRelease>;
+  iterate(slug: string, params?: Omit<ListReleasesParams, "offset" | "count">): AsyncGenerator<LoadedRelease> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }
 

@@ -25,6 +25,8 @@ export interface ListModulesParams {
   per_page?: number;
   /** `"cursor"` opts into the cursor envelope; pair with a cursor-safe `order_by` or expect a 400. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -85,10 +87,18 @@ export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModu
   iterate<F extends Exclude<ModuleField, "all"> & keyof Module>(
     slug: string,
     project: string,
-    params: ListModulesParams & { fields: readonly F[] }
+    params: Omit<ListModulesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedModuleRow<Pick<Module, F | "id">>>;
-  iterate(slug: string, project: string, params?: ListModulesParams): AsyncGenerator<LoadedModule>;
-  iterate(slug: string, project: string, params?: ListModulesParams): AsyncGenerator<LoadedModule> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListModulesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedModule>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListModulesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedModule> {
     return this.loadIterate(
       this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
       [slug, project],

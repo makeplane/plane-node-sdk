@@ -18,6 +18,8 @@ export interface ListEstimatePointsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -84,19 +86,19 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     slug: string,
     project: string,
     estimate: string,
-    params: ListEstimatePointsParams & { fields: readonly F[] }
+    params: Omit<ListEstimatePointsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<EstimatePoint, F | "id">>;
   iterate(
     slug: string,
     project: string,
     estimate: string,
-    params?: ListEstimatePointsParams
+    params?: Omit<ListEstimatePointsParams, "offset" | "count">
   ): AsyncGenerator<EstimatePoint>;
   iterate(
     slug: string,
     project: string,
     estimate: string,
-    params?: ListEstimatePointsParams
+    params?: Omit<ListEstimatePointsParams, "offset" | "count">
   ): AsyncGenerator<EstimatePoint> {
     return this.doIterate(this._at(slug, project, estimate), params as Record<string, unknown>);
   }

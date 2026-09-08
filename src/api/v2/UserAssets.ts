@@ -13,6 +13,8 @@ export interface ListUserAssetsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -45,10 +47,10 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
 
   /** Every uploaded asset, following pages automatically. */
   iterate<F extends Exclude<UserAssetField, "all"> & keyof UserAsset>(
-    params: ListUserAssetsParams & { fields: readonly F[] }
+    params: Omit<ListUserAssetsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<UserAsset, F | "id">>;
-  iterate(params?: ListUserAssetsParams): AsyncGenerator<UserAsset>;
-  iterate(params?: ListUserAssetsParams): AsyncGenerator<UserAsset> {
+  iterate(params?: Omit<ListUserAssetsParams, "offset" | "count">): AsyncGenerator<UserAsset>;
+  iterate(params?: Omit<ListUserAssetsParams, "offset" | "count">): AsyncGenerator<UserAsset> {
     return this.doIterate({}, params as Record<string, unknown>);
   }
 

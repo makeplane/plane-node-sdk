@@ -36,6 +36,8 @@ export interface ListWorkspaceAutomationsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -106,10 +108,18 @@ export class WorkspaceAutomations extends LoadsNavigableRows<
   /** Every workspace-scoped automation, following pages automatically — navigable rows included. */
   iterate<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
     slug: string,
-    params: ListWorkspaceAutomationsParams & { fields: readonly F[] }
+    params: Omit<ListWorkspaceAutomationsParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>;
-  iterate(slug: string, params?: ListWorkspaceAutomationsParams): AsyncGenerator<LoadedWorkspaceAutomation>;
-  iterate(slug: string, params?: ListWorkspaceAutomationsParams): AsyncGenerator<LoadedWorkspaceAutomation> {
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkspaceAutomationsParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkspaceAutomation>;
+  iterate(
+    slug: string,
+    params?: Omit<ListWorkspaceAutomationsParams, "offset" | "count">
+  ): AsyncGenerator<LoadedWorkspaceAutomation> {
     return this.loadIterate(this.doIterate(this._at(slug), params as Record<string, unknown>), [slug], params?.fields);
   }
 

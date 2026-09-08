@@ -31,6 +31,8 @@ export interface ListProjectAutomationsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -103,10 +105,18 @@ export class ProjectAutomations extends LoadsNavigableRows<
   iterate<F extends Exclude<ProjectAutomationField, "all"> & keyof Automation>(
     slug: string,
     project: string,
-    params: ListProjectAutomationsParams & { fields: readonly F[] }
+    params: Omit<ListProjectAutomationsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedAutomationRow<Pick<Automation, F | "id">>>;
-  iterate(slug: string, project: string, params?: ListProjectAutomationsParams): AsyncGenerator<LoadedAutomation>;
-  iterate(slug: string, project: string, params?: ListProjectAutomationsParams): AsyncGenerator<LoadedAutomation> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListProjectAutomationsParams, "offset" | "count">
+  ): AsyncGenerator<LoadedAutomation>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListProjectAutomationsParams, "offset" | "count">
+  ): AsyncGenerator<LoadedAutomation> {
     return this.loadIterate(
       this.doIterate(this._at(slug, project), params as Record<string, unknown>),
       [slug, project],

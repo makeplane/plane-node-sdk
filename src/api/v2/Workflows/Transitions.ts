@@ -17,6 +17,8 @@ export interface ListWorkflowTransitionsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -79,19 +81,19 @@ export class WorkflowTransitions extends V2Resource<
     slug: string,
     project: string,
     workflow: string,
-    params: ListWorkflowTransitionsParams & { fields: readonly F[] }
+    params: Omit<ListWorkflowTransitionsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkflowTransition, F | "id">>;
   iterate(
     slug: string,
     project: string,
     workflow: string,
-    params?: ListWorkflowTransitionsParams
+    params?: Omit<ListWorkflowTransitionsParams, "offset" | "count">
   ): AsyncGenerator<WorkflowTransition>;
   iterate(
     slug: string,
     project: string,
     workflow: string,
-    params?: ListWorkflowTransitionsParams
+    params?: Omit<ListWorkflowTransitionsParams, "offset" | "count">
   ): AsyncGenerator<WorkflowTransition> {
     return this.doIterate(this._at(slug, project, workflow), params as Record<string, unknown>);
   }

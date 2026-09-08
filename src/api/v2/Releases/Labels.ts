@@ -15,6 +15,8 @@ export interface ListReleaseLabelsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -61,10 +63,10 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
   /** Every release label definition, following pages automatically. */
   iterate<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
     slug: string,
-    params: ListReleaseLabelsParams & { fields: readonly F[] }
+    params: Omit<ListReleaseLabelsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseLabel, F | "id">>;
-  iterate(slug: string, params?: ListReleaseLabelsParams): AsyncGenerator<ReleaseLabel>;
-  iterate(slug: string, params?: ListReleaseLabelsParams): AsyncGenerator<ReleaseLabel> {
+  iterate(slug: string, params?: Omit<ListReleaseLabelsParams, "offset" | "count">): AsyncGenerator<ReleaseLabel>;
+  iterate(slug: string, params?: Omit<ListReleaseLabelsParams, "offset" | "count">): AsyncGenerator<ReleaseLabel> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

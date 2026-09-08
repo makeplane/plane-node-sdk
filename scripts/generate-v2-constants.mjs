@@ -77,39 +77,48 @@ const fields = {};
 const orderBy = {};
 const expand = {};
 const filters = {};
+const pagination = {};
 const METHODS = new Set(["get", "post", "patch", "delete", "put"]);
+
+/**
+ * The pagination envelope's own query parameters.
+ *
+ * These are not filters — they shape `Page<T>`, not which rows match — so they are kept
+ * out of `FILTERS` and given their own map (`PAGINATION`) and their own sweep
+ * (`tests/unit/v2/pagination-coverage.test.ts`). They used to be *only* excluded, which
+ * is a hole rather than a decision: the Python SDK reserved the same five names in its
+ * generator, implemented none of them on any of its 68 list methods, and shipped a
+ * workspace audit-log resource that could not be called at all because the server refuses
+ * the offset envelope there. Excluding a parameter from one sweep has to mean handing it
+ * to another.
+ */
+const PAGINATION_QUERY_PARAMETERS = new Set(["offset", "per_page", "paginate", "cursor", "count"]);
 
 /**
  * Query parameters that are an axis of their own, not a filter.
  *
  * `fields`, `order_by` and `expand` each get their own map above (and their own sweep);
- * the pagination five are the envelope, shaped by `Page<T>` rather than by the caller
- * asking for a subset of rows. Everything else the golden declares in the query string
- * narrows *which rows come back*, which is what `FILTERS` means and what
- * `tests/unit/v2/filters-coverage.test.ts` requires a method to expose.
+ * the pagination parameters get `PAGINATION` and its sweep. Everything else the golden
+ * declares in the query string narrows *which rows come back*, which is what `FILTERS`
+ * means and what `tests/unit/v2/filters-coverage.test.ts` requires a method to expose.
  *
- * Adding a name here removes it from every sweep, so it needs to be an axis the SDK
+ * Adding a name here removes it from the filters sweep, so it needs to be an axis the SDK
  * handles somewhere else — never "the SDK does not offer this one".
  */
-const NON_FILTER_QUERY_PARAMETERS = new Set([
-  "fields",
-  "order_by",
-  "expand",
-  "offset",
-  "per_page",
-  "paginate",
-  "cursor",
-  "count",
-]);
+const NON_FILTER_QUERY_PARAMETERS = new Set(["fields", "order_by", "expand", ...PAGINATION_QUERY_PARAMETERS]);
 
 for (const operations of Object.values(paths)) {
   for (const [method, operation] of Object.entries(operations)) {
     if (!METHODS.has(method) || !operation.operationId) continue;
     operationIds.add(operation.operationId);
     const declaredFilters = [];
+    const declaredPagination = [];
     for (const parameter of operation.parameters ?? []) {
       if (parameter.in === "query" && !NON_FILTER_QUERY_PARAMETERS.has(parameter.name)) {
         declaredFilters.push(parameter.name);
+      }
+      if (parameter.in === "query" && PAGINATION_QUERY_PARAMETERS.has(parameter.name)) {
+        declaredPagination.push(parameter.name);
       }
       const values = parameter.schema?.enum;
       if (!values) continue;
@@ -120,6 +129,8 @@ for (const operations of Object.values(paths)) {
     // Only operations that actually declare one get a key, so `FILTERS[id]` being absent
     // and being empty mean the same thing — "this operation filters nothing".
     if (declaredFilters.length > 0) filters[operation.operationId] = declaredFilters.sort();
+    // Same convention: absent and empty mean the same thing, "this operation does not page".
+    if (declaredPagination.length > 0) pagination[operation.operationId] = declaredPagination.sort();
   }
 }
 
@@ -144,6 +155,15 @@ if (Object.keys(filters).length === 0) {
   console.error(
     "golden shape drift: extracted zero query filters across all path shards — expected roughly 150. " +
       'Either the golden stopped declaring `in: "query"` parameters, or NON_FILTER_QUERY_PARAMETERS swallowed them all.'
+  );
+  process.exit(1);
+}
+
+if (Object.keys(pagination).length === 0) {
+  console.error(
+    "golden shape drift: extracted zero pagination parameters across all path shards — expected roughly 68. " +
+      "Either the golden stopped declaring `offset`/`per_page`/`paginate`/`cursor`/`count`, or " +
+      "PAGINATION_QUERY_PARAMETERS no longer names them."
   );
   process.exit(1);
 }
@@ -255,6 +275,23 @@ export const FILTERS = {
 ${record(filters)}
 } as const;
 
+/**
+ * The pagination-envelope parameters each operation declares.
+ *
+ * Not filters — these shape \`Page<T>\` rather than which rows match — so they have their
+ * own map and their own sweep, \`tests/unit/v2/pagination-coverage.test.ts\`: a list method
+ * whose params type omits one of these makes that half of the envelope unreachable.
+ * \`paginate\` in particular is what selects the keyset envelope, and a method that offers
+ * it must also offer \`cursor\` or the \`next_cursor\` it hands back cannot be spent.
+ *
+ * Note that \`cursor\` appears in no operation here: the golden documents the four the
+ * server validates and leaves the cursor itself undeclared. The sweep therefore derives
+ * the \`cursor\` requirement from \`paginate\` rather than from this map.
+ */
+export const PAGINATION = {
+${record(pagination)}
+} as const;
+
 export const STATE_FIELDS = FIELDS["states_list"];
 export const LABEL_FIELDS = FIELDS["labels_list"];
 export const WORK_ITEM_FIELDS = FIELDS["work_items_list"];
@@ -315,6 +352,6 @@ for (const [label, line] of [
 console.log(
   `wrote ${operationIds.size} operation ids, ${Object.keys(fields).length} field enums, ` +
     `${Object.keys(orderBy).length} order_by enums, ${Object.keys(expand).length} expand enums, ` +
-    `and ${Object.keys(filters).length} filter sets ` +
+    `${Object.keys(filters).length} filter sets, and ${Object.keys(pagination).length} pagination sets ` +
     `(from ${schemaCount} schemas, ${shardFiles.length} path shards, api_v2 ${openapiVersion}) to ${targetFile}`
 );

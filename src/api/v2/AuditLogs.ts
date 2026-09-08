@@ -24,6 +24,8 @@ export interface ListAuditLogsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -53,10 +55,10 @@ export class AuditLogs extends V2Resource<AuditLog, never, never> {
   /** Every audit log entry, following pages automatically. */
   iterate<F extends Exclude<AuditLogField, "all"> & keyof AuditLog>(
     slug: string,
-    params: ListAuditLogsParams & { fields: readonly F[] }
+    params: Omit<ListAuditLogsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<AuditLog, F | "id">>;
-  iterate(slug: string, params?: ListAuditLogsParams): AsyncGenerator<AuditLog>;
-  iterate(slug: string, params?: ListAuditLogsParams): AsyncGenerator<AuditLog> {
+  iterate(slug: string, params?: Omit<ListAuditLogsParams, "offset" | "count">): AsyncGenerator<AuditLog>;
+  iterate(slug: string, params?: Omit<ListAuditLogsParams, "offset" | "count">): AsyncGenerator<AuditLog> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

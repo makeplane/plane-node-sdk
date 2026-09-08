@@ -24,6 +24,8 @@ export interface ListCyclesParams {
   per_page?: number;
   /** `"cursor"` opts into the cursor envelope; pair with a cursor-safe `order_by` or expect a 400. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -88,10 +90,18 @@ export class Cycles extends LoadsNavigableRows<Cycle, CreateCycle, UpdateCycle, 
   iterate<F extends Exclude<CycleField, "all"> & keyof Cycle>(
     slug: string,
     project: string,
-    params: ListCyclesParams & { fields: readonly F[] }
+    params: Omit<ListCyclesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedCycleRow<Pick<Cycle, F | "id">>>;
-  iterate(slug: string, project: string, params?: ListCyclesParams): AsyncGenerator<LoadedCycle>;
-  iterate(slug: string, project: string, params?: ListCyclesParams): AsyncGenerator<LoadedCycle> {
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListCyclesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedCycle>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: Omit<ListCyclesParams, "offset" | "count">
+  ): AsyncGenerator<LoadedCycle> {
     return this.loadIterate(
       this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
       [slug, project],

@@ -25,6 +25,8 @@ export interface ListWorkItemCommentsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -83,19 +85,19 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     slug: string,
     project: string,
     workItem: string,
-    params: ListWorkItemCommentsParams & { fields: readonly F[] }
+    params: Omit<ListWorkItemCommentsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemComment, F | "id">>;
   iterate(
     slug: string,
     project: string,
     workItem: string,
-    params?: ListWorkItemCommentsParams
+    params?: Omit<ListWorkItemCommentsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemComment>;
   iterate(
     slug: string,
     project: string,
     workItem: string,
-    params?: ListWorkItemCommentsParams
+    params?: Omit<ListWorkItemCommentsParams, "offset" | "count">
   ): AsyncGenerator<WorkItemComment> {
     return this.doIterate({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
   }

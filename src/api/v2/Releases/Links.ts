@@ -14,6 +14,8 @@ export interface ListReleaseLinksParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -59,10 +61,18 @@ export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateRele
   iterate<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
     slug: string,
     release: string,
-    params: ListReleaseLinksParams & { fields: readonly F[] }
+    params: Omit<ListReleaseLinksParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseLink, F | "id">>;
-  iterate(slug: string, release: string, params?: ListReleaseLinksParams): AsyncGenerator<ReleaseLink>;
-  iterate(slug: string, release: string, params?: ListReleaseLinksParams): AsyncGenerator<ReleaseLink> {
+  iterate(
+    slug: string,
+    release: string,
+    params?: Omit<ListReleaseLinksParams, "offset" | "count">
+  ): AsyncGenerator<ReleaseLink>;
+  iterate(
+    slug: string,
+    release: string,
+    params?: Omit<ListReleaseLinksParams, "offset" | "count">
+  ): AsyncGenerator<ReleaseLink> {
     return this.doIterate(this._at(slug, release), params as Record<string, unknown>);
   }
 

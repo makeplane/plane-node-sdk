@@ -16,6 +16,8 @@ export interface ListReleaseCommentsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -61,10 +63,18 @@ export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, U
   iterate<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
     slug: string,
     release: string,
-    params: ListReleaseCommentsParams & { fields: readonly F[] }
+    params: Omit<ListReleaseCommentsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseComment, F | "id">>;
-  iterate(slug: string, release: string, params?: ListReleaseCommentsParams): AsyncGenerator<ReleaseComment>;
-  iterate(slug: string, release: string, params?: ListReleaseCommentsParams): AsyncGenerator<ReleaseComment> {
+  iterate(
+    slug: string,
+    release: string,
+    params?: Omit<ListReleaseCommentsParams, "offset" | "count">
+  ): AsyncGenerator<ReleaseComment>;
+  iterate(
+    slug: string,
+    release: string,
+    params?: Omit<ListReleaseCommentsParams, "offset" | "count">
+  ): AsyncGenerator<ReleaseComment> {
     return this.doIterate(this._at(slug, release), params as Record<string, unknown>);
   }
 

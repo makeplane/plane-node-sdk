@@ -18,6 +18,8 @@ export interface ListGroupSyncWorkspaceMappingsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -54,10 +56,18 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
   /** Every mapping, following pages automatically. */
   iterate<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
     slug: string,
-    params: ListGroupSyncWorkspaceMappingsParams & { fields: readonly F[] }
+    params: Omit<ListGroupSyncWorkspaceMappingsParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<WorkspaceGroupMapping, F | "id">>;
-  iterate(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): AsyncGenerator<WorkspaceGroupMapping>;
-  iterate(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): AsyncGenerator<WorkspaceGroupMapping> {
+  iterate(
+    slug: string,
+    params?: Omit<ListGroupSyncWorkspaceMappingsParams, "offset" | "count">
+  ): AsyncGenerator<WorkspaceGroupMapping>;
+  iterate(
+    slug: string,
+    params?: Omit<ListGroupSyncWorkspaceMappingsParams, "offset" | "count">
+  ): AsyncGenerator<WorkspaceGroupMapping> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 

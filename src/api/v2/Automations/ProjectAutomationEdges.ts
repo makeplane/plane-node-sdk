@@ -15,6 +15,8 @@ export interface ListProjectAutomationEdgesParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -71,19 +73,21 @@ export class ProjectAutomationEdges extends V2Resource<AutomationEdge, CreateAut
     slug: string,
     project: string,
     automation: string,
-    params: ListProjectAutomationEdgesParams & { fields: readonly F[] }
+    params: Omit<ListProjectAutomationEdgesParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<AutomationEdge, F | "id">>;
   iterate(
     slug: string,
     project: string,
     automation: string,
-    params?: ListProjectAutomationEdgesParams
+    params?: Omit<ListProjectAutomationEdgesParams, "offset" | "count">
   ): AsyncGenerator<AutomationEdge>;
   iterate(
     slug: string,
     project: string,
     automation: string,
-    params?: ListProjectAutomationEdgesParams
+    params?: Omit<ListProjectAutomationEdgesParams, "offset" | "count">
   ): AsyncGenerator<AutomationEdge> {
     return this.doIterate(this._at(slug, project, automation), params as Record<string, unknown>);
   }

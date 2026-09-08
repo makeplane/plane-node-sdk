@@ -14,6 +14,8 @@ export interface ListGroupSyncProjectMappingsParams {
   per_page?: number;
   /** Set to `"cursor"` to opt into the cursor envelope — see `ListStatesParams.paginate`. */
   paginate?: "cursor";
+  /** Resume a cursor-paginated walk from a `next_cursor` an earlier page answered with. */
+  cursor?: string;
   count?: boolean;
 }
 
@@ -53,10 +55,18 @@ export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGro
   /** Every mapping, following pages automatically. */
   iterate<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
     slug: string,
-    params: ListGroupSyncProjectMappingsParams & { fields: readonly F[] }
+    params: Omit<ListGroupSyncProjectMappingsParams, "offset" | "count"> & {
+      fields: readonly F[];
+    }
   ): AsyncGenerator<Pick<GroupMapping, F | "id">>;
-  iterate(slug: string, params?: ListGroupSyncProjectMappingsParams): AsyncGenerator<GroupMapping>;
-  iterate(slug: string, params?: ListGroupSyncProjectMappingsParams): AsyncGenerator<GroupMapping> {
+  iterate(
+    slug: string,
+    params?: Omit<ListGroupSyncProjectMappingsParams, "offset" | "count">
+  ): AsyncGenerator<GroupMapping>;
+  iterate(
+    slug: string,
+    params?: Omit<ListGroupSyncProjectMappingsParams, "offset" | "count">
+  ): AsyncGenerator<GroupMapping> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
