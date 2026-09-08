@@ -12,14 +12,14 @@ const makeTransport = () => new V2Transport(new Configuration({ baseUrl: BASE, a
 afterEach(() => nock.cleanAll());
 
 describe("WorkspacePermissions (v2)", () => {
-  const make = () => new WorkspacePermissions(makeTransport(), { slug: "acme" });
+  const make = () => new WorkspacePermissions(makeTransport());
 
   it("gets the caller's effective permissions at the workspace level", async () => {
     const scope = nock(BASE)
       .get("/api/v2/workspaces/acme/permissions/me/")
       .reply(200, { permission_grants: ["work_item:create"], relation: "admin" });
 
-    const perms = await make().me();
+    const perms = await make().me("acme");
 
     expect(scope.isDone()).toBe(true);
     expect(perms.relation).toBe("admin");
@@ -35,14 +35,14 @@ describe("WorkspacePermissions (v2)", () => {
 });
 
 describe("ProjectPermissions (v2)", () => {
-  const make = () => new ProjectPermissions(makeTransport(), { slug: "acme", project_id: "ENG" });
+  const make = () => new ProjectPermissions(makeTransport());
 
   it("gets the caller's effective permissions for one project — a differently-shaped path", async () => {
     const scope = nock(BASE)
       .get("/api/v2/workspaces/acme/projects/ENG/permissions/me/")
       .reply(200, { permission_grants: [], relation: null });
 
-    const perms = await make().me();
+    const perms = await make().me("acme", "ENG");
 
     expect(scope.isDone()).toBe(true);
     expect(perms.relation).toBeNull();

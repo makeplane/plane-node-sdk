@@ -17,7 +17,12 @@ export interface ListPermissionSchemesParams {
   count?: boolean;
 }
 
-/** Workspace-scoped permission schemes at `client.v2.workspace(slug).permissionSchemes`; read-only, no create/update/delete. */
+/** `?fields=` on a single-row read. */
+export interface PermissionSchemeFieldsParams {
+  fields?: readonly PermissionSchemeField[];
+}
+
+/** Workspace permission schemes. Read-only: no create/update/delete. */
 export class PermissionSchemes extends V2Resource<PermissionScheme, never, never> {
   protected path = "/workspaces/{slug}/permission-schemes/";
   protected operations: Record<string, OperationId> = {
@@ -27,24 +32,26 @@ export class PermissionSchemes extends V2Resource<PermissionScheme, never, never
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
+    slug: string,
     params: ListPermissionSchemesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<PermissionScheme, F | "id">>>;
-  list(params?: ListPermissionSchemesParams): Promise<Page<PermissionScheme>>;
-  list(params?: ListPermissionSchemesParams): Promise<Page<PermissionScheme>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListPermissionSchemesParams): Promise<Page<PermissionScheme>>;
+  list(slug: string, params?: ListPermissionSchemesParams): Promise<Page<PermissionScheme>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every permission scheme, following pages automatically. */
-  iterate(params?: ListPermissionSchemesParams): AsyncGenerator<PermissionScheme> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListPermissionSchemesParams): AsyncGenerator<PermissionScheme> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
-    schemeId: string,
+    slug: string,
+    scheme: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<PermissionScheme, F | "id">>;
-  retrieve(schemeId: string, params?: { fields?: readonly PermissionSchemeField[] }): Promise<PermissionScheme>;
-  retrieve(schemeId: string, params?: { fields?: readonly PermissionSchemeField[] }): Promise<PermissionScheme> {
-    return this.doRetrieve({ pk: schemeId }, params as Record<string, unknown>);
+  retrieve(slug: string, scheme: string, params?: PermissionSchemeFieldsParams): Promise<PermissionScheme>;
+  retrieve(slug: string, scheme: string, params?: PermissionSchemeFieldsParams): Promise<PermissionScheme> {
+    return this.doRetrieve({ slug, pk: scheme }, params as Record<string, unknown>);
   }
 }

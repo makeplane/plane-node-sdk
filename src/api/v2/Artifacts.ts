@@ -8,7 +8,13 @@ import {
 } from "../../models/v2/Artifact";
 import { AnyOperationId, V2Resource } from "./kernel/resource";
 
-/** Shareable HTML artifacts (api_v2), at `client.v2.workspace(slug).artifacts`. */
+/**
+ * Shareable HTML artifacts — the Plane Intelligence generate/publish/host flow.
+ *
+ * Only `create`/`retrieve`/`publish`/`update` exist, and each answers a different
+ * envelope, so three of the four go through the kernel's custom-action helper rather
+ * than the CRUD verbs.
+ */
 export class Artifacts extends V2Resource<ArtifactDetail, CreateArtifact, UpdateArtifactUpdate> {
   protected path = "/workspaces/{slug}/artifacts/";
   protected operations: Record<string, AnyOperationId> = {
@@ -19,23 +25,30 @@ export class Artifacts extends V2Resource<ArtifactDetail, CreateArtifact, Update
   };
 
   /** Create an artifact. Returns the summary row ({@link Artifact}), not the full detail — `retrieve` for that. */
-  async create(data: CreateArtifact): Promise<Artifact> {
-    return this.transport.request<Artifact>("POST", this.collectionUrl({}), { data });
+  create(slug: string, data: CreateArtifact): Promise<Artifact> {
+    return this.doCustomAction<Artifact>("create", { pathParams: { slug }, data });
   }
 
   /** The full artifact, including its `html`. */
-  async retrieve(artifactId: string): Promise<ArtifactDetail> {
-    return this.transport.request<ArtifactDetail>("GET", this.detailUrl({ pk: artifactId }));
+  retrieve(slug: string, artifact: string): Promise<ArtifactDetail> {
+    return this.doRetrieve({ slug, pk: artifact });
   }
 
-  /** Publish the artifact, minting (or reusing) its public anchor. No request body — a plain `doAction`. */
-  async publish(artifactId: string): Promise<ArtifactPublishResult> {
-    return this.doAction<ArtifactPublishResult>("publish", { pk: artifactId });
+  /** Publish the artifact, minting (or reusing) its public anchor. No request body. */
+  publish(slug: string, artifact: string): Promise<ArtifactPublishResult> {
+    return this.doCustomAction<ArtifactPublishResult>("publish", { pathParams: { slug }, pk: artifact });
   }
 
-  /** Updates `html`/`prompt`, bumping `current_version`. Hand-rolled PATCH-with-body — not `doAction`. */
-  async update(artifactId: string, data: UpdateArtifactUpdate): Promise<ArtifactUpdateResult> {
-    return this.transport.request<ArtifactUpdateResult>("PATCH", `${this.detailUrl({ pk: artifactId })}update/`, {
+  /**
+   * Append a new HTML version, bumping `current_version` — each call replaces the
+   * document wholesale; there is no true partial update. A PATCH to `{detail}/update/`
+   * answering an update envelope rather than a row.
+   */
+  update(slug: string, artifact: string, data: UpdateArtifactUpdate): Promise<ArtifactUpdateResult> {
+    return this.doCustomAction<ArtifactUpdateResult>("update", {
+      method: "PATCH",
+      pathParams: { slug },
+      pk: artifact,
       data,
     });
   }

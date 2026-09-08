@@ -6,7 +6,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 const BASE = "https://api.example.com";
 
 const makeSchemes = () =>
-  new PermissionSchemes(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: "acme" });
+  new PermissionSchemes(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -20,7 +20,7 @@ describe("PermissionSchemes (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeSchemes().list();
+    const page = await makeSchemes().list("acme");
 
     expect(page.data[0].namespace).toBe("workspace");
   });
@@ -30,7 +30,7 @@ describe("PermissionSchemes (v2)", () => {
       .get("/api/v2/workspaces/acme/permission-schemes/1/")
       .reply(200, { id: "1", name: "Admin", permissions: ["project:*"] });
 
-    const scheme = await makeSchemes().retrieve("1");
+    const scheme = await makeSchemes().retrieve("acme", "1");
 
     expect(scheme.permissions).toEqual(["project:*"]);
   });
@@ -44,7 +44,7 @@ describe("PermissionSchemes (v2)", () => {
     // Dynamic field list is typed as the widened `PermissionSchemeField[]`, so it
     // falls back to the full `PermissionScheme` return type.
     const dynamicFields: PermissionSchemeField[] = ["id"];
-    const page = await makeSchemes().list({ fields: dynamicFields });
+    const page = await makeSchemes().list("acme", { fields: dynamicFields });
 
     expect(page.data[0].id).toBe("1");
     expect(page.data[0].name).toBeUndefined();
@@ -56,7 +56,7 @@ describe("PermissionSchemes (v2)", () => {
       .query({ order_by: "-sort_order" })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await makeSchemes().list({ order_by: "-sort_order" });
+    await makeSchemes().list("acme", { order_by: "-sort_order" });
 
     expect(scope.isDone()).toBe(true);
   });
@@ -65,7 +65,7 @@ describe("PermissionSchemes (v2)", () => {
     // "created_at" is a plausible-looking order value but not one permission
     // schemes actually offer (see PermissionSchemes.ts's own doc comment about
     // the two bogus values the golden extraction *does* — wrongly — accept).
-    await expect(makeSchemes().list({ order_by: "created_at" as never })).rejects.toThrow(
+    await expect(makeSchemes().list("acme", { order_by: "created_at" as never })).rejects.toThrow(
       /Unknown order_by 'created_at' for permission_schemes_list/
     );
   });
@@ -81,7 +81,7 @@ describe("PermissionSchemes (v2)", () => {
       .reply(200, { data: [{ id: "2" }], pagination: { style: "offset" }, next: null });
 
     const ids: string[] = [];
-    for await (const row of makeSchemes().iterate({ per_page: 1 })) {
+    for await (const row of makeSchemes().iterate("acme", { per_page: 1 })) {
       ids.push(row.id);
     }
 

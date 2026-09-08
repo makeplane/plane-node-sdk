@@ -6,7 +6,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 const BASE = "https://api.example.com";
 
 const makeLogs = () =>
-  new AuditLogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: "acme" });
+  new AuditLogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -20,7 +20,7 @@ describe("AuditLogs (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeLogs().list();
+    const page = await makeLogs().list("acme");
 
     expect(page.data[0].category).toBe("member");
   });
@@ -37,7 +37,7 @@ describe("AuditLogs (v2)", () => {
       })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await makeLogs().list({
+    await makeLogs().list("acme", {
       category: "webhook",
       outcome: "failure",
       actor_id: "user-1",
@@ -53,13 +53,13 @@ describe("AuditLogs (v2)", () => {
       .get("/api/v2/workspaces/acme/audit-logs/evt-1/")
       .reply(200, { id: "evt-1", event_name: "role.updated", sequence_number: 42 });
 
-    const entry = await makeLogs().retrieve("evt-1");
+    const entry = await makeLogs().retrieve("acme", "evt-1");
 
     expect(entry.sequence_number).toBe(42);
   });
 
   it("rejects an unknown order_by before making the request", async () => {
-    await expect(makeLogs().list({ order_by: "event_name" as never })).rejects.toThrow(
+    await expect(makeLogs().list("acme", { order_by: "event_name" as never })).rejects.toThrow(
       /Unknown order_by 'event_name' for audit_logs_list/
     );
   });
@@ -70,7 +70,7 @@ describe("AuditLogs (v2)", () => {
       .query({ paginate: "cursor", order_by: "created_at" })
       .reply(200, { data: [{ id: "1" }], pagination: { style: "cursor" }, has_more: false, next_cursor: null });
 
-    const page = await makeLogs().list({ paginate: "cursor", order_by: "created_at" });
+    const page = await makeLogs().list("acme", { paginate: "cursor", order_by: "created_at" });
 
     expect(page.pagination.style).toBe("cursor");
   });

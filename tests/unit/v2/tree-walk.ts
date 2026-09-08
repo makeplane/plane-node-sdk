@@ -66,9 +66,7 @@ const KERNEL_BASE_NAMES: ReadonlySet<string> = new Set(["V2Resource", "LoadsNavi
  * a sweep then fails, the resource is fixed — the name never goes back in.
  */
 export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
-  "Artifacts#Artifacts",
   "Assets#Assets",
-  "AuditLogs#AuditLogs",
   "Automations/ProjectAutomationActivities#ProjectAutomationActivities",
   "Automations/ProjectAutomationEdges#ProjectAutomationEdges",
   "Automations/ProjectAutomationNodes#ProjectAutomationNodes",
@@ -106,9 +104,6 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Modules/WorkItems#ModuleWorkItems",
   "Modules/index#Modules",
   "Pages#ProjectPages",
-  "PermissionSchemes#PermissionSchemes",
-  "Permissions#ProjectPermissions",
-  "Permissions#WorkspacePermissions",
   "ProjectWorklogs#ProjectWorklogs",
   "Releases/Changelog#Changelog",
   "Releases/Comments#Comments",
@@ -117,7 +112,6 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Releases/Tags#ReleaseTags",
   "Releases/WorkItems#ReleaseWorkItems",
   "Releases/index#Releases",
-  "Roles#Roles",
   "Stickies#Stickies",
   "Teamspaces#Teamspaces",
   "UserAssets#UserAssets",
@@ -153,7 +147,7 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
 ]);
 
 /** How large `UNMIGRATED_RESOURCES` is allowed to be. A ratchet: lower it, never raise it. */
-export const UNMIGRATED_CEILING = 84;
+export const UNMIGRATED_CEILING = 78;
 
 // -- Source scan ---------------------------------------------------------------------
 

@@ -7,7 +7,7 @@ const BASE = "https://api.example.com";
 const SLUG = "acme";
 
 const makeResource = () =>
-  new Artifacts(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: SLUG });
+  new Artifacts(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -22,7 +22,7 @@ describe("Artifacts (v2)", () => {
       is_published: false,
     });
 
-    const created = await makeResource().create({ name: "Report", html: "<p>hi</p>" });
+    const created = await makeResource().create(SLUG, { name: "Report", html: "<p>hi</p>" });
 
     expect(created.is_published).toBe(false);
     expect((created as unknown as Record<string, unknown>).html).toBeUndefined();
@@ -38,7 +38,7 @@ describe("Artifacts (v2)", () => {
       data_mode: "snapshot",
     });
 
-    const detail = await makeResource().retrieve("1");
+    const detail = await makeResource().retrieve(SLUG, "1");
 
     expect(detail.html).toBe("<p>hi</p>");
   });
@@ -48,7 +48,7 @@ describe("Artifacts (v2)", () => {
       .post("/api/v2/workspaces/acme/artifacts/1/publish/", (body) => Object.keys(body ?? {}).length === 0)
       .reply(200, { anchor: "abc123", is_active: true });
 
-    const published = await makeResource().publish("1");
+    const published = await makeResource().publish(SLUG, "1");
 
     expect(scope.isDone()).toBe(true);
     expect(published.anchor).toBe("abc123");
@@ -59,7 +59,7 @@ describe("Artifacts (v2)", () => {
       .patch("/api/v2/workspaces/acme/artifacts/1/update/", { html: "<p>bye</p>" })
       .reply(200, { id: "1", current_version: 2, data_mode: "snapshot" });
 
-    const updated = await makeResource().update("1", { html: "<p>bye</p>" });
+    const updated = await makeResource().update(SLUG, "1", { html: "<p>bye</p>" });
 
     expect(scope.isDone()).toBe(true);
     expect(updated.current_version).toBe(2);

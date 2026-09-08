@@ -27,7 +27,12 @@ export interface ListAuditLogsParams {
   count?: boolean;
 }
 
-/** Audit logs (api_v2), workspace-scoped, at `client.v2.workspace(slug).auditLogs`. Read-only. */
+/** `?fields=` on a single-row read. */
+export interface AuditLogFieldsParams {
+  fields?: readonly AuditLogField[];
+}
+
+/** Workspace audit logs. Read-only, cursor- or offset-paginated. */
 export class AuditLogs extends V2Resource<AuditLog, never, never> {
   protected path = "/workspaces/{slug}/audit-logs/";
   protected operations: Record<string, OperationId> = {
@@ -37,24 +42,26 @@ export class AuditLogs extends V2Resource<AuditLog, never, never> {
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<AuditLogField, "all"> & keyof AuditLog>(
+    slug: string,
     params: ListAuditLogsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<AuditLog, F | "id">>>;
-  list(params?: ListAuditLogsParams): Promise<Page<AuditLog>>;
-  list(params?: ListAuditLogsParams): Promise<Page<AuditLog>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListAuditLogsParams): Promise<Page<AuditLog>>;
+  list(slug: string, params?: ListAuditLogsParams): Promise<Page<AuditLog>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every audit log entry, following pages automatically. */
-  iterate(params?: ListAuditLogsParams): AsyncGenerator<AuditLog> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListAuditLogsParams): AsyncGenerator<AuditLog> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<AuditLogField, "all"> & keyof AuditLog>(
-    auditLogId: string,
+    slug: string,
+    log: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<AuditLog, F | "id">>;
-  retrieve(auditLogId: string, params?: { fields?: readonly AuditLogField[] }): Promise<AuditLog>;
-  retrieve(auditLogId: string, params?: { fields?: readonly AuditLogField[] }): Promise<AuditLog> {
-    return this.doRetrieve({ pk: auditLogId }, params as Record<string, unknown>);
+  retrieve(slug: string, log: string, params?: AuditLogFieldsParams): Promise<AuditLog>;
+  retrieve(slug: string, log: string, params?: AuditLogFieldsParams): Promise<AuditLog> {
+    return this.doRetrieve({ slug, pk: log }, params as Record<string, unknown>);
   }
 }
