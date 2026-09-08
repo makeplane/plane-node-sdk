@@ -397,6 +397,18 @@ export interface MethodInfo {
   readonly returnTypes: string[];
   /** Property names reachable on any object-typed parameter, across every overload. */
   readonly optionProperties: Set<string>;
+  /**
+   * For each option property, the string-literal values its type admits — union members,
+   * or an array's element union — across every overload. Empty where the type is not a
+   * literal union at all (`string`, `number`, `boolean`).
+   *
+   * This is what lets a sweep ask the second question about an option: not just "is it
+   * reachable" but "does it admit the values the golden declares for *this method's own*
+   * operation". A params type pointed at a sibling operation's enum — `ModuleOrderBy` on a
+   * module-work-item list — is reachable, compiles, and still makes half the server's sort
+   * orders unusable while offering some the server rejects at runtime.
+   */
+  readonly optionLiterals: Map<string, Set<string>>;
   /** The method's own doc comment text, lowercased. */
   readonly documentation: string;
 }
@@ -408,13 +420,43 @@ export function narrowsToRequestedFields(method: MethodInfo): boolean {
 
 const methodCache = new Map<string, Map<string, MethodInfo>>();
 
-function optionPropertiesOf(parameter: ts.ParameterDeclaration, checker: ts.TypeChecker): string[] {
+/**
+ * The string-literal values a type admits: its own union members, or — for `readonly F[]`,
+ * the shape `fields`/`expand` take — its element type's.
+ *
+ * Answers an empty set for anything else, which is deliberately indistinguishable from
+ * "declared as bare `string`": both mean the type pins nothing, and a sweep that wants the
+ * values pinned should fail either way.
+ */
+function literalsOf(type: ts.Type, checker: ts.TypeChecker): Set<string> {
+  const literals = new Set<string>();
+  const collect = (candidate: ts.Type): void => {
+    if (candidate.isUnion()) {
+      for (const member of candidate.types) collect(member);
+      return;
+    }
+    if (candidate.isStringLiteral()) literals.add(candidate.value);
+  };
+  const element = checker.getNonNullableType(type);
+  // `readonly StateGroup[]` — the values live on the element type, not the array.
+  const elementType = checker.getIndexTypeOfType(element, ts.IndexKind.Number);
+  collect(elementType !== undefined && checker.isArrayLikeType(element) ? elementType : element);
+  return literals;
+}
+
+function optionPropertiesOf(
+  parameter: ts.ParameterDeclaration,
+  checker: ts.TypeChecker
+): { name: string; literals: Set<string> }[] {
   if (parameter.type === undefined) return [];
   // Arrays and primitives carry no caller-facing options; a write DTO is an object but
   // never declares `fields`/`expand`, which is all the sweeps look for here.
   if (ts.isArrayTypeNode(parameter.type)) return [];
   const type = checker.getNonNullableType(checker.getTypeAtLocation(parameter));
-  return checker.getPropertiesOfType(type).map((symbol) => symbol.getName());
+  return checker.getPropertiesOfType(type).map((symbol) => ({
+    name: symbol.getName(),
+    literals: literalsOf(checker.getTypeOfSymbolAtLocation(symbol, parameter), checker),
+  }));
 }
 
 /**
@@ -452,8 +494,14 @@ export function classMethods(entry: ResourceEntry): Map<string, MethodInfo> {
       ts.isIdentifier(parameter.name) ? parameter.name.text : "<destructured>"
     );
     const optionProperties = new Set<string>();
+    const optionLiterals = new Map<string, Set<string>>();
     for (const parameter of signature.parameters) {
-      for (const property of optionPropertiesOf(parameter, checker)) optionProperties.add(property);
+      for (const property of optionPropertiesOf(parameter, checker)) {
+        optionProperties.add(property.name);
+        const seen = optionLiterals.get(property.name) ?? new Set<string>();
+        for (const value of property.literals) seen.add(value);
+        optionLiterals.set(property.name, seen);
+      }
     }
     const symbol = checker.getSymbolAtLocation(member.name);
     const documentation = ts.displayPartsToString(symbol?.getDocumentationComment(checker) ?? []).toLowerCase();
@@ -468,6 +516,7 @@ export function classMethods(entry: ResourceEntry): Map<string, MethodInfo> {
         signatures: [parameterNames],
         returnTypes: [returnType],
         optionProperties,
+        optionLiterals,
         documentation,
       });
     } else {
@@ -477,6 +526,11 @@ export function classMethods(entry: ResourceEntry): Map<string, MethodInfo> {
       // sees; every declaration contributes its reachable options, so a `fields` that
       // only the narrowing overload declares still counts as offered.
       for (const property of optionProperties) existing.optionProperties.add(property);
+      for (const [property, values] of optionLiterals) {
+        const seen = existing.optionLiterals.get(property) ?? new Set<string>();
+        for (const value of values) seen.add(value);
+        existing.optionLiterals.set(property, seen);
+      }
     }
   }
   methodCache.set(entry.key, methods);
