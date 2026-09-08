@@ -329,8 +329,8 @@ the `Loaded`, `Owned` and `LoadedMeta` kernel types.
 `v2.FIELDS`, `v2.EXPAND` and `v2.ORDER_BY` are the full operation-id → allowed-values
 maps the encoders validate against (e.g. `v2.FIELDS["states_list"]` lists every field
 `states.list` accepts); `v2.OPENAPI_VERSION` is the api_v2 golden version the SDK was
-generated from. All of them, plus `v2.BULK_MAX_ITEMS`, are exported so a caller can
-enumerate valid values rather than guessing.
+generated from. All of them, plus the two caps `v2.BULK_MAX_ITEMS` and `v2.BRIDGE_MAX_IDS`,
+are exported so a caller can enumerate valid values rather than guessing.
 
 ### How this surface is kept honest
 

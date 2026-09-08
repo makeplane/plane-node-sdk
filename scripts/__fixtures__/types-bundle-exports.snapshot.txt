@@ -1020,6 +1020,7 @@ v2	AuditLogFieldsParams	AuditLogFieldsParams	fccf405661fb348a
 v2	AuditLogOrderBy	AuditLogOrderBy	e5a46079550cdac9
 v2	AuditLogs	AuditLogs	745012dc1d7f0e40
 v2	Automations	Automations	f078acbd56b1a2b7
+v2	BRIDGE_MAX_IDS	BRIDGE_MAX_IDS	a53862c40074e3d9
 v2	BULK_MAX_ITEMS	BULK_MAX_ITEMS	e8b374c37c376df9
 v2	bulkFailures	bulkFailures	b1f34c1e48580e6b
 v2	COLLECTION_ID_NAMES	COLLECTION_ID_NAMES	1ff1fad43b58ea9c

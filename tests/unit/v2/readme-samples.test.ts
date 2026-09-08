@@ -1,34 +1,51 @@
 /**
- * Every TypeScript sample in `README.md` and `CLAUDE.md` is type-checked against the real
+ * Every TypeScript sample in the repository's documents is type-checked against the real
  * SDK, and the prose claims that can be checked mechanically are.
  *
  * **Why this is a test and not a one-off.** The Python port shipped a documented call
  * that threw — and it was outside a code fence, in prose, where nothing could have caught
  * it. Fences at least *can* be checked, so they are: this compiles the samples against
  * `src/`, which catches a renamed method, a changed parameter order, a dropped option and
- * an id that moved position, on the day it happens rather than in an issue.
+ * an id that moved position, on the day it happens rather than in a work item.
  *
- * **The fence marker used to be part of the gate, which is how the first sample in the
- * README got through it.** The extractor matched ` ```ts ` exactly, the Quick Start block
- * was fenced ` ```typescript `, and the floor assertion passed on the twelve blocks it
- * did see. That one unchecked block named a package that does not exist
- * (`@plane/node-sdk`), declared `const client` twice, and called `projects.list()`
- * without its required workspace slug — three compile errors in the first code a new user
- * reads. {@link TS_FENCE} now matches every spelling of a TypeScript fence, and
- * {@link DOCUMENTS} names both files the same commit rewrites.
+ * **This gate has now been weaker than the code three times, and each hole is pinned
+ * below by the check that closes it.** Every one of them was the same shape — the gate was
+ * easier to pass than the code was to get right — so the rule for changing this file is
+ * the rule for changing a sweep: introduce the defect, watch the check name it, revert.
  *
- * The samples are wrapped, not rewritten: `import` lines are dropped (one import serves
- * the whole harness), each block becomes its own function so blocks can reuse names, and
- * ids the prose leaves as `cycleId`/`itemId` are declared. Nothing else is edited, so a
- * sample that only compiles after a fix-up here would fail — which is the point.
+ * 1. *The fence marker was part of the gate.* The extractor matched ` ```ts ` exactly, the
+ *    Quick Start block was fenced ` ```typescript `, and the floor assertion passed on the
+ *    twelve blocks it did see. That one unchecked block named a package that does not
+ *    exist (`@plane/node-sdk`), declared `const client` twice, and called `projects.list()`
+ *    without its required workspace slug. Closed by {@link classify}, which now refuses a
+ *    fence in *any* language it does not know what to do with — **including an untagged
+ *    one**, which the previous census could not see at all because it counted
+ *    ` ```(\w+) ` and a bare ``` carries no word.
+ * 2. *Imports were stripped before compiling*, so a sample could import a name the package
+ *    does not export and still pass; only the module *specifier* was string-compared.
+ *    Closed by {@link harness}, which now keeps every import, rewrites the published
+ *    package name to `./src`, and lets the compiler resolve the named bindings.
+ * 3. *The caps check was context-blind.* It held a set `{50, 100}` and skipped any stated
+ *    number in it, so writing the bridge cap where the bulk cap belongs — the exact defect
+ *    it was built for — passed. Closed by {@link capsIn}, which binds each stated number
+ *    to the *nearest* cap constant named beside it and compares against that constant's
+ *    real value: 100 is correct next to `BRIDGE_MAX_IDS` and wrong next to
+ *    `BULK_MAX_ITEMS`.
  *
- * **Prose is checked too, as far as prose can be.** Three claims in the docs are facts
- * about this repository, so they are compared against it rather than re-read: a `pnpm`
- * script the docs tell you to run must exist in `package.json`, a repo file the docs point
- * at must exist on disk, and a batch-size cap stated in prose must be one of the two the
- * kernel actually enforces. The last of those is not hypothetical either — both documents
- * stated the bridge cap of 100 as if it were the bulk cap of 50, ninety-five lines from a
- * paragraph that gave the right number.
+ * A fourth hole was found by the same review and is closed by
+ * {@link documentedV2Names}: `v2.BRIDGE_MAX_IDS` was documented in two places and never
+ * exported, so a reader sizing a batch off it got `undefined`. Nothing compiled that name,
+ * because it appears in prose rather than in a fence.
+ *
+ * The samples are wrapped, not rewritten: imports are hoisted and merged (one import list
+ * serves the whole harness), each block becomes its own function so blocks can reuse
+ * names, and ids the prose leaves as `cycleId`/`itemId` are declared. Nothing else is
+ * edited, so a sample that only compiles after a fix-up here would fail — which is the
+ * point.
+ *
+ * **Prose is checked too, as far as prose can be.** Four claims in the docs are not really
+ * prose at all — they are assertions about files, scripts, exports and constants that
+ * exist. Each one below has been wrong in a shipped document at least once.
  *
  * The README's *negative* claims — "this line would not compile" — are pinned at the
  * bottom as `@ts-expect-error`, which fails in both directions: the line must not compile,
@@ -39,35 +56,46 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as ts from "typescript";
 import * as v2Namespace from "../../../src/api/v2";
-import { BULK_MAX_ITEMS } from "../../../src/api/v2/generated/constants";
-import { BRIDGE_MAX_IDS } from "../../../src/api/v2/kernel/resource";
+import { PlaneClient } from "../../../src/client/plane-client";
 
 const REPO_ROOT = path.join(__dirname, "../../..");
 
 /**
- * Every spelling of a TypeScript code fence.
- *
- * Not `ts` alone — see this file's own doc comment. Markdown fence *info strings* are free
- * text, so the set has to be the set of things people write, not the one this repo happens
- * to use today.
- */
-const TS_FENCE = /```(?:ts|typescript|tsx|typescriptreact)\r?\n([\s\S]*?)```/g;
-
-/** Every fence language that is a shell command rather than TypeScript. */
-const SHELL_FENCE = /```(?:bash|sh|shell|console|zsh)\r?\n([\s\S]*?)```/g;
-
-/**
  * The documents this gate covers.
  *
- * `README.md` is what a user reads and `CLAUDE.md` is what an agent reads, and the two are
- * rewritten by the same commits. Leaving the second out is how it came to state a cap that
- * the first one contradicted.
+ * `README.md` is what a user reads, `CLAUDE.md` and `AGENTS.MD` are what an agent reads,
+ * and the same commits rewrite all three. Leaving `CLAUDE.md` out is how it came to state
+ * a cap that `README.md` contradicted; leaving `AGENTS.MD` out is how eight TypeScript
+ * fences went uncompiled.
  */
-const DOCUMENTS = ["README.md", "CLAUDE.md"] as const;
+const DOCUMENTS = ["README.md", "CLAUDE.md", "AGENTS.MD"] as const;
+
+/**
+ * The documents that describe the v2 batch caps, and so must state both of them.
+ *
+ * `AGENTS.MD` is deliberately not here: it describes conventions, not the v2 kernel, and a
+ * document is not obliged to mention a cap. Stating a *wrong* one is checked everywhere.
+ */
+const CAP_DOCUMENTS = ["README.md", "CLAUDE.md"] as const;
+
+/** Fence languages compiled as TypeScript. */
+const TS_LANGUAGES = new Set(["ts", "typescript", "tsx", "typescriptreact"]);
+
+/** Fence languages that are shell commands: scanned for repo paths, not compiled. */
+const SHELL_LANGUAGES = new Set(["bash", "sh", "shell", "console", "zsh"]);
+
+/**
+ * Fence languages that are data or plain prose — a directory tree, a `package.json`
+ * excerpt — which nothing can type-check and nobody pastes into a `.ts` file.
+ *
+ * This list is the gate's one escape hatch, so it is spelled out rather than inferred: a
+ * fence whose language is not in one of the three sets fails, and the fix is either to tag
+ * it correctly or to add the language here deliberately.
+ */
+const INERT_LANGUAGES = new Set(["json", "jsonc", "text", "txt", "diff", "yaml", "yml", "markdown", "md", "mermaid"]);
 
 /** Ids and flags the prose introduces without ceremony, so a sample can read naturally. */
 const PREAMBLE = [
-  `import { PlaneClient, v2 } from "./src";`,
   `declare const client: PlaneClient;`,
   ...[
     "cycleId",
@@ -87,71 +115,297 @@ const PREAMBLE = [
   `void client;`,
 ];
 
+interface Fence {
+  document: string;
+  /** 1-based line of the opening fence, so a failure points at the source. */
+  line: number;
+  /** The info string, lowercased and trimmed; `""` for an untagged fence. */
+  language: string;
+  body: string;
+}
+
 function read(document: string): string {
   return fs.readFileSync(path.join(REPO_ROOT, document), "utf8");
 }
 
-function fencedSamples(): string[] {
-  return DOCUMENTS.flatMap((document) => {
-    TS_FENCE.lastIndex = 0;
-    return [...read(document).matchAll(TS_FENCE)].map((match) => match[1]);
+/**
+ * Every fence in a document, paired by scanning lines rather than by matching a regex.
+ *
+ * A regex over the whole text can only find the fences it already knows the shape of,
+ * which is how an untagged fence stayed invisible: ` ```(\w+) ` requires a language word.
+ * Pairing openers with closers instead means *every* fence is seen, and the info string —
+ * present, absent or nonsense — is data the caller classifies rather than the filter that
+ * decides whether the fence exists.
+ *
+ * Fences nested in list items are indented, so the opener's indent is stripped from the
+ * body; the closer is a bare ``` at any indent.
+ */
+function fencesIn(document: string): Fence[] {
+  const lines = read(document).split("\n");
+  const fences: Fence[] = [];
+  let open: { line: number; language: string; indent: string; body: string[] } | null = null;
+
+  lines.forEach((text, index) => {
+    const match = /^(\s*)```(.*)$/.exec(text);
+    if (open === null) {
+      if (match) {
+        open = { line: index + 1, language: match[2].trim().toLowerCase(), indent: match[1], body: [] };
+      }
+      return;
+    }
+    if (match && match[2].trim() === "") {
+      fences.push({ document, line: open.line, language: open.language, body: open.body.join("\n") });
+      open = null;
+      return;
+    }
+    open.body.push(text.startsWith(open.indent) ? text.slice(open.indent.length) : text);
   });
+
+  // An unterminated fence swallows the rest of the file, so it is reported, not dropped.
+  if (open !== null) {
+    fences.push({ document, line: (open as { line: number }).line, language: "<unterminated>", body: "" });
+  }
+  return fences;
 }
 
-/** The samples, wrapped one function each so two blocks may both declare `client`. */
+type FenceKind = "typescript" | "shell" | "inert" | "unknown";
+
+function classify(fence: Fence): FenceKind {
+  if (TS_LANGUAGES.has(fence.language)) return "typescript";
+  if (SHELL_LANGUAGES.has(fence.language)) return "shell";
+  if (INERT_LANGUAGES.has(fence.language)) return "inert";
+  return "unknown";
+}
+
+const ALL_FENCES = DOCUMENTS.flatMap((document) => fencesIn(document));
+
+function fencesOfKind(kind: FenceKind): Fence[] {
+  return ALL_FENCES.filter((fence) => classify(fence) === kind);
+}
+
+interface ImportGroup {
+  defaults: Set<string>;
+  namespaces: Set<string>;
+  named: Set<string>;
+}
+
+/**
+ * The module specifier a sample should be compiled against.
+ *
+ * A sample importing the published package name is compiled against `src/` — that is the
+ * whole point of the rewrite: `{ PlaneClient, ThisExportDoesNotExist }` then fails to
+ * resolve, where stripping the line left it unchecked. Anything else (a dependency,
+ * `node:*`) is left alone and resolves normally.
+ */
+function rewriteSpecifier(specifier: string): string {
+  return specifier === manifest().name ? "./src" : specifier;
+}
+
+let manifestCache: { name: string; scripts: Record<string, string>; dependencies: Record<string, string> } | undefined;
+function manifest(): { name: string; scripts: Record<string, string>; dependencies: Record<string, string> } {
+  manifestCache ??= JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "package.json"), "utf8"));
+  return manifestCache!;
+}
+
+/**
+ * The samples, wrapped one function each so two blocks may both declare `client`, with
+ * every import kept and merged at module scope.
+ *
+ * Imports cannot stay inside the wrapper functions — an `import` is a module-level
+ * statement — so they are hoisted and unioned per specifier. That is what makes the named
+ * bindings real: the compiler resolves each one against the module it names.
+ */
 function harness(samples: string[]): string {
-  const body = samples.map((sample, index) => {
-    const withoutImports = sample
-      .split("\n")
-      .filter((line) => !line.startsWith("import "))
-      .map((line) => (line.trim() === "" ? line : `  ${line}`))
-      .join("\n");
-    return `export async function readmeSample${index}(): Promise<void> {\n${withoutImports}\n}`;
-  });
-  return [...PREAMBLE, "", ...body].join("\n");
-}
+  const groups = new Map<string, ImportGroup>();
+  const bodies: string[] = [];
 
-describe("README samples", () => {
-  const samples = fencedSamples();
+  const groupFor = (specifier: string): ImportGroup => {
+    const key = rewriteSpecifier(specifier);
+    let group = groups.get(key);
+    if (group === undefined) {
+      group = { defaults: new Set(), namespaces: new Set(), named: new Set() };
+      groups.set(key, group);
+    }
+    return group;
+  };
 
-  it("finds the samples at all, and leaves no TypeScript fence unmatched", () => {
-    // A floor, not a pin: a renamed fence marker would make the check below vacuous.
-    expect(samples.length).toBeGreaterThanOrEqual(13);
+  // `PlaneClient` is named in the preamble's `declare const client`, so the harness itself
+  // needs it whether or not a sample happens to import it.
+  groupFor(manifest().name).named.add("PlaneClient");
 
-    // And the stronger version of the same question, which the old floor could not ask:
-    // *every* fence in these documents is either TypeScript (checked above) or shell
-    // (checked below). A fence in some third language is a sample nothing compiles, and
-    // that is exactly the state the Quick Start was in.
-    const unmatched: string[] = [];
-    for (const document of DOCUMENTS) {
-      const text = read(document);
-      TS_FENCE.lastIndex = 0;
-      SHELL_FENCE.lastIndex = 0;
-      const accounted = [...text.matchAll(TS_FENCE)].length + [...text.matchAll(SHELL_FENCE)].length;
-      // Not anchored to the line start: the README nests fences inside numbered list
-      // items, indented by three spaces, and an anchored count silently ignored them.
-      const opening = [...text.matchAll(/```(\w+)/g)];
-      if (opening.length !== accounted) {
-        unmatched.push(
-          `${document}: ${opening.length} opening fences carry a language but only ${accounted} were ` +
-            `matched as TypeScript or shell — languages seen: ${[...new Set(opening.map((m) => m[1]))].join(", ")}`
-        );
+  samples.forEach((sample, index) => {
+    const parsed = ts.createSourceFile(`sample${index}.ts`, sample, ts.ScriptTarget.ES2020, true);
+    const drop: ts.TextRange[] = [];
+
+    for (const statement of parsed.statements) {
+      if (!ts.isImportDeclaration(statement)) continue;
+      drop.push({ pos: statement.getStart(parsed), end: statement.getEnd() });
+      if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
+      const group = groupFor(statement.moduleSpecifier.text);
+      const clause = statement.importClause;
+      if (clause === undefined) continue;
+      if (clause.name) group.defaults.add(clause.name.text);
+      if (clause.namedBindings && ts.isNamespaceImport(clause.namedBindings)) {
+        group.namespaces.add(clause.namedBindings.name.text);
+      }
+      if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
+        for (const element of clause.namedBindings.elements) {
+          group.named.add(
+            element.propertyName ? `${element.propertyName.text} as ${element.name.text}` : element.name.text
+          );
+        }
       }
     }
 
-    expect(unmatched).toEqual([]);
+    // Blank the import ranges rather than filtering lines: line numbers stay stable, and a
+    // multi-line import clause is removed whole.
+    let body = sample;
+    for (const range of [...drop].reverse()) {
+      body = body.slice(0, range.pos) + " ".repeat(range.end - range.pos) + body.slice(range.end);
+    }
+    const indented = body
+      .split("\n")
+      .map((line) => (line.trim() === "" ? "" : `  ${line}`))
+      .join("\n");
+    bodies.push(`export async function documentSample${index}(): Promise<void> {\n${indented}\n}`);
+  });
+
+  const imports = [...groups.entries()].flatMap(([specifier, group]) => {
+    const lines: string[] = [];
+    for (const name of [...group.namespaces].sort()) lines.push(`import * as ${name} from "${specifier}";`);
+    const clause = [...group.defaults].sort().join(", ");
+    const named = [...group.named].sort().join(", ");
+    if (clause && named) lines.push(`import ${clause}, { ${named} } from "${specifier}";`);
+    else if (clause) lines.push(`import ${clause} from "${specifier}";`);
+    else if (named) lines.push(`import { ${named} } from "${specifier}";`);
+    return lines;
+  });
+
+  return [...imports, "", ...PREAMBLE, "", ...bodies].join("\n");
+}
+
+/** The compiler options the samples are checked under — the repo's own, without emit. */
+function compilerOptions(): ts.CompilerOptions {
+  const parsed = ts.parseJsonConfigFileContent(
+    ts.readConfigFile(path.join(REPO_ROOT, "tsconfig.json"), ts.sys.readFile).config,
+    ts.sys,
+    REPO_ROOT
+  );
+  return { ...parsed.options, noEmit: true, declaration: false, declarationMap: false };
+}
+
+/**
+ * Every name `src/api/v2` exports, values and types alike.
+ *
+ * Read through the checker rather than `Object.keys(v2Namespace)`, because half the names
+ * the README documents (`v2.StateField`) are type-only and have no runtime presence.
+ */
+let v2ExportsCache: Set<string> | undefined;
+function v2Exports(): Set<string> {
+  if (v2ExportsCache) return v2ExportsCache;
+  const entry = path.join(REPO_ROOT, "src/api/v2/index.ts");
+  const program = ts.createProgram([entry], compilerOptions());
+  const checker = program.getTypeChecker();
+  const source = program.getSourceFile(entry)!;
+  const symbol = checker.getSymbolAtLocation(source)!;
+  v2ExportsCache = new Set(checker.getExportsOfModule(symbol).map((exported) => exported.getName()));
+  return v2ExportsCache;
+}
+
+/** Every `` `v2.name` `` the documents write in prose or in a fence. */
+function documentedV2Names(): { document: string; name: string }[] {
+  return DOCUMENTS.flatMap((document) =>
+    [...read(document).matchAll(/`v2\.([A-Za-z_$][\w$]*)/g)].map((match) => ({ document, name: match[1] }))
+  );
+}
+
+const CAPS: Record<string, number> = {
+  BULK_MAX_ITEMS: v2Namespace.BULK_MAX_ITEMS,
+  BRIDGE_MAX_IDS: v2Namespace.BRIDGE_MAX_IDS,
+};
+
+/** `` `BRIDGE_MAX_IDS` (100) `` — a constant that states its own value. */
+const CAP_BINDING = /`(?:v2\.)?(BULK_MAX_ITEMS|BRIDGE_MAX_IDS)`\s*\((\d+)\)/g;
+
+/** The shapes a cap is stated in as a bare number: "1..100", "50 items per call", … */
+const CAP_STATEMENT =
+  /(?:1\.\.\*{0,2}(\d+)|\*{0,2}(\d+)\*{0,2} (?:ids|items) per call|at most \*{0,2}(\d+)\*{0,2} (?:ids|items)|caps? (?:is|at|of) \*{0,2}(\d+))/g;
+
+interface CapClaim {
+  document: string;
+  /** The constant the sentence is about, or `undefined` when it names none. */
+  constant: string | undefined;
+  stated: number;
+  quote: string;
+}
+
+/**
+ * Every batch cap a document states, bound to the constant it is stated *about*.
+ *
+ * The binding is the whole check. A set of allowed numbers cannot tell "a bridge takes 100
+ * ids" from "a bulk write takes 100 items", and the second is the defect this was built
+ * for. So each bare number is attached to the nearest cap constant named beside it — the
+ * docs always name one, because a number without a name is not a documented cap — and the
+ * comparison is against *that* constant's value.
+ */
+function capsIn(document: string): CapClaim[] {
+  const text = read(document);
+  const claims: CapClaim[] = [];
+
+  for (const match of text.matchAll(CAP_BINDING)) {
+    claims.push({ document, constant: match[1], stated: Number(match[2]), quote: match[0] });
+  }
+
+  const mentions = [...text.matchAll(/\b(BULK_MAX_ITEMS|BRIDGE_MAX_IDS)\b/g)].map((match) => ({
+    index: match.index!,
+    constant: match[1],
+  }));
+
+  for (const match of text.matchAll(CAP_STATEMENT)) {
+    const stated = Number(match[1] ?? match[2] ?? match[3] ?? match[4]);
+    const at = match.index!;
+    // Nearest by character distance, within one sentence's reach. Both constants appear in
+    // the same paragraph of the README, so a "does either name appear nearby" test would
+    // be exactly as blind as the set it replaces.
+    let nearest: { constant: string; distance: number } | undefined;
+    for (const mention of mentions) {
+      const distance = mention.index < at ? at - mention.index : mention.index - at - match[0].length;
+      if (distance > 160) continue;
+      if (nearest === undefined || distance < nearest.distance) nearest = { constant: mention.constant, distance };
+    }
+    claims.push({ document, constant: nearest?.constant, stated, quote: match[0] });
+  }
+
+  return claims;
+}
+
+describe("documented samples", () => {
+  it("leaves no fence in a language this gate cannot account for", () => {
+    // The stronger version of the old census, which counted ` ```(\w+) ` and therefore
+    // could not see an untagged fence at all — a broken sample inside one was invisible.
+    const offenders = ALL_FENCES.filter((fence) => classify(fence) === "unknown").map(
+      (fence) =>
+        `${fence.document}:${fence.line} opens a fence tagged ${fence.language === "" ? "(nothing)" : `\`${fence.language}\``}` +
+        `, which is neither TypeScript (compiled), shell (path-checked) nor a declared inert language` +
+        ` — an unaccounted fence is a sample nothing checks`
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("finds the samples at all", () => {
+    // A floor well under the real 15, not a pin: its only job is to make a broken
+    // extractor red rather than vacuously green. The census above is what refuses a fence
+    // the gate is not accounting for, so this does not need to track the count.
+    expect(fencesOfKind("typescript").length).toBeGreaterThanOrEqual(12);
   });
 
   it("type-checks every fenced TypeScript block against the SDK", () => {
-    const virtualPath = path.join(REPO_ROOT, "__readme-samples__.ts");
-    const source = harness(samples);
+    const fences = fencesOfKind("typescript");
+    const virtualPath = path.join(REPO_ROOT, "__document-samples__.ts");
+    const source = harness(fences.map((fence) => fence.body));
 
-    const parsed = ts.parseJsonConfigFileContent(
-      ts.readConfigFile(path.join(REPO_ROOT, "tsconfig.json"), ts.sys.readFile).config,
-      ts.sys,
-      REPO_ROOT
-    );
-    const options: ts.CompilerOptions = { ...parsed.options, noEmit: true, declaration: false, declarationMap: false };
+    const options = compilerOptions();
     const host = ts.createCompilerHost(options, true);
     const readFile = host.readFile.bind(host);
     const getSourceFile = host.getSourceFile.bind(host);
@@ -169,71 +423,88 @@ describe("README samples", () => {
       .filter((diagnostic) => diagnostic.file?.fileName === file.fileName)
       .map((diagnostic) => {
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, " ");
-        if (diagnostic.start === undefined) return `README sample: ${message}`;
+        if (diagnostic.start === undefined) return `document sample: ${message}`;
         const { line } = file.getLineAndCharacterOfPosition(diagnostic.start);
-        return `README sample, at \`${source.split("\n")[line].trim()}\`: ${message}`;
+        return `document sample, at \`${source.split("\n")[line].trim()}\`: ${message}`;
       });
 
     expect(failures).toEqual([]);
-  }, 60000);
+  }, 120000);
 });
 
 /**
  * Claims in prose that are facts about this repository, checked against it.
  *
- * Prose cannot be compiled, but three kinds of claim in these documents are not really
- * prose at all — they are assertions about files, scripts and constants that exist. Each
- * one below has been wrong in a shipped document at least once.
+ * Prose cannot be compiled, but four kinds of claim in these documents are not really
+ * prose at all — they are assertions about files, scripts, exports and constants that
+ * exist. Each one below has been wrong in a shipped document at least once.
  */
 describe("what the docs claim about this repository", () => {
-  const documents = DOCUMENTS.map((document) => [document, read(document)] as const);
-
   it("imports the package under the name it is actually published as", () => {
-    // `harness()` strips `import` lines before compiling — one import serves every block —
-    // so the type-check above cannot see the module specifier at all. That is how the
-    // Quick Start came to say `@plane/node-sdk`, which is not this package and 404s from
-    // npm, nineteen lines below an install command with the right name.
-    const manifest = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "package.json"), "utf8")) as {
-      name: string;
-      dependencies: Record<string, string>;
-    };
-    const allowed = new Set([manifest.name, ...Object.keys(manifest.dependencies)]);
+    // The compile above now resolves named bindings, so a wrong package name already fails
+    // there — but with a "cannot find module" that does not say *which* name is right, and
+    // only for `import`. This keeps the explanation, and catches `require()` too.
+    const allowed = new Set([manifest().name, ...Object.keys(manifest().dependencies)]);
     const offenders: string[] = [];
 
-    for (const [document, text] of documents) {
-      TS_FENCE.lastIndex = 0;
-      for (const fence of text.matchAll(TS_FENCE)) {
-        for (const match of fence[1].matchAll(/\bfrom\s+["']([^"']+)["']/g)) {
-          const specifier = match[1];
-          if (specifier.startsWith(".") || specifier.startsWith("node:")) continue;
-          if (allowed.has(specifier)) continue;
-          offenders.push(
-            `${document} imports from "${specifier}", which is neither ${manifest.name} nor one of its ` +
-              `dependencies — a reader copying that line gets a 404 from npm`
-          );
-        }
+    for (const fence of fencesOfKind("typescript")) {
+      const specifiers = [
+        ...[...fence.body.matchAll(/\bfrom\s+["']([^"']+)["']/g)].map((match) => match[1]),
+        ...[...fence.body.matchAll(/\brequire\(\s*["']([^"']+)["']\s*\)/g)].map((match) => match[1]),
+        ...[...fence.body.matchAll(/^\s*import\s+["']([^"']+)["']/gm)].map((match) => match[1]),
+      ];
+      for (const specifier of specifiers) {
+        if (specifier.startsWith(".") || specifier.startsWith("node:")) continue;
+        if (allowed.has(specifier)) continue;
+        offenders.push(
+          `${fence.document}:${fence.line} imports from "${specifier}", which is neither ${manifest().name} nor ` +
+            `one of its dependencies — a reader copying that line gets a 404 from npm`
+        );
       }
     }
 
     expect([...new Set(offenders)].sort()).toEqual([]);
   });
 
+  it("documents only `v2.` names that are reachable under that prefix", () => {
+    // `v2.BRIDGE_MAX_IDS` was documented in three places and exported from none, so a
+    // caller sizing a batch off it read `undefined`. It appears in prose, not in a fence,
+    // so nothing compiled it — and the same commit that widened this gate introduced it.
+    // `v2` is written two ways in the docs and both are legitimate: the imported namespace
+    // (`v2.FIELDS`) and the client's own namespace (`v2.workspaces`), so both surfaces
+    // count as reachable.
+    const client = new PlaneClient({ baseUrl: "https://plane.example.com", apiKey: "not-a-real-key" });
+    const namespaceProperties = new Set<string>([
+      ...Object.keys(client.v2),
+      ...Object.getOwnPropertyNames(Object.getPrototypeOf(client.v2) as object),
+    ]);
+    const exported = v2Exports();
+
+    const offenders = documentedV2Names()
+      .filter(({ name }) => !exported.has(name) && !namespaceProperties.has(name))
+      .map(
+        ({ document, name }) =>
+          `${document} documents \`v2.${name}\`, which \`src/api/v2\` does not export and the client's ` +
+          `\`v2\` namespace does not carry — a reader reaching for it gets undefined`
+      );
+
+    expect([...new Set(offenders)].sort()).toEqual([]);
+  }, 120000);
+
   it("tells the reader to run only scripts that exist", () => {
-    const manifest = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "package.json"), "utf8")) as {
-      scripts: Record<string, string>;
-    };
+    const scripts = manifest().scripts;
     const offenders: string[] = [];
 
-    for (const [document, text] of documents) {
+    for (const document of DOCUMENTS) {
       // `pnpm <script>` and `npm run <script>`, wherever they appear — fenced or in prose.
-      for (const match of text.matchAll(/\b(?:pnpm run|pnpm|npm run|yarn)\s+([a-z][a-z0-9:-]*)/g)) {
+      for (const match of read(document).matchAll(/\b(?:pnpm run|pnpm|npm run|yarn)\s+([a-z][a-z0-9:-]*)/g)) {
         const script = match[1];
         // Package-manager verbs are not scripts.
         if (["install", "add", "remove", "exec", "dlx", "why", "run", "test", "build"].includes(script)) {
-          if (script in manifest.scripts) continue;
+          if (script in scripts) continue;
           if (["install", "add", "remove", "exec", "dlx", "why", "run"].includes(script)) continue;
         }
-        if (script in manifest.scripts) continue;
+        if (script in scripts) continue;
         offenders.push(`${document} says to run \`${script}\`, which package.json does not define`);
       }
     }
@@ -246,19 +517,17 @@ describe("what the docs claim about this repository", () => {
     // Two places a path appears: backticked in prose, and bare inside a shell fence — the
     // second is where `pnpx ts-node tests/page.test.ts` lived, a command naming a file
     // that has never existed at that path.
-    const referencesIn = (text: string): string[] => {
-      const found = [...text.matchAll(/`((?:src|tests|scripts|examples)\/[\w./*-]+)`/g)].map((match) => match[1]);
-      SHELL_FENCE.lastIndex = 0;
-      for (const fence of text.matchAll(SHELL_FENCE)) {
-        for (const match of fence[1].matchAll(/(?:^|\s)((?:src|tests|scripts|examples)\/[\w./*-]+)/g)) {
+    for (const document of DOCUMENTS) {
+      const found = [...read(document).matchAll(/`((?:src|tests|scripts|examples)\/[\w./*-]+)`/g)].map(
+        (match) => match[1]
+      );
+      for (const fence of fencesIn(document)) {
+        if (classify(fence) !== "shell") continue;
+        for (const match of fence.body.matchAll(/(?:^|\s)((?:src|tests|scripts|examples)\/[\w./*-]+)/g)) {
           found.push(match[1]);
         }
       }
-      return found;
-    };
-
-    for (const [document, text] of documents) {
-      for (const referenced of referencesIn(text)) {
+      for (const referenced of found) {
         // A glob names a shape, not a file.
         if (referenced.includes("*")) continue;
         const target = referenced.endsWith("/") ? referenced.slice(0, -1) : referenced;
@@ -270,30 +539,47 @@ describe("what the docs claim about this repository", () => {
     expect([...new Set(offenders)].sort()).toEqual([]);
   });
 
-  it("states only batch caps the kernel actually enforces, and states both of them", () => {
+  it("states each batch cap next to the constant it belongs to, and states both", () => {
     // The claim that was wrong in both documents at once: a bridge takes 100 ids and a
     // bulk write takes 50 items, and the docs conflated them into one "1..100". Reading
-    // the wrong number gets you a client-side throw at 51.
-    const caps = new Set([String(BULK_MAX_ITEMS), String(BRIDGE_MAX_IDS)]);
+    // the wrong number gets you a client-side throw at 51 — so the number alone is not the
+    // check; the number *beside the right constant* is.
     const wrong: string[] = [];
-    const missing: string[] = [];
+    const unattributed: string[] = [];
+    const stated = new Map<string, Set<string>>();
 
-    for (const [document, text] of documents) {
-      // "1..N ids", "N items per call", "at most N ids" — the shapes a cap is stated in.
-      for (const match of text.matchAll(/(?:1\.\.(\d+)|(\d+) items per call|at most (\d+) ids)/g)) {
-        const stated = match[1] ?? match[2] ?? match[3];
-        if (caps.has(stated)) continue;
-        wrong.push(`${document} states a batch cap of ${stated}, which is neither ${[...caps].join(" nor ")}`);
-      }
-      for (const cap of caps) {
-        if (!text.includes(cap)) missing.push(`${document} never states the cap of ${cap}`);
+    for (const document of DOCUMENTS) {
+      for (const claim of capsIn(document)) {
+        if (claim.constant === undefined) {
+          unattributed.push(
+            `${document} states a batch cap of ${claim.stated} in "${claim.quote}" without naming which cap ` +
+              `it is — a bare number cannot be checked against BULK_MAX_ITEMS or BRIDGE_MAX_IDS`
+          );
+          continue;
+        }
+        if (CAPS[claim.constant] !== claim.stated) {
+          wrong.push(
+            `${document} states ${claim.stated} in "${claim.quote}" next to ${claim.constant}, which is ` +
+              `${CAPS[claim.constant]}`
+          );
+          continue;
+        }
+        if (!stated.has(document)) stated.set(document, new Set());
+        stated.get(document)!.add(claim.constant);
       }
     }
 
-    expect({ wrong: [...new Set(wrong)].sort(), missing: [...new Set(missing)].sort() }).toEqual({
-      wrong: [],
-      missing: [],
-    });
+    const missing = CAP_DOCUMENTS.flatMap((document) =>
+      Object.keys(CAPS)
+        .filter((constant) => !stated.get(document)?.has(constant))
+        .map((constant) => `${document} never states ${constant} (${CAPS[constant]}) with its value`)
+    );
+
+    expect({
+      wrong: [...new Set(wrong)].sort(),
+      unattributed: [...new Set(unattributed)].sort(),
+      missing: missing.sort(),
+    }).toEqual({ wrong: [], unattributed: [], missing: [] });
   });
 });
 

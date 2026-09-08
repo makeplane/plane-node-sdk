@@ -170,6 +170,11 @@ export type {
   WorkItemOrderBy,
 } from "./generated/constants";
 export { BULK_MAX_ITEMS, EXPAND, FIELDS, OPENAPI_VERSION, ORDER_BY } from "./generated/constants";
+// The other cap, and the reason it is here: `BULK_MAX_ITEMS` (50) bounds a bulk write and
+// `BRIDGE_MAX_IDS` (100) bounds one `add`/`remove` call. The README documents both as
+// `v2.`-prefixed names, so both have to be reachable under that prefix — this one was
+// documented and not exported, which `readme-samples.test.ts` now refuses.
+export { BRIDGE_MAX_IDS } from "./kernel/resource";
 
 // Every other v2 resource, reachable through the `workspaces` root and wired onto the
 // `Workspaces`/`Projects`/`Wiki` nodes above.
