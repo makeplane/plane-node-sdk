@@ -1,7 +1,12 @@
 /**
  * EE-gated (`FeatureFlag.WORKFLOWS`) on top of `is_workflow_enabled`; `is_default` is read-only end to end and never seeded on a fresh project.
+ *
+ * Workflows themselves come off the fetched project row; their states and transitions
+ * come off each fetched workflow row, since both carry the workflow's own id in the URL.
  */
+import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { Workflows } from "../../../src/api/v2/Workflows";
+import { ProjectIds } from "../../../src/api/v2/loaded/Project";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -11,20 +16,17 @@ const maybe = env.ready ? describe : describe.skip;
 
 maybe("v2 workflows (live)", () => {
   const suite = useV2Project("wf", env);
-  let workflows: Workflows;
+  let workflows: Owned<Workflows, ProjectIds>;
   let stateId: string;
 
   beforeAll(async () => {
-    const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
-    workflows = proj.workflows;
+    workflows = suite.projectRow.workflows;
 
-    await suite.client.v2.transport.request(
-      "PATCH",
-      `/workspaces/${suite.workspaceSlug}/projects/${suite.projectId}/features/`,
-      { data: { is_workflow_enabled: true } }
-    );
+    await suite.client.v2.projects.features.update(suite.workspaceSlug, suite.projectId, {
+      is_workflow_enabled: true,
+    });
 
-    const state = await proj.states.create({ name: uniqueName("wf-state"), color: "#4287f5" });
+    const state = await suite.projectRow.states.create({ name: uniqueName("wf-state"), color: "#4287f5" });
     stateId = state.id;
   });
 
@@ -37,35 +39,34 @@ maybe("v2 workflows (live)", () => {
   });
 
   it("creates a workflow, attaches a state, creates a transition, then tears down", async () => {
-    const proj = suite.client.v2.workspace(suite.workspaceSlug).project(suite.projectId);
     const created = await workflows.create({ name: uniqueName("wf-graph") });
     expect(created.name).toBeDefined();
 
     const updated = await workflows.update(created.id, { description: "e2e-managed workflow" });
     expect(updated.description).toBe("e2e-managed workflow");
 
-    const attached = await workflows.states.attach(created.id, { state_ids: [stateId] });
+    const attached = await created.states.attach({ state_ids: [stateId] });
     expect(attached.some((s) => s.state_id === stateId)).toBe(true);
     const workflowState = attached.find((s) => s.state_id === stateId)!;
 
-    const patchedState = await workflows.states.update(created.id, workflowState.id, {
+    const patchedState = await created.states.update(workflowState.id, {
       allow_issue_creation: true,
     });
     expect(patchedState.allow_issue_creation).toBe(true);
 
-    const secondState = await proj.states.create({ name: uniqueName("wf-state-2"), color: "#f54242" });
-    const secondAttached = await workflows.states.attach(created.id, { state_ids: [secondState.id] });
+    const secondState = await suite.projectRow.states.create({ name: uniqueName("wf-state-2"), color: "#f54242" });
+    const secondAttached = await created.states.attach({ state_ids: [secondState.id] });
     const secondWorkflowState = secondAttached.find((s) => s.state_id === secondState.id)!;
 
-    const transition = await workflows.transitions.create(created.id, {
+    const transition = await created.transitions.create({
       state_id: stateId,
       transition_state_id: secondState.id,
     });
     expect(transition.workflow_state_id).toBe(workflowState.id);
 
-    await workflows.transitions.delete(created.id, transition.id);
-    await workflows.states.delete(created.id, secondWorkflowState.id);
-    await workflows.states.delete(created.id, workflowState.id);
+    await created.transitions.delete(transition.id);
+    await created.states.delete(secondWorkflowState.id);
+    await created.states.delete(workflowState.id);
     await workflows.delete(created.id);
   });
 
