@@ -78,7 +78,6 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Collections/Members#CollectionMembers",
   "Collections/Pages#CollectionPages",
   "Collections/index#Collections",
-  "CustomerProperties#CustomerProperties",
   "Customers/PropertyValues#CustomerPropertyValues",
   "Customers/Requests#CustomerRequests",
   "Customers/WorkItems#CustomerWorkItems",
@@ -112,19 +111,13 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Releases/Tags#ReleaseTags",
   "Releases/WorkItems#ReleaseWorkItems",
   "Releases/index#Releases",
-  "Stickies#Stickies",
-  "Teamspaces#Teamspaces",
   "UserAssets#UserAssets",
   "UsersMe#Users",
-  "Views#ProjectViews",
   "WebhookLogs#WebhookLogs",
   "Webhooks#Webhooks",
   "WikiPages#WikiPages",
   "WorkItemProperties/Options#WorkItemPropertyOptions",
   "WorkItemProperties/index#WorkItemProperties",
-  "WorkItemRelationDefinitions#WorkItemRelationDefinitions",
-  "WorkItemTemplates/ProjectTemplates#ProjectWorkItemTemplates",
-  "WorkItemTemplates/WorkspaceTemplates#WorkspaceWorkItemTemplates",
   "WorkItemTypes/Properties#WorkItemTypeProperties",
   "WorkItemTypes/index#WorkItemTypes",
   "WorkItems/Activities#Activities",
@@ -137,7 +130,6 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Workflows/Transitions#WorkflowTransitions",
   "Workflows/index#Workflows",
   "WorkspaceMembers#WorkspaceMembers",
-  "WorkspaceViews#WorkspaceViews",
   "WorkspaceWorkItemProperties/Contexts#WorkItemPropertyContexts",
   "WorkspaceWorkItemProperties/Options#WorkspaceWorkItemPropertyOptions",
   "WorkspaceWorkItemProperties/index#WorkspaceWorkItemProperties",
@@ -147,7 +139,7 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
 ]);
 
 /** How large `UNMIGRATED_RESOURCES` is allowed to be. A ratchet: lower it, never raise it. */
-export const UNMIGRATED_CEILING = 78;
+export const UNMIGRATED_CEILING = 70;
 
 // -- Source scan ---------------------------------------------------------------------
 

@@ -25,6 +25,12 @@ export interface ListProjectViewsParams {
   count?: boolean;
 }
 
+/** `?fields=`/`?expand=` on a single-row read or write; shared with {@link WorkspaceViews}. */
+export interface ViewShapeParams {
+  fields?: readonly ViewField[];
+  expand?: readonly ViewExpand[];
+}
+
 /**
  * Saved work-item views for a project; the workspace-scoped sibling is `WorkspaceViews` at its own path.
  */
@@ -40,36 +46,40 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ViewField, "all"> & keyof View>(
+    slug: string,
+    project: string,
     params: ListProjectViewsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<View, F | "id">>>;
-  list(params?: ListProjectViewsParams): Promise<Page<View>>;
-  list(params?: ListProjectViewsParams): Promise<Page<View>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListProjectViewsParams): Promise<Page<View>>;
+  list(slug: string, project: string, params?: ListProjectViewsParams): Promise<Page<View>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** Every project view, following pages automatically. */
-  iterate(params?: ListProjectViewsParams): AsyncGenerator<View> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, project: string, params?: ListProjectViewsParams): AsyncGenerator<View> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ViewField, "all"> & keyof View>(
-    viewId: string,
+    slug: string,
+    project: string,
+    view: string,
     params: { fields: readonly F[]; expand?: readonly ViewExpand[] }
   ): Promise<Pick<View, F | "id">>;
-  retrieve(viewId: string, params?: { fields?: readonly ViewField[]; expand?: readonly ViewExpand[] }): Promise<View>;
-  retrieve(viewId: string, params?: { fields?: readonly ViewField[]; expand?: readonly ViewExpand[] }): Promise<View> {
-    return this.doRetrieve({ pk: viewId }, params as Record<string, unknown>);
+  retrieve(slug: string, project: string, view: string, params?: ViewShapeParams): Promise<View>;
+  retrieve(slug: string, project: string, view: string, params?: ViewShapeParams): Promise<View> {
+    return this.doRetrieve({ slug, project_id: project, pk: view }, params as Record<string, unknown>);
   }
 
-  create(data: CreateView): Promise<View> {
-    return this.doCreate(data, {});
+  create(slug: string, project: string, data: CreateView, params?: ViewShapeParams): Promise<View> {
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  update(viewId: string, data: UpdateView): Promise<View> {
-    return this.doUpdate(data, { pk: viewId });
+  update(slug: string, project: string, view: string, data: UpdateView, params?: ViewShapeParams): Promise<View> {
+    return this.doUpdate(data, { slug, project_id: project, pk: view }, params as Record<string, unknown>);
   }
 
-  delete(viewId: string): Promise<void> {
-    return this.doDelete({ pk: viewId });
+  delete(slug: string, project: string, view: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: view });
   }
 }

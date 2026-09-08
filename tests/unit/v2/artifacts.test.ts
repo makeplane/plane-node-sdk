@@ -6,8 +6,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 const BASE = "https://api.example.com";
 const SLUG = "acme";
 
-const makeResource = () =>
-  new Artifacts(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+const makeResource = () => new Artifacts(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 

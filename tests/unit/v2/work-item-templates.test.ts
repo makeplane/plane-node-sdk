@@ -6,8 +6,8 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 const transport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
-const makeProjectTemplates = () => new ProjectWorkItemTemplates(transport(), { slug: "acme", project_id: "ENG" });
-const makeWorkspaceTemplates = () => new WorkspaceWorkItemTemplates(transport(), { slug: "acme" });
+const makeProjectTemplates = () => new ProjectWorkItemTemplates(transport());
+const makeWorkspaceTemplates = () => new WorkspaceWorkItemTemplates(transport());
 
 afterEach(() => nock.cleanAll());
 
@@ -17,7 +17,7 @@ describe("ProjectWorkItemTemplates (v2)", () => {
       .get("/api/v2/workspaces/acme/projects/ENG/work-item-templates/")
       .reply(200, { data: [{ id: "1", name: "Bug report" }], pagination: { style: "offset" } });
 
-    const page = await makeProjectTemplates().list();
+    const page = await makeProjectTemplates().list("acme", "ENG");
 
     expect(page.data[0].name).toBe("Bug report");
   });
@@ -35,14 +35,14 @@ describe("ProjectWorkItemTemplates (v2)", () => {
     nock(BASE).delete("/api/v2/workspaces/acme/projects/ENG/work-item-templates/1/").reply(204);
 
     const templates = makeProjectTemplates();
-    const created = await templates.create({
+    const created = await templates.create("acme", "ENG", {
       name: "Bug report",
       template_data: { name: "Untitled bug" },
     });
-    const updated = await templates.update(created.id, { is_published: true });
+    const updated = await templates.update("acme", "ENG", created.id, { is_published: true });
     expect(updated.is_published).toBe(true);
 
-    await templates.delete("1");
+    await templates.delete("acme", "ENG", "1");
   });
 
   it("instantiates a work item via use/, with no override body", async () => {
@@ -54,7 +54,7 @@ describe("ProjectWorkItemTemplates (v2)", () => {
       })
       .reply(201, { id: "wi-1", name: "Untitled bug", project_id: "ENG" });
 
-    const workItem = await makeProjectTemplates().use("1");
+    const workItem = await makeProjectTemplates().use("acme", "ENG", "1");
 
     expect(workItem.id).toBe("wi-1");
     // axios sends an empty body (not literally `undefined`) when `data` is `undefined`;
@@ -67,7 +67,7 @@ describe("ProjectWorkItemTemplates (v2)", () => {
       .post("/api/v2/workspaces/acme/projects/ENG/work-item-templates/1/use/", { name: "Login is broken" })
       .reply(201, { id: "wi-2", name: "Login is broken" });
 
-    const workItem = await makeProjectTemplates().use("1", { name: "Login is broken" });
+    const workItem = await makeProjectTemplates().use("acme", "ENG", "1", { name: "Login is broken" });
 
     expect(scope.isDone()).toBe(true);
     expect(workItem.name).toBe("Login is broken");
@@ -77,9 +77,9 @@ describe("ProjectWorkItemTemplates (v2)", () => {
   // method, letting a throw escape instead of rejecting (NODE_PATTERN.md).
   // Now `async`, and this passes because the rejection is real.
   it("validates use/'s fields against work_items_use's own (narrower) field set, not the template's", async () => {
-    await expect(makeProjectTemplates().use("1", undefined, { fields: ["short_id" as never] })).rejects.toThrow(
-      /Unknown field\(s\) for work_items_use/
-    );
+    await expect(
+      makeProjectTemplates().use("acme", "ENG", "1", undefined, { fields: ["short_id" as never] })
+    ).rejects.toThrow(/Unknown field\(s\) for work_items_use/);
   });
 });
 
@@ -89,7 +89,7 @@ describe("WorkspaceWorkItemTemplates (v2)", () => {
       .get("/api/v2/workspaces/acme/work-item-templates/")
       .reply(200, { data: [{ id: "1", name: "Bug report" }], pagination: { style: "offset" } });
 
-    const page = await makeWorkspaceTemplates().list();
+    const page = await makeWorkspaceTemplates().list("acme");
 
     expect(page.data[0].name).toBe("Bug report");
   });
@@ -104,11 +104,11 @@ describe("WorkspaceWorkItemTemplates (v2)", () => {
     nock(BASE).delete("/api/v2/workspaces/acme/work-item-templates/1/").reply(204);
 
     const templates = makeWorkspaceTemplates();
-    const created = await templates.create({ name: "Bug report", template_data: { name: "Untitled" } });
-    const updated = await templates.update(created.id, { is_published: true });
+    const created = await templates.create("acme", { name: "Bug report", template_data: { name: "Untitled" } });
+    const updated = await templates.update("acme", created.id, { is_published: true });
     expect(updated.is_published).toBe(true);
 
-    await templates.delete("1");
+    await templates.delete("acme", "1");
   });
 
   it("has no use() action — instantiation always happens through the project-scoped resource", () => {
@@ -119,7 +119,7 @@ describe("WorkspaceWorkItemTemplates (v2)", () => {
   // implementation that forgot to validate `order_by` and made the request anyway
   // would also fail this test, but for a different reason and without this message.
   it("rejects an unknown order_by before making the request", async () => {
-    await expect(makeWorkspaceTemplates().list({ order_by: "name" as never })).rejects.toThrow(
+    await expect(makeWorkspaceTemplates().list("acme", { order_by: "name" as never })).rejects.toThrow(
       /Unknown order_by 'name' for workspace_work_item_templates_list/
     );
   });

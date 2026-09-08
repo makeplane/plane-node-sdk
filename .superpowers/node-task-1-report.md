@@ -5,24 +5,24 @@ Nothing pushed.
 
 ## Commits
 
-| sha | what |
-|---|---|
-| `611c2b4` | kernel reshaped for the flat path shape |
-| `f85e889` | loaded-row machinery, typed through generics |
-| `74ce55d` | the five exemplars + the flat tree root |
-| `b2ed095` | the four rule sweeps + the enumeration behind them |
+| sha       | what                                                                |
+| --------- | ------------------------------------------------------------------- |
+| `611c2b4` | kernel reshaped for the flat path shape                             |
+| `f85e889` | loaded-row machinery, typed through generics                        |
+| `74ce55d` | the five exemplars + the flat tree root                             |
+| `b2ed095` | the four rule sweeps + the enumeration behind them                  |
 | `4678640` | sweeps check every overload's parameter names (found while proving) |
-| `3a6bd77` | owned views record what they wrap (found while proving) |
+| `3a6bd77` | owned views record what they wrap (found while proving)             |
 
 ## Gates
 
-| gate | result |
-|---|---|
-| `npx jest tests/unit` | **532 passed, 317 skipped, 63 suites** (baseline 473 / 317 / 58) |
-| `npx tsc --noEmit -p tsconfig.json` | clean |
-| `pnpm check:lint` | **165 warnings, 0 errors** (baseline) |
-| `pnpm check:format` | clean |
-| `pnpm check:types-bundle` | see below — deferred to task 4 by instruction |
+| gate                                | result                                                           |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| `npx jest tests/unit`               | **532 passed, 317 skipped, 63 suites** (baseline 473 / 317 / 58) |
+| `npx tsc --noEmit -p tsconfig.json` | clean                                                            |
+| `pnpm check:lint`                   | **165 warnings, 0 errors** (baseline)                            |
+| `pnpm check:format`                 | clean                                                            |
+| `pnpm check:types-bundle`           | see below — deferred to task 4 by instruction                    |
 
 `pnpm check:types-bundle` is not a type check; it is the export-snapshot comparison and it
 reads `dist/`, so it cannot run without a build. Run out of curiosity (`npx tsc` +
@@ -41,7 +41,7 @@ the end of task 4, as instructed.
   template call sites moved to `urlForTemplate(template, action, ids)`, which is the raw
   filler they were really using. `Projects.roleDistribution` is the first real consumer.
 - **`MissingPathIdError`** (`src/errors/MissingPathIdError.ts`) — names the resource, the
-  method, the template, the missing id and the ids that *were* supplied, and carries each
+  method, the template, the missing id and the ids that _were_ supplied, and carries each
   as a field. An empty string counts as missing: it would otherwise build
   `/projects//states/`, a well-formed URL pointing somewhere else. This is the thing Python
   shipped bare and had to repair a wave later.
@@ -92,7 +92,7 @@ Classes are keyed `<module>#<ClassName>`, because `Comments` and `Links` each na
 different resources and a name-keyed set would silently hold one of each pair.
 
 Signatures come from the TypeScript AST, not the emitted JavaScript: type erasure destroys
-parameter types, overloads and doc comments, and parameter *names* are the rule being
+parameter types, overloads and doc comments, and parameter _names_ are the rule being
 enforced. One shared `ts.Program` costs ~0.4s for all four sweeps.
 
 `UNMIGRATED_CEILING = 84` is the ratchet. Lower it as tasks 2 and 3 migrate families;
@@ -105,23 +105,23 @@ Every proof introduced a real violation, ran the sweep, and reverted with
 did not compile, and were replaced with type-valid ones — a mutation that breaks `tsc`
 proves nothing about the sweep.
 
-| # | violation introduced | sweep | result |
-|---|---|---|---|
-| 1 | `States.retrieve`'s pk renamed `stateId` on the first overload | path-id-naming | fails: `States.retrieve(stateId)` |
-| 2 | `Labels.list(project, slug, …)` — leading ids transposed | path-id-naming | fails: `expected to open [slug, project]` |
-| 3 | `States#States` added back to the opt-out list | path-id-naming | fails twice: the ratchet, and "already-migrated class stays opted out" |
-| 4 | `export { States }` removed from the barrel | path-id-naming | fails: `unexported: ["States"]` |
-| 5 | `Projects` stops attaching `labels` | path-id-naming | fails: `Labels#Labels` unreachable from the tree |
-| 6 | `expand` removed from `ListWorkItemsParams` | expand-coverage | fails: `WorkItems.list`, `WorkItems.iterate` |
-| 7 | `Projects.create` can no longer be given `fields` | fields-coverage | fails, naming the projection the golden offers |
-| 8 | `ProjectNavigation` loses `workItems` while `Projects` still attaches it | loaded-navigation | fails twice: completeness, and the per-child check |
-| 9 | `labels` navigation wraps `this.states` | loaded-navigation | fails on binding identity |
-| 10 | `Comments.iterate(project, slug, workItem)` | loaded-navigation | fails: `opens [project, slug, workItem], not [slug, project, workItem]` |
-| 11 | `Projects.iterate` returns plain rows | navigable-rows | fails: navigation lost when paging |
+| #   | violation introduced                                                     | sweep             | result                                                                  |
+| --- | ------------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------- |
+| 1   | `States.retrieve`'s pk renamed `stateId` on the first overload           | path-id-naming    | fails: `States.retrieve(stateId)`                                       |
+| 2   | `Labels.list(project, slug, …)` — leading ids transposed                 | path-id-naming    | fails: `expected to open [slug, project]`                               |
+| 3   | `States#States` added back to the opt-out list                           | path-id-naming    | fails twice: the ratchet, and "already-migrated class stays opted out"  |
+| 4   | `export { States }` removed from the barrel                              | path-id-naming    | fails: `unexported: ["States"]`                                         |
+| 5   | `Projects` stops attaching `labels`                                      | path-id-naming    | fails: `Labels#Labels` unreachable from the tree                        |
+| 6   | `expand` removed from `ListWorkItemsParams`                              | expand-coverage   | fails: `WorkItems.list`, `WorkItems.iterate`                            |
+| 7   | `Projects.create` can no longer be given `fields`                        | fields-coverage   | fails, naming the projection the golden offers                          |
+| 8   | `ProjectNavigation` loses `workItems` while `Projects` still attaches it | loaded-navigation | fails twice: completeness, and the per-child check                      |
+| 9   | `labels` navigation wraps `this.states`                                  | loaded-navigation | fails on binding identity                                               |
+| 10  | `Comments.iterate(project, slug, workItem)`                              | loaded-navigation | fails: `opens [project, slug, workItem], not [slug, project, workItem]` |
+| 11  | `Projects.iterate` returns plain rows                                    | navigable-rows    | fails: navigation lost when paging                                      |
 
 **Three defects the proofs found, all fixed and committed:**
 
-1. **Proof 1 initially passed.** The sweep read only the *first* declaration's parameter
+1. **Proof 1 initially passed.** The sweep read only the _first_ declaration's parameter
    names, so renaming the implementation signature alone left it green. An overload set can
    disagree with itself; every declaration is now checked (`4678640`).
 2. **Proof 9 initially passed.** "Wraps its own child" compared method names, and sibling
@@ -129,7 +129,7 @@ proves nothing about the sweep.
    builds a well-formed call to the wrong URL. Owned views now carry their binding under a
    symbol and the sweep compares identity (`3a6bd77`).
 3. **The tree walk skipped `GroupSync`'s config singleton**, because it skipped the
-   attribute *name* `config` as plumbing. 88 of 89 classes looked like all of them. Plumbing
+   attribute _name_ `config` as plumbing. 88 of 89 classes looked like all of them. Plumbing
    is now skipped by type (`V2Transport` / `Configuration` instances). Found by asserting
    tree/source agreement rather than assuming it.
 
@@ -144,7 +144,7 @@ prototype walk at the kernel bases plus naming the overridable hooks.
    parameters when it infers through a conditional type, so a navigated
    `project.states.list({ fields: […] })` resolves to `Page<State>`, not the narrowed row;
    the flat call `v2.projects.states.list(slug, project, { fields: […] })` keeps the
-   projection. Matching the overload *set* instead is strictly worse, not better — I tested
+   projection. Matching the overload _set_ instead is strictly worse, not better — I tested
    it: the inference erases `F` to its constraint and answers
    `Pick<State, every field>`, which claims presence for the fields the projection dropped.
    Documented on the type itself. Python has no compile-time projection at all, so this is
@@ -165,7 +165,7 @@ prototype walk at the kernel bases plus naming the overridable hooks.
    introspection only, and its doc comment says so, so nobody mistakes it for the
    enforcement mechanism.
 5. **The `fields`/`expand` sweeps read types, not bodies.** In Node the params object
-   reaches the kernel as one blob, so declaring the property *is* what makes the option
+   reaches the kernel as one blob, so declaring the property _is_ what makes the option
    reachable and validated. Python's second check ("is the parameter actually threaded into
    `params`?") has nothing left to check here.
 6. **Path-id parameter names are camelCase.** `expectedLeadingPathIds` drops the golden's

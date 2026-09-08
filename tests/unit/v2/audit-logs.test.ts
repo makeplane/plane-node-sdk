@@ -5,8 +5,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeLogs = () =>
-  new AuditLogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+const makeLogs = () => new AuditLogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 

@@ -28,6 +28,17 @@ export interface ListProjectWorkItemTemplatesParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface WorkItemTemplateFieldsParams {
+  fields?: readonly WorkItemTemplateField[];
+}
+
+/** `?fields=`/`?expand=` on the work item `use` mints — a different, narrower set than the template row's own. */
+export interface WorkItemTemplateUseParams {
+  fields?: readonly WorkItemTemplateUseField[];
+  expand?: readonly WorkItemTemplateUseExpand[];
+}
+
 /** Project-scoped work-item templates; `use` instantiates one in a single call. `WorkspaceWorkItemTemplates` has no `use`. */
 export class ProjectWorkItemTemplates extends V2Resource<
   WorkItemTemplate,
@@ -46,50 +57,87 @@ export class ProjectWorkItemTemplates extends V2Resource<
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    project: string,
     params: ListProjectWorkItemTemplatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemTemplate, F | "id">>>;
-  list(params?: ListProjectWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>>;
-  list(params?: ListProjectWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListProjectWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>>;
+  list(slug: string, project: string, params?: ListProjectWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** Every template in the project, following pages automatically. */
-  iterate(params?: ListProjectWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(
+    slug: string,
+    project: string,
+    params?: ListProjectWorkItemTemplatesParams
+  ): AsyncGenerator<WorkItemTemplate> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
-    templateId: string,
+    slug: string,
+    project: string,
+    template: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemTemplate, F | "id">>;
-  retrieve(templateId: string, params?: { fields?: readonly WorkItemTemplateField[] }): Promise<WorkItemTemplate>;
-  retrieve(templateId: string, params?: { fields?: readonly WorkItemTemplateField[] }): Promise<WorkItemTemplate> {
-    return this.doRetrieve({ pk: templateId }, params as Record<string, unknown>);
+  retrieve(
+    slug: string,
+    project: string,
+    template: string,
+    params?: WorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate>;
+  retrieve(
+    slug: string,
+    project: string,
+    template: string,
+    params?: WorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate> {
+    return this.doRetrieve({ slug, project_id: project, pk: template }, params as Record<string, unknown>);
   }
 
-  create(data: CreateWorkItemTemplate): Promise<WorkItemTemplate> {
-    return this.doCreate(data, {});
+  create(
+    slug: string,
+    project: string,
+    data: CreateWorkItemTemplate,
+    params?: WorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate> {
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
-  update(templateId: string, data: UpdateWorkItemTemplate): Promise<WorkItemTemplate> {
-    return this.doUpdate(data, { pk: templateId });
+  update(
+    slug: string,
+    project: string,
+    template: string,
+    data: UpdateWorkItemTemplate,
+    params?: WorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate> {
+    return this.doUpdate(data, { slug, project_id: project, pk: template }, params as Record<string, unknown>);
   }
 
-  delete(templateId: string): Promise<void> {
-    return this.doDelete({ pk: templateId });
+  delete(slug: string, project: string, template: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: template });
   }
 
-  /** Instantiate a work item from this template; omit `data` to use its seed data as-is, or override with `name`/`project_id`. */
-  // Declared `async` so a synchronous throw from `this.query(...)` (invalid `fields`/
-  // `expand`) rejects the returned promise instead of escaping the call.
-  async use(
-    templateId: string,
+  /**
+   * Instantiate a work item from this template; omit `data` to use its seed data as-is,
+   * or override with `name`/`project_id`.
+   *
+   * The response is a {@link WorkItem}, not a template row, so this goes through the
+   * kernel's custom-action helper rather than `doAction`.
+   */
+  use(
+    slug: string,
+    project: string,
+    template: string,
     data?: WorkItemTemplateUseRequest,
-    params?: { fields?: readonly WorkItemTemplateUseField[]; expand?: readonly WorkItemTemplateUseExpand[] }
+    params?: WorkItemTemplateUseParams
   ): Promise<WorkItem> {
-    return this.transport.request<WorkItem>("POST", `${this.detailUrl({ pk: templateId })}use/`, {
-      params: this.query(params as Record<string, unknown>, "use"),
+    return this.doCustomAction<WorkItem>("use", {
+      pathParams: { slug, project_id: project },
+      pk: template,
       data,
+      params: params as Record<string, unknown>,
     });
   }
 }

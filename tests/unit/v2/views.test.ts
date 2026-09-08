@@ -4,11 +4,7 @@ import { ProjectViews } from "../../../src/api/v2/Views";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
-const makeViews = () =>
-  new ProjectViews(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeViews = () => new ProjectViews(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -18,7 +14,7 @@ describe("ProjectViews (v2) — project-scoped", () => {
       .get("/api/v2/workspaces/acme/projects/ENG/views/")
       .reply(200, { data: [{ id: "1", name: "My Sprint" }], pagination: { style: "offset" } });
 
-    const page = await makeViews().list();
+    const page = await makeViews().list("acme", "ENG");
 
     expect(page.data[0].name).toBe("My Sprint");
   });
@@ -33,15 +29,15 @@ describe("ProjectViews (v2) — project-scoped", () => {
     nock(BASE).delete("/api/v2/workspaces/acme/projects/ENG/views/1/").reply(204);
 
     const views = makeViews();
-    const created = await views.create({ name: "My Sprint" });
-    const updated = await views.update(created.id, { is_locked: true });
+    const created = await views.create("acme", "ENG", { name: "My Sprint" });
+    const updated = await views.update("acme", "ENG", created.id, { is_locked: true });
     expect(updated.is_locked).toBe(true);
 
-    await views.delete("1");
+    await views.delete("acme", "ENG", "1");
   });
 
   it("rejects an unknown fields value before making the request", async () => {
-    await expect(makeViews().list({ fields: ["nope" as never] })).rejects.toThrow(
+    await expect(makeViews().list("acme", "ENG", { fields: ["nope" as never] })).rejects.toThrow(
       /Unknown field\(s\) for project_views_list/
     );
   });

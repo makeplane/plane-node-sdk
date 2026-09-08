@@ -5,8 +5,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 import { NoMatchFoundError } from "../../../src/errors/PlaneApiError";
 
 const BASE = "https://api.example.com";
-const makeResource = () =>
-  new Roles(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+const makeResource = () => new Roles(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 

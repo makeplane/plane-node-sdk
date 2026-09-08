@@ -18,6 +18,11 @@ export interface ListWorkItemRelationDefinitionsParams {
   // No `order_by`/`search`/`paginate` — the golden gives this operation none of the three.
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface WorkItemRelationDefinitionFieldsParams {
+  fields?: readonly WorkItemRelationDefinitionField[];
+}
+
 /** Custom work-item relation types, workspace-scoped, gated on CUSTOM_RELATIONS. Seeded defaults can't be edited/deleted. */
 export class WorkItemRelationDefinitions extends V2Resource<
   WorkItemRelationDefinition,
@@ -35,37 +40,41 @@ export class WorkItemRelationDefinitions extends V2Resource<
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemRelationDefinitionField, "all"> & keyof WorkItemRelationDefinition>(
+    slug: string,
     params: ListWorkItemRelationDefinitionsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemRelationDefinition, F | "id">>>;
-  list(params?: ListWorkItemRelationDefinitionsParams): Promise<Page<WorkItemRelationDefinition>>;
-  list(params?: ListWorkItemRelationDefinitionsParams): Promise<Page<WorkItemRelationDefinition>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListWorkItemRelationDefinitionsParams): Promise<Page<WorkItemRelationDefinition>>;
+  list(slug: string, params?: ListWorkItemRelationDefinitionsParams): Promise<Page<WorkItemRelationDefinition>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every relation definition, following pages automatically. */
-  iterate(params?: ListWorkItemRelationDefinitionsParams): AsyncGenerator<WorkItemRelationDefinition> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListWorkItemRelationDefinitionsParams): AsyncGenerator<WorkItemRelationDefinition> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemRelationDefinitionField, "all"> & keyof WorkItemRelationDefinition>(
-    definitionId: string,
+    slug: string,
+    definition: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemRelationDefinition, F | "id">>;
   retrieve(
-    definitionId: string,
-    params?: { fields?: readonly WorkItemRelationDefinitionField[] }
+    slug: string,
+    definition: string,
+    params?: WorkItemRelationDefinitionFieldsParams
   ): Promise<WorkItemRelationDefinition>;
   retrieve(
-    definitionId: string,
-    params?: { fields?: readonly WorkItemRelationDefinitionField[] }
+    slug: string,
+    definition: string,
+    params?: WorkItemRelationDefinitionFieldsParams
   ): Promise<WorkItemRelationDefinition> {
-    return this.doRetrieve({ pk: definitionId }, params as Record<string, unknown>);
+    return this.doRetrieve({ slug, pk: definition }, params as Record<string, unknown>);
   }
 
   /** The one relation definition with this name; throws if none or several match (filters client-side). */
-  async findByName(name: string): Promise<WorkItemRelationDefinition> {
+  async findByName(slug: string, name: string): Promise<WorkItemRelationDefinition> {
     const matches: WorkItemRelationDefinition[] = [];
-    for await (const row of this.iterate()) {
+    for await (const row of this.iterate(slug)) {
       if (row.name === name) matches.push(row);
     }
     if (matches.length === 0) {
@@ -79,15 +88,24 @@ export class WorkItemRelationDefinitions extends V2Resource<
     return matches[0];
   }
 
-  create(data: CreateWorkItemRelationDefinition): Promise<WorkItemRelationDefinition> {
-    return this.doCreate(data, {});
+  create(
+    slug: string,
+    data: CreateWorkItemRelationDefinition,
+    params?: WorkItemRelationDefinitionFieldsParams
+  ): Promise<WorkItemRelationDefinition> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(definitionId: string, data: UpdateWorkItemRelationDefinition): Promise<WorkItemRelationDefinition> {
-    return this.doUpdate(data, { pk: definitionId });
+  update(
+    slug: string,
+    definition: string,
+    data: UpdateWorkItemRelationDefinition,
+    params?: WorkItemRelationDefinitionFieldsParams
+  ): Promise<WorkItemRelationDefinition> {
+    return this.doUpdate(data, { slug, pk: definition }, params as Record<string, unknown>);
   }
 
-  delete(definitionId: string): Promise<void> {
-    return this.doDelete({ pk: definitionId });
+  delete(slug: string, definition: string): Promise<void> {
+    return this.doDelete({ slug, pk: definition });
   }
 }

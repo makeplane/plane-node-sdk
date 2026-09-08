@@ -19,6 +19,11 @@ export interface ListWorkspaceWorkItemTemplatesParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface WorkspaceWorkItemTemplateFieldsParams {
+  fields?: readonly WorkspaceWorkItemTemplateField[];
+}
+
 /** Workspace-scoped work-item templates; same row shape as `ProjectWorkItemTemplates` but no `use`. */
 export class WorkspaceWorkItemTemplates extends V2Resource<
   WorkItemTemplate,
@@ -36,42 +41,47 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
     params: ListWorkspaceWorkItemTemplatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemTemplate, F | "id">>>;
-  list(params?: ListWorkspaceWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>>;
-  list(params?: ListWorkspaceWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>>;
+  list(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every workspace template, following pages automatically. */
-  iterate(params?: ListWorkspaceWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
-    templateId: string,
+    slug: string,
+    template: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemTemplate, F | "id">>;
-  retrieve(
-    templateId: string,
-    params?: { fields?: readonly WorkspaceWorkItemTemplateField[] }
-  ): Promise<WorkItemTemplate>;
-  retrieve(
-    templateId: string,
-    params?: { fields?: readonly WorkspaceWorkItemTemplateField[] }
+  retrieve(slug: string, template: string, params?: WorkspaceWorkItemTemplateFieldsParams): Promise<WorkItemTemplate>;
+  retrieve(slug: string, template: string, params?: WorkspaceWorkItemTemplateFieldsParams): Promise<WorkItemTemplate> {
+    return this.doRetrieve({ slug, pk: template }, params as Record<string, unknown>);
+  }
+
+  create(
+    slug: string,
+    data: CreateWorkItemTemplate,
+    params?: WorkspaceWorkItemTemplateFieldsParams
   ): Promise<WorkItemTemplate> {
-    return this.doRetrieve({ pk: templateId }, params as Record<string, unknown>);
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  create(data: CreateWorkItemTemplate): Promise<WorkItemTemplate> {
-    return this.doCreate(data, {});
+  update(
+    slug: string,
+    template: string,
+    data: UpdateWorkItemTemplate,
+    params?: WorkspaceWorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate> {
+    return this.doUpdate(data, { slug, pk: template }, params as Record<string, unknown>);
   }
 
-  update(templateId: string, data: UpdateWorkItemTemplate): Promise<WorkItemTemplate> {
-    return this.doUpdate(data, { pk: templateId });
-  }
-
-  delete(templateId: string): Promise<void> {
-    return this.doDelete({ pk: templateId });
+  delete(slug: string, template: string): Promise<void> {
+    return this.doDelete({ slug, pk: template });
   }
 }

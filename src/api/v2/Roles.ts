@@ -103,9 +103,8 @@ export class Roles extends V2Resource<Role, never, never> {
    * only within a namespace, so pass `namespace` or expect `MultipleMatchesFoundError`.
    */
   findBySlug(slug: string, roleSlug: string, params?: { namespace?: RoleNamespace }): Promise<Role> {
-    return this.doFindOne(
-      params?.namespace ? { slug: roleSlug, namespace: params.namespace } : { slug: roleSlug },
-      { slug }
-    );
+    return this.doFindOne(params?.namespace ? { slug: roleSlug, namespace: params.namespace } : { slug: roleSlug }, {
+      slug,
+    });
   }
 }

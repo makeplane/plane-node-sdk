@@ -19,7 +19,12 @@ export interface ListStickiesParams {
   count?: boolean;
 }
 
-/** Personal sticky notes at `client.v2.workspace(slug).stickies`; each caller sees only their own. */
+/** `?fields=` on a single-row read or write. */
+export interface StickyFieldsParams {
+  fields?: readonly StickyField[];
+}
+
+/** Personal sticky notes; each caller sees only their own. */
 export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
   protected path = "/workspaces/{slug}/stickies/";
   protected operations: Record<string, OperationId> = {
@@ -32,36 +37,38 @@ export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<StickyField, "all"> & keyof Sticky>(
+    slug: string,
     params: ListStickiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Sticky, F | "id">>>;
-  list(params?: ListStickiesParams): Promise<Page<Sticky>>;
-  list(params?: ListStickiesParams): Promise<Page<Sticky>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListStickiesParams): Promise<Page<Sticky>>;
+  list(slug: string, params?: ListStickiesParams): Promise<Page<Sticky>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every sticky, following pages automatically. */
-  iterate(params?: ListStickiesParams): AsyncGenerator<Sticky> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListStickiesParams): AsyncGenerator<Sticky> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<StickyField, "all"> & keyof Sticky>(
-    stickyId: string,
+    slug: string,
+    sticky: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<Sticky, F | "id">>;
-  retrieve(stickyId: string, params?: { fields?: readonly StickyField[] }): Promise<Sticky>;
-  retrieve(stickyId: string, params?: { fields?: readonly StickyField[] }): Promise<Sticky> {
-    return this.doRetrieve({ pk: stickyId }, params as Record<string, unknown>);
+  retrieve(slug: string, sticky: string, params?: StickyFieldsParams): Promise<Sticky>;
+  retrieve(slug: string, sticky: string, params?: StickyFieldsParams): Promise<Sticky> {
+    return this.doRetrieve({ slug, pk: sticky }, params as Record<string, unknown>);
   }
 
-  create(data: CreateSticky): Promise<Sticky> {
-    return this.doCreate(data, {});
+  create(slug: string, data: CreateSticky, params?: StickyFieldsParams): Promise<Sticky> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(stickyId: string, data: UpdateSticky): Promise<Sticky> {
-    return this.doUpdate(data, { pk: stickyId });
+  update(slug: string, sticky: string, data: UpdateSticky, params?: StickyFieldsParams): Promise<Sticky> {
+    return this.doUpdate(data, { slug, pk: sticky }, params as Record<string, unknown>);
   }
 
-  delete(stickyId: string): Promise<void> {
-    return this.doDelete({ pk: stickyId });
+  delete(slug: string, sticky: string): Promise<void> {
+    return this.doDelete({ slug, pk: sticky });
   }
 }

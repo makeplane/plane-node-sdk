@@ -7,7 +7,7 @@ const BASE = "https://api.example.com";
 const SLUG = "acme";
 
 const makeResource = () =>
-  new CustomerProperties(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: SLUG });
+  new CustomerProperties(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -21,7 +21,7 @@ describe("CustomerProperties (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeResource().list();
+    const page = await makeResource().list(SLUG);
 
     expect(page.data[0].property_type).toBe("OPTION");
   });
@@ -35,7 +35,7 @@ describe("CustomerProperties (v2)", () => {
     // Dynamic field list is typed as the widened `CustomerPropertyField[]`, so it
     // falls back to the full `CustomerProperty` return type (see states.test.ts).
     const dynamicFields: CustomerPropertyField[] = ["id"];
-    const page = await makeResource().list({ fields: dynamicFields });
+    const page = await makeResource().list(SLUG, { fields: dynamicFields });
 
     expect(page.data[0].id).toBe("1");
     expect(page.data[0].display_name).toBeUndefined();
@@ -50,8 +50,8 @@ describe("CustomerProperties (v2)", () => {
       .reply(200, { id: "1", display_name: "Plan tier", is_active: false });
 
     const resource = makeResource();
-    const created = await resource.create({ display_name: "Plan tier", property_type: "OPTION" });
-    const updated = await resource.update(created.id, { is_active: false });
+    const created = await resource.create(SLUG, { display_name: "Plan tier", property_type: "OPTION" });
+    const updated = await resource.update(SLUG, created.id, { is_active: false });
 
     expect(updated.is_active).toBe(false);
   });
@@ -60,10 +60,10 @@ describe("CustomerProperties (v2)", () => {
     nock(BASE).get("/api/v2/workspaces/acme/customer-properties/1/").reply(200, { id: "1", display_name: "Plan tier" });
     const deleteScope = nock(BASE).delete("/api/v2/workspaces/acme/customer-properties/1/").reply(204);
 
-    const fetched = await makeResource().retrieve("1");
+    const fetched = await makeResource().retrieve(SLUG, "1");
     expect(fetched.display_name).toBe("Plan tier");
 
-    await expect(makeResource().delete("1")).resolves.toBeUndefined();
+    await expect(makeResource().delete(SLUG, "1")).resolves.toBeUndefined();
     expect(deleteScope.isDone()).toBe(true);
   });
 
@@ -76,7 +76,7 @@ describe("CustomerProperties (v2)", () => {
         pagination: { style: "offset" },
       });
 
-    expect((await makeResource().findByName("Plan tier")).id).toBe("1");
+    expect((await makeResource().findByName(SLUG, "Plan tier")).id).toBe("1");
     expect(scope.isDone()).toBe(true);
   });
 
@@ -86,7 +86,7 @@ describe("CustomerProperties (v2)", () => {
       .query({ order_by: "-sort_order" })
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await makeResource().list({ order_by: "-sort_order" });
+    await makeResource().list(SLUG, { order_by: "-sort_order" });
 
     expect(scope.isDone()).toBe(true);
   });
@@ -95,7 +95,7 @@ describe("CustomerProperties (v2)", () => {
     // Proof this can actually fail: "name" is a valid `fields` value for this operation
     // but not a listed `order_by` value (verified against generated/constants.ts's
     // ORDER_BY["customer_properties_list"]).
-    await expect(makeResource().list({ order_by: "name" as never })).rejects.toThrow(
+    await expect(makeResource().list(SLUG, { order_by: "name" as never })).rejects.toThrow(
       /Unknown order_by 'name' for customer_properties_list/
     );
   });

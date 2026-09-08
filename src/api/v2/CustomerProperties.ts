@@ -26,7 +26,12 @@ export interface ListCustomerPropertiesParams {
   count?: boolean;
 }
 
-/** Custom properties on a workspace's customers, at `...customerProperties`. Workspace-scoped, unrelated to work-item properties. */
+/** `?fields=` on a single-row read or write. */
+export interface CustomerPropertyFieldsParams {
+  fields?: readonly CustomerPropertyField[];
+}
+
+/** Custom properties on a workspace's customers. Workspace-scoped, and unrelated to work-item properties. */
 export class CustomerProperties extends V2Resource<CustomerProperty, CreateCustomerProperty, UpdateCustomerProperty> {
   protected path = "/workspaces/{slug}/customer-properties/";
   protected operations: Record<string, OperationId> = {
@@ -39,41 +44,48 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
+    slug: string,
     params: ListCustomerPropertiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<CustomerProperty, F | "id">>>;
-  list(params?: ListCustomerPropertiesParams): Promise<Page<CustomerProperty>>;
-  list(params?: ListCustomerPropertiesParams): Promise<Page<CustomerProperty>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListCustomerPropertiesParams): Promise<Page<CustomerProperty>>;
+  list(slug: string, params?: ListCustomerPropertiesParams): Promise<Page<CustomerProperty>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every customer property, following pages automatically. */
-  iterate(params?: ListCustomerPropertiesParams): AsyncGenerator<CustomerProperty> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListCustomerPropertiesParams): AsyncGenerator<CustomerProperty> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
-    propertyId: string,
+    slug: string,
+    property: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<CustomerProperty, F | "id">>;
-  retrieve(propertyId: string, params?: { fields?: readonly CustomerPropertyField[] }): Promise<CustomerProperty>;
-  retrieve(propertyId: string, params?: { fields?: readonly CustomerPropertyField[] }): Promise<CustomerProperty> {
-    return this.doRetrieve({ pk: propertyId }, params as Record<string, unknown>);
+  retrieve(slug: string, property: string, params?: CustomerPropertyFieldsParams): Promise<CustomerProperty>;
+  retrieve(slug: string, property: string, params?: CustomerPropertyFieldsParams): Promise<CustomerProperty> {
+    return this.doRetrieve({ slug, pk: property }, params as Record<string, unknown>);
   }
 
-  /** The one customer property with this name; throws if none or several match. */
-  findByName(name: string): Promise<CustomerProperty> {
-    return this.doFindOne({ name }, {});
+  /** The one customer property with this `name` (the slugified key, not the display label); throws if none or several match. */
+  findByName(slug: string, name: string): Promise<CustomerProperty> {
+    return this.doFindOne({ name }, { slug });
   }
 
-  create(data: CreateCustomerProperty): Promise<CustomerProperty> {
-    return this.doCreate(data, {});
+  create(slug: string, data: CreateCustomerProperty, params?: CustomerPropertyFieldsParams): Promise<CustomerProperty> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(propertyId: string, data: UpdateCustomerProperty): Promise<CustomerProperty> {
-    return this.doUpdate(data, { pk: propertyId });
+  update(
+    slug: string,
+    property: string,
+    data: UpdateCustomerProperty,
+    params?: CustomerPropertyFieldsParams
+  ): Promise<CustomerProperty> {
+    return this.doUpdate(data, { slug, pk: property }, params as Record<string, unknown>);
   }
 
-  delete(propertyId: string): Promise<void> {
-    return this.doDelete({ pk: propertyId });
+  delete(slug: string, property: string): Promise<void> {
+    return this.doDelete({ slug, pk: property });
   }
 }

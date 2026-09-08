@@ -22,7 +22,13 @@ export interface ListTeamspacesParams {
   count?: boolean;
 }
 
-/** Teamspaces — named groups of members and projects — at `client.v2.workspace(slug).teamspaces`. */
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface TeamspaceShapeParams {
+  fields?: readonly TeamspaceField[];
+  expand?: readonly TeamspaceExpand[];
+}
+
+/** Teamspaces — named groups of members and projects. */
 export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTeamspace> {
   protected path = "/workspaces/{slug}/teamspaces/";
   protected operations: Record<string, OperationId> = {
@@ -35,51 +41,43 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
+    slug: string,
     params: ListTeamspacesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Teamspace, F | "id">>>;
-  list(params?: ListTeamspacesParams): Promise<Page<Teamspace>>;
-  list(params?: ListTeamspacesParams): Promise<Page<Teamspace>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListTeamspacesParams): Promise<Page<Teamspace>>;
+  list(slug: string, params?: ListTeamspacesParams): Promise<Page<Teamspace>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every teamspace, following pages automatically. */
-  iterate(params?: ListTeamspacesParams): AsyncGenerator<Teamspace> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListTeamspacesParams): AsyncGenerator<Teamspace> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
-    teamspaceId: string,
+    slug: string,
+    teamspace: string,
     params: { fields: readonly F[]; expand?: readonly TeamspaceExpand[] }
   ): Promise<Pick<Teamspace, F | "id">>;
-  retrieve(
-    teamspaceId: string,
-    params?: { fields?: readonly TeamspaceField[]; expand?: readonly TeamspaceExpand[] }
-  ): Promise<Teamspace>;
-  retrieve(
-    teamspaceId: string,
-    params?: { fields?: readonly TeamspaceField[]; expand?: readonly TeamspaceExpand[] }
-  ): Promise<Teamspace> {
-    return this.doRetrieve({ pk: teamspaceId }, params as Record<string, unknown>);
+  retrieve(slug: string, teamspace: string, params?: TeamspaceShapeParams): Promise<Teamspace>;
+  retrieve(slug: string, teamspace: string, params?: TeamspaceShapeParams): Promise<Teamspace> {
+    return this.doRetrieve({ slug, pk: teamspace }, params as Record<string, unknown>);
   }
 
   /** The one teamspace with this name; throws if none or several match. */
-  findByName(name: string): Promise<Teamspace> {
-    return this.doFindOne({ name }, {});
+  findByName(slug: string, name: string): Promise<Teamspace> {
+    return this.doFindOne({ name }, { slug });
   }
 
-  create(data: CreateTeamspace, params?: { expand?: readonly TeamspaceExpand[] }): Promise<Teamspace> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  create(slug: string, data: CreateTeamspace, params?: TeamspaceShapeParams): Promise<Teamspace> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(
-    teamspaceId: string,
-    data: UpdateTeamspace,
-    params?: { expand?: readonly TeamspaceExpand[] }
-  ): Promise<Teamspace> {
-    return this.doUpdate(data, { pk: teamspaceId }, params as Record<string, unknown>);
+  update(slug: string, teamspace: string, data: UpdateTeamspace, params?: TeamspaceShapeParams): Promise<Teamspace> {
+    return this.doUpdate(data, { slug, pk: teamspace }, params as Record<string, unknown>);
   }
 
-  delete(teamspaceId: string): Promise<void> {
-    return this.doDelete({ pk: teamspaceId });
+  delete(slug: string, teamspace: string): Promise<void> {
+    return this.doDelete({ slug, pk: teamspace });
   }
 }
