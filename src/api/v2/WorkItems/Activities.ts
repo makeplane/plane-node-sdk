@@ -62,6 +62,18 @@ export class Activities extends V2Resource<WorkItemActivity, never, never> {
   }
 
   /** Every activity, following pages automatically. */
+  iterate<F extends Exclude<WorkItemActivityField, "all"> & keyof WorkItemActivity>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: ListWorkItemActivitiesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemActivity, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemActivitiesParams
+  ): AsyncGenerator<WorkItemActivity>;
   iterate(
     slug: string,
     project: string,

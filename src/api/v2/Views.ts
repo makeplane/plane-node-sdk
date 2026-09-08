@@ -56,6 +56,12 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
   }
 
   /** Every project view, following pages automatically. */
+  iterate<F extends Exclude<ViewField, "all"> & keyof View>(
+    slug: string,
+    project: string,
+    params: ListProjectViewsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<View, F | "id">>;
+  iterate(slug: string, project: string, params?: ListProjectViewsParams): AsyncGenerator<View>;
   iterate(slug: string, project: string, params?: ListProjectViewsParams): AsyncGenerator<View> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }

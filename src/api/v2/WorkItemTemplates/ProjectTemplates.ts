@@ -67,6 +67,12 @@ export class ProjectWorkItemTemplates extends V2Resource<
   }
 
   /** Every template in the project, following pages automatically. */
+  iterate<F extends Exclude<WorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    project: string,
+    params: ListProjectWorkItemTemplatesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemTemplate, F | "id">>;
+  iterate(slug: string, project: string, params?: ListProjectWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate>;
   iterate(
     slug: string,
     project: string,

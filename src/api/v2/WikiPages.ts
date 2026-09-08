@@ -26,6 +26,11 @@ export class WikiPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
   }
 
   /** Every global page in the workspace, following pages automatically. */
+  iterate<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
+    slug: string,
+    params: ListWikiPagesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WikiPage, F | "id">>;
+  iterate(slug: string, params?: ListWikiPagesParams): AsyncGenerator<WikiPage>;
   iterate(slug: string, params?: ListWikiPagesParams): AsyncGenerator<WikiPage> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

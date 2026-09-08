@@ -57,6 +57,12 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
   }
 
   /** Every label in the project, following pages automatically. */
+  iterate<F extends Exclude<LabelField, "all"> & keyof Label>(
+    slug: string,
+    project: string,
+    params: ListLabelsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<Label, F | "id">>;
+  iterate(slug: string, project: string, params?: ListLabelsParams): AsyncGenerator<Label>;
   iterate(slug: string, project: string, params?: ListLabelsParams): AsyncGenerator<Label> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }

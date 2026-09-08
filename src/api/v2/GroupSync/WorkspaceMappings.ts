@@ -52,6 +52,11 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
   }
 
   /** Every mapping, following pages automatically. */
+  iterate<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
+    slug: string,
+    params: ListGroupSyncWorkspaceMappingsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkspaceGroupMapping, F | "id">>;
+  iterate(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): AsyncGenerator<WorkspaceGroupMapping>;
   iterate(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): AsyncGenerator<WorkspaceGroupMapping> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

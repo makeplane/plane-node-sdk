@@ -41,6 +41,11 @@ export class PermissionSchemes extends V2Resource<PermissionScheme, never, never
   }
 
   /** Every permission scheme, following pages automatically. */
+  iterate<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
+    slug: string,
+    params: ListPermissionSchemesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<PermissionScheme, F | "id">>;
+  iterate(slug: string, params?: ListPermissionSchemesParams): AsyncGenerator<PermissionScheme>;
   iterate(slug: string, params?: ListPermissionSchemesParams): AsyncGenerator<PermissionScheme> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

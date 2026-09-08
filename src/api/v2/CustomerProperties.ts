@@ -53,6 +53,11 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
   }
 
   /** Every customer property, following pages automatically. */
+  iterate<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
+    slug: string,
+    params: ListCustomerPropertiesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<CustomerProperty, F | "id">>;
+  iterate(slug: string, params?: ListCustomerPropertiesParams): AsyncGenerator<CustomerProperty>;
   iterate(slug: string, params?: ListCustomerPropertiesParams): AsyncGenerator<CustomerProperty> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

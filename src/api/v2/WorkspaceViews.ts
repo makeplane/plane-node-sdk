@@ -30,6 +30,11 @@ export class WorkspaceViews extends V2Resource<View, CreateView, UpdateView> {
   }
 
   /** Every workspace view, following pages automatically. */
+  iterate<F extends Exclude<ViewField, "all"> & keyof View>(
+    slug: string,
+    params: ListWorkspaceViewsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<View, F | "id">>;
+  iterate(slug: string, params?: ListWorkspaceViewsParams): AsyncGenerator<View>;
   iterate(slug: string, params?: ListWorkspaceViewsParams): AsyncGenerator<View> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

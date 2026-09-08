@@ -51,6 +51,11 @@ export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGro
   }
 
   /** Every mapping, following pages automatically. */
+  iterate<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
+    slug: string,
+    params: ListGroupSyncProjectMappingsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<GroupMapping, F | "id">>;
+  iterate(slug: string, params?: ListGroupSyncProjectMappingsParams): AsyncGenerator<GroupMapping>;
   iterate(slug: string, params?: ListGroupSyncProjectMappingsParams): AsyncGenerator<GroupMapping> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

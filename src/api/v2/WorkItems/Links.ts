@@ -48,6 +48,18 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
   }
 
   /** Every link, following pages automatically. */
+  iterate<F extends Exclude<WorkItemLinkField, "all"> & keyof WorkItemLink>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: ListWorkItemLinksParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemLink, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemLinksParams
+  ): AsyncGenerator<WorkItemLink>;
   iterate(
     slug: string,
     project: string,

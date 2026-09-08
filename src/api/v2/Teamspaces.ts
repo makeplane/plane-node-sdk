@@ -50,6 +50,11 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
   }
 
   /** Every teamspace, following pages automatically. */
+  iterate<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
+    slug: string,
+    params: ListTeamspacesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<Teamspace, F | "id">>;
+  iterate(slug: string, params?: ListTeamspacesParams): AsyncGenerator<Teamspace>;
   iterate(slug: string, params?: ListTeamspacesParams): AsyncGenerator<Teamspace> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

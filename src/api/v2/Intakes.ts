@@ -56,6 +56,12 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
   }
 
   /** Every intake item in the project, following pages automatically. */
+  iterate<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
+    slug: string,
+    project: string,
+    params: ListIntakeWorkItemsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<IntakeWorkItem, F | "id">>;
+  iterate(slug: string, project: string, params?: ListIntakeWorkItemsParams): AsyncGenerator<IntakeWorkItem>;
   iterate(slug: string, project: string, params?: ListIntakeWorkItemsParams): AsyncGenerator<IntakeWorkItem> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }

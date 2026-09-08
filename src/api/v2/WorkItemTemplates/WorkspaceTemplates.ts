@@ -50,6 +50,11 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
   }
 
   /** Every workspace template, following pages automatically. */
+  iterate<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    params: ListWorkspaceWorkItemTemplatesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemTemplate, F | "id">>;
+  iterate(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate>;
   iterate(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): AsyncGenerator<WorkItemTemplate> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

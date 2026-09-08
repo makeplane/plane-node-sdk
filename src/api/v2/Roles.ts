@@ -60,6 +60,11 @@ export class Roles extends V2Resource<Role, never, never> {
   }
 
   /** Every role, following pages automatically. */
+  iterate<F extends Exclude<RoleField, "all"> & keyof Role>(
+    slug: string,
+    params: ListRolesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<Role, F | "id">>;
+  iterate(slug: string, params?: ListRolesParams): AsyncGenerator<Role>;
   iterate(slug: string, params?: ListRolesParams): AsyncGenerator<Role> {
     return this.doIterate({ slug }, withRoleSlug(params));
   }

@@ -48,6 +48,12 @@ export class WebhookLogs extends V2Resource<WebhookLog, never, never> {
   }
 
   /** Every delivery log for this webhook, following pages automatically. */
+  iterate<F extends Exclude<WebhookLogField, "all"> & keyof WebhookLog>(
+    slug: string,
+    webhook: string,
+    params: ListWebhookLogsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WebhookLog, F | "id">>;
+  iterate(slug: string, webhook: string, params?: ListWebhookLogsParams): AsyncGenerator<WebhookLog>;
   iterate(slug: string, webhook: string, params?: ListWebhookLogsParams): AsyncGenerator<WebhookLog> {
     return this.doIterate({ slug, webhook_id: webhook }, params as Record<string, unknown>);
   }

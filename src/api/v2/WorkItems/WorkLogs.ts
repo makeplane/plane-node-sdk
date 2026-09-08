@@ -63,6 +63,18 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
   }
 
   /** Every worklog, following pages automatically. */
+  iterate<F extends Exclude<WorkItemWorklogField, "all"> & keyof WorkItemWorklog>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: ListWorkItemWorklogsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemWorklog, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemWorklogsParams
+  ): AsyncGenerator<WorkItemWorklog>;
   iterate(
     slug: string,
     project: string,

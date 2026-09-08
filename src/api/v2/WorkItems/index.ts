@@ -141,6 +141,12 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   }
 
   /** Every work item in the project, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    params: ListWorkItemsParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  iterate(slug: string, project: string, params?: ListWorkItemsParams): AsyncGenerator<LoadedWorkItem>;
   iterate(slug: string, project: string, params?: ListWorkItemsParams): AsyncGenerator<LoadedWorkItem> {
     return this.loadIterate(
       this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),

@@ -370,10 +370,25 @@ export interface MethodInfo {
    * first proved.
    */
   readonly signatures: string[][];
+  /**
+   * The declared return type of every declaration, as written.
+   *
+   * Text, not a resolved type: the rule that reads this asks whether a declaration
+   * *narrows* — whether some overload's return type is computed from the method's own type
+   * parameter — and `Promise<Page<Pick<State, F | "id">>>` says so on its face. Resolving
+   * it would erase `F` to its constraint and answer "every field", which is exactly the
+   * unsoundness being looked for.
+   */
+  readonly returnTypes: string[];
   /** Property names reachable on any object-typed parameter, across every overload. */
   readonly optionProperties: Set<string>;
   /** The method's own doc comment text, lowercased. */
   readonly documentation: string;
+}
+
+/** True when some declaration of the method projects its row type through `Pick<…>`. */
+export function narrowsToRequestedFields(method: MethodInfo): boolean {
+  return method.returnTypes.some((text) => text.includes("Pick<"));
 }
 
 const methodCache = new Map<string, Map<string, MethodInfo>>();
@@ -428,11 +443,21 @@ export function classMethods(entry: ResourceEntry): Map<string, MethodInfo> {
     const symbol = checker.getSymbolAtLocation(member.name);
     const documentation = ts.displayPartsToString(symbol?.getDocumentationComment(checker) ?? []).toLowerCase();
 
+    const returnType = signature.type === undefined ? "" : signature.type.getText(entry.declaration.getSourceFile());
+
     const existing = methods.get(name);
     if (existing === undefined) {
-      methods.set(name, { name, parameterNames, signatures: [parameterNames], optionProperties, documentation });
+      methods.set(name, {
+        name,
+        parameterNames,
+        signatures: [parameterNames],
+        returnTypes: [returnType],
+        optionProperties,
+        documentation,
+      });
     } else {
       existing.signatures.push(parameterNames);
+      existing.returnTypes.push(returnType);
       // An overload set: the first declaration supplies the parameter names a caller
       // sees; every declaration contributes its reachable options, so a `fields` that
       // only the narrowing overload declares still counts as offered.

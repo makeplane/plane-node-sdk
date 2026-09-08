@@ -128,6 +128,11 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
   }
 
   /** Every project in the workspace, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<ProjectField, "all"> & keyof Project>(
+    slug: string,
+    params: ListProjectsParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedProjectRow<Pick<Project, F | "id">>>;
+  iterate(slug: string, params?: ListProjectsParams): AsyncGenerator<LoadedProject>;
   iterate(slug: string, params?: ListProjectsParams): AsyncGenerator<LoadedProject> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
   }

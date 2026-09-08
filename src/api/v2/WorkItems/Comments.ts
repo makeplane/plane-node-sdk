@@ -79,6 +79,18 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
   }
 
   /** Every comment on the work item, following pages automatically. */
+  iterate<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: ListWorkItemCommentsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemComment, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemCommentsParams
+  ): AsyncGenerator<WorkItemComment>;
   iterate(
     slug: string,
     project: string,

@@ -68,6 +68,18 @@ export class Attachments extends V2Resource<
   }
 
   /** Every attachment, following pages automatically. */
+  iterate<F extends Exclude<WorkItemAttachmentField, "all"> & keyof WorkItemAttachment>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: ListWorkItemAttachmentsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemAttachment, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    workItem: string,
+    params?: ListWorkItemAttachmentsParams
+  ): AsyncGenerator<WorkItemAttachment>;
   iterate(
     slug: string,
     project: string,

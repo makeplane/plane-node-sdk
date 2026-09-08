@@ -25,6 +25,11 @@ export class WorkspaceMembers extends V2Resource<WorkspaceMember, never, never> 
   }
 
   /** Every member of the workspace, following pages automatically. */
+  iterate<F extends Exclude<ProjectMemberField, "all"> & keyof WorkspaceMember>(
+    slug: string,
+    params: ListMembersParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkspaceMember, F | "id">>;
+  iterate(slug: string, params?: ListMembersParams): AsyncGenerator<WorkspaceMember>;
   iterate(slug: string, params?: ListMembersParams): AsyncGenerator<WorkspaceMember> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

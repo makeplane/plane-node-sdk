@@ -47,6 +47,11 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
   }
 
   /** Every uploaded asset, following pages automatically. */
+  iterate<F extends Exclude<WorkspaceAssetField, "all"> & keyof WorkspaceAsset>(
+    slug: string,
+    params: ListWorkspaceAssetsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkspaceAsset, F | "id">>;
+  iterate(slug: string, params?: ListWorkspaceAssetsParams): AsyncGenerator<WorkspaceAsset>;
   iterate(slug: string, params?: ListWorkspaceAssetsParams): AsyncGenerator<WorkspaceAsset> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

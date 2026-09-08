@@ -46,6 +46,11 @@ export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
   }
 
   /** Every sticky, following pages automatically. */
+  iterate<F extends Exclude<StickyField, "all"> & keyof Sticky>(
+    slug: string,
+    params: ListStickiesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<Sticky, F | "id">>;
+  iterate(slug: string, params?: ListStickiesParams): AsyncGenerator<Sticky>;
   iterate(slug: string, params?: ListStickiesParams): AsyncGenerator<Sticky> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }

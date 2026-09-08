@@ -57,6 +57,12 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
   }
 
   /** Every state in the project, following pages automatically. */
+  iterate<F extends Exclude<StateField, "all"> & keyof State>(
+    slug: string,
+    project: string,
+    params: ListStatesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<State, F | "id">>;
+  iterate(slug: string, project: string, params?: ListStatesParams): AsyncGenerator<State>;
   iterate(slug: string, project: string, params?: ListStatesParams): AsyncGenerator<State> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }

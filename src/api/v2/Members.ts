@@ -53,6 +53,12 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
   }
 
   /** Every project member, following pages automatically. */
+  iterate<F extends Exclude<ProjectMemberField, "all"> & keyof ProjectMember>(
+    slug: string,
+    project: string,
+    params: ListMembersParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<ProjectMember, F | "id">>;
+  iterate(slug: string, project: string, params?: ListMembersParams): AsyncGenerator<ProjectMember>;
   iterate(slug: string, project: string, params?: ListMembersParams): AsyncGenerator<ProjectMember> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }

@@ -44,6 +44,10 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
   }
 
   /** Every uploaded asset, following pages automatically. */
+  iterate<F extends Exclude<UserAssetField, "all"> & keyof UserAsset>(
+    params: ListUserAssetsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<UserAsset, F | "id">>;
+  iterate(params?: ListUserAssetsParams): AsyncGenerator<UserAsset>;
   iterate(params?: ListUserAssetsParams): AsyncGenerator<UserAsset> {
     return this.doIterate({}, params as Record<string, unknown>);
   }

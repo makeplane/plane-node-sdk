@@ -51,6 +51,11 @@ export class AuditLogs extends V2Resource<AuditLog, never, never> {
   }
 
   /** Every audit log entry, following pages automatically. */
+  iterate<F extends Exclude<AuditLogField, "all"> & keyof AuditLog>(
+    slug: string,
+    params: ListAuditLogsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<AuditLog, F | "id">>;
+  iterate(slug: string, params?: ListAuditLogsParams): AsyncGenerator<AuditLog>;
   iterate(slug: string, params?: ListAuditLogsParams): AsyncGenerator<AuditLog> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
   }
