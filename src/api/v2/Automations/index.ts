@@ -7,9 +7,9 @@ export class Automations {
   public project: ProjectAutomations;
   public workspace: WorkspaceAutomations;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    this.project = new ProjectAutomations(transport, scope);
-    this.workspace = new WorkspaceAutomations(transport, scope);
+  constructor(transport: V2Transport) {
+    this.project = new ProjectAutomations(transport);
+    this.workspace = new WorkspaceAutomations(transport);
   }
 }
 

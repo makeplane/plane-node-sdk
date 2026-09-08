@@ -18,6 +18,11 @@ export interface ListProjectAutomationEdgesParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface ProjectAutomationEdgeShapeParams {
+  fields?: readonly ProjectAutomationEdgeField[];
+}
+
 /** Edges between nodes of a project-scoped automation's graph, at `...automations.edges`. */
 export class ProjectAutomationEdges extends V2Resource<AutomationEdge, CreateAutomationEdge, UpdateAutomationEdge> {
   protected path = "/workspaces/{slug}/projects/{project_id}/automations/{automation_id}/edges/";
@@ -29,54 +34,102 @@ export class ProjectAutomationEdges extends V2Resource<AutomationEdge, CreateAut
     delete: "project_automation_edges_destroy",
   };
 
-  private pk(automationId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { automation_id: automationId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, project: string, automation: string, edge?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, project_id: project, automation_id: automation };
+    if (edge !== undefined) params.pk = edge;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ProjectAutomationEdgeField, "all"> & keyof AutomationEdge>(
-    automationId: string,
+    slug: string,
+    project: string,
+    automation: string,
     params: ListProjectAutomationEdgesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<AutomationEdge, F | "id">>>;
-  list(automationId: string, params?: ListProjectAutomationEdgesParams): Promise<Page<AutomationEdge>>;
-  list(automationId: string, params?: ListProjectAutomationEdgesParams): Promise<Page<AutomationEdge>> {
-    return this.doList(this.pk(automationId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationEdgesParams
+  ): Promise<Page<AutomationEdge>>;
+  list(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationEdgesParams
+  ): Promise<Page<AutomationEdge>> {
+    return this.doList(this._at(slug, project, automation), params as Record<string, unknown>);
   }
 
   /** Every edge, following pages automatically. */
-  iterate(automationId: string, params?: ListProjectAutomationEdgesParams): AsyncGenerator<AutomationEdge> {
-    return this.doIterate(this.pk(automationId), params as Record<string, unknown>);
+  iterate<F extends Exclude<ProjectAutomationEdgeField, "all"> & keyof AutomationEdge>(
+    slug: string,
+    project: string,
+    automation: string,
+    params: ListProjectAutomationEdgesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<AutomationEdge, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationEdgesParams
+  ): AsyncGenerator<AutomationEdge>;
+  iterate(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationEdgesParams
+  ): AsyncGenerator<AutomationEdge> {
+    return this.doIterate(this._at(slug, project, automation), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ProjectAutomationEdgeField, "all"> & keyof AutomationEdge>(
-    automationId: string,
-    edgeId: string,
+    slug: string,
+    project: string,
+    automation: string,
+    edge: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<AutomationEdge, F | "id">>;
   retrieve(
-    automationId: string,
-    edgeId: string,
+    slug: string,
+    project: string,
+    automation: string,
+    edge: string,
     params?: { fields?: readonly ProjectAutomationEdgeField[] }
   ): Promise<AutomationEdge>;
   retrieve(
-    automationId: string,
-    edgeId: string,
+    slug: string,
+    project: string,
+    automation: string,
+    edge: string,
     params?: { fields?: readonly ProjectAutomationEdgeField[] }
   ): Promise<AutomationEdge> {
-    return this.doRetrieve(this.pk(automationId, edgeId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, project, automation, edge), params as Record<string, unknown>);
   }
 
-  create(automationId: string, data: CreateAutomationEdge): Promise<AutomationEdge> {
-    return this.doCreate(data, this.pk(automationId));
+  create(
+    slug: string,
+    project: string,
+    automation: string,
+    data: CreateAutomationEdge,
+    params?: ProjectAutomationEdgeShapeParams
+  ): Promise<AutomationEdge> {
+    return this.doCreate(data, this._at(slug, project, automation), params as Record<string, unknown>);
   }
 
-  update(automationId: string, edgeId: string, data: UpdateAutomationEdge): Promise<AutomationEdge> {
-    return this.doUpdate(data, this.pk(automationId, edgeId));
+  update(
+    slug: string,
+    project: string,
+    automation: string,
+    edge: string,
+    data: UpdateAutomationEdge,
+    params?: ProjectAutomationEdgeShapeParams
+  ): Promise<AutomationEdge> {
+    return this.doUpdate(data, this._at(slug, project, automation, edge), params as Record<string, unknown>);
   }
 
-  delete(automationId: string, edgeId: string): Promise<void> {
-    return this.doDelete(this.pk(automationId, edgeId));
+  delete(slug: string, project: string, automation: string, edge: string): Promise<void> {
+    return this.doDelete(this._at(slug, project, automation, edge));
   }
 }

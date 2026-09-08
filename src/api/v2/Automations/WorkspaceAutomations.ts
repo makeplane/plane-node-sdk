@@ -7,8 +7,15 @@ import {
 } from "../../../models/v2/Automation";
 import { Page } from "../../../models/v2/common";
 import { FIELDS, ORDER_BY } from "../generated/constants";
-import { AnyOperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { AnyOperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import {
+  WORKSPACE_AUTOMATION_ID_NAMES,
+  WorkspaceAutomationNavigation,
+  LoadedWorkspaceAutomation,
+  LoadedWorkspaceAutomationRow,
+} from "../loaded/Automation";
 import { WorkspaceAutomationActivities } from "./WorkspaceAutomationActivities";
 import { WorkspaceAutomationEdges } from "./WorkspaceAutomationEdges";
 import { WorkspaceAutomationNodes } from "./WorkspaceAutomationNodes";
@@ -32,9 +39,23 @@ export interface ListWorkspaceAutomationsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface WorkspaceAutomationShapeParams {
+  fields?: readonly WorkspaceAutomationField[];
+}
+
 /** Automations scoped to the whole workspace (`is_global=True`) — project-less sibling of `ProjectAutomations`. */
-export class WorkspaceAutomations extends V2Resource<Automation, CreateAutomation, UpdateAutomation> {
+export class WorkspaceAutomations extends LoadsNavigableRows<
+  Automation,
+  CreateAutomation,
+  UpdateAutomation,
+  WorkspaceAutomationNavigation
+> {
   protected path = "/workspaces/{slug}/automations/";
+  protected extraPaths = {
+    // `status` is the URL segment, `setStatus` the method and the `operations` key.
+    setStatus: "/workspaces/{slug}/automations/{automation_id}/status/",
+  };
   protected operations: Record<string, AnyOperationId> = {
     list: "workspace_automations_list",
     retrieve: "workspace_automations_retrieve",
@@ -43,67 +64,108 @@ export class WorkspaceAutomations extends V2Resource<Automation, CreateAutomatio
     delete: "workspace_automations_destroy",
     setStatus: "workspace_automations_status",
   };
+  protected loadedIdNames = WORKSPACE_AUTOMATION_ID_NAMES;
 
   public nodes: WorkspaceAutomationNodes;
   public edges: WorkspaceAutomationEdges;
   public activities: WorkspaceAutomationActivities;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.nodes = new WorkspaceAutomationNodes(transport, scope);
-    this.edges = new WorkspaceAutomationEdges(transport, scope);
-    this.activities = new WorkspaceAutomationActivities(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.nodes = new WorkspaceAutomationNodes(transport);
+    this.edges = new WorkspaceAutomationEdges(transport);
+    this.activities = new WorkspaceAutomationActivities(transport);
   }
 
-  private pk(id?: string): Record<string, string> {
-    const params: Record<string, string> = {};
-    if (id !== undefined) params.pk = id;
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<WorkspaceAutomationNavigation> {
+    const ids = meta.ids as [string, string];
+    return {
+      nodes: () => owned(this.nodes, ids, meta.idNames),
+      edges: () => owned(this.edges, ids, meta.idNames),
+      activities: () => owned(this.activities, ids, meta.idNames),
+    };
+  }
+
+  private _at(slug: string, automation?: string): Record<string, string> {
+    const params: Record<string, string> = { slug };
+    if (automation !== undefined) params.pk = automation;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
+    slug: string,
     params: ListWorkspaceAutomationsParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Automation, F | "id">>>;
-  list(params?: ListWorkspaceAutomationsParams): Promise<Page<Automation>>;
-  list(params?: ListWorkspaceAutomationsParams): Promise<Page<Automation>> {
-    return this.doList(this.pk(), params as Record<string, unknown>);
+  ): Promise<Page<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>>;
+  list(slug: string, params?: ListWorkspaceAutomationsParams): Promise<Page<LoadedWorkspaceAutomation>>;
+  async list(slug: string, params?: ListWorkspaceAutomationsParams): Promise<Page<LoadedWorkspaceAutomation>> {
+    const page = await this.doList(this._at(slug), params as Record<string, unknown>);
+    return this.loadPage(page, [slug], params?.fields);
   }
 
-  /** Every workspace-scoped automation, following pages automatically. */
-  iterate(params?: ListWorkspaceAutomationsParams): AsyncGenerator<Automation> {
-    return this.doIterate(this.pk(), params as Record<string, unknown>);
+  /** Every workspace-scoped automation, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
+    slug: string,
+    params: ListWorkspaceAutomationsParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>;
+  iterate(slug: string, params?: ListWorkspaceAutomationsParams): AsyncGenerator<LoadedWorkspaceAutomation>;
+  iterate(slug: string, params?: ListWorkspaceAutomationsParams): AsyncGenerator<LoadedWorkspaceAutomation> {
+    return this.loadIterate(this.doIterate(this._at(slug), params as Record<string, unknown>), [slug], params?.fields);
   }
 
   retrieve<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
-    automationId: string,
+    slug: string,
+    automation: string,
     params: { fields: readonly F[] }
-  ): Promise<Pick<Automation, F | "id">>;
-  retrieve(automationId: string, params?: { fields?: readonly WorkspaceAutomationField[] }): Promise<Automation>;
-  retrieve(automationId: string, params?: { fields?: readonly WorkspaceAutomationField[] }): Promise<Automation> {
-    return this.doRetrieve(this.pk(automationId), params as Record<string, unknown>);
+  ): Promise<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>;
+  retrieve(
+    slug: string,
+    automation: string,
+    params?: WorkspaceAutomationShapeParams
+  ): Promise<LoadedWorkspaceAutomation>;
+  async retrieve(
+    slug: string,
+    automation: string,
+    params?: WorkspaceAutomationShapeParams
+  ): Promise<LoadedWorkspaceAutomation> {
+    const row = await this.doRetrieve(this._at(slug, automation), params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
   /** The one automation with this name; throws if none or several match. */
-  findByName(name: string): Promise<Automation> {
-    return this.doFindOne({ name }, this.pk());
+  async findByName(slug: string, name: string): Promise<LoadedWorkspaceAutomation> {
+    const row = await this.doFindOne({ name }, this._at(slug));
+    return this.load(row, [slug]);
   }
 
-  create(data: CreateAutomation): Promise<Automation> {
-    return this.doCreate(data, this.pk());
+  async create(
+    slug: string,
+    data: CreateAutomation,
+    params?: WorkspaceAutomationShapeParams
+  ): Promise<LoadedWorkspaceAutomation> {
+    const row = await this.doCreate(data, this._at(slug), params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  update(automationId: string, data: UpdateAutomation): Promise<Automation> {
-    return this.doUpdate(data, this.pk(automationId));
+  async update(
+    slug: string,
+    automation: string,
+    data: UpdateAutomation,
+    params?: WorkspaceAutomationShapeParams
+  ): Promise<LoadedWorkspaceAutomation> {
+    const row = await this.doUpdate(data, this._at(slug, automation), params as Record<string, unknown>);
+    return this.load(row, [slug], params?.fields);
   }
 
-  delete(automationId: string): Promise<void> {
-    return this.doDelete(this.pk(automationId));
+  delete(slug: string, automation: string): Promise<void> {
+    return this.doDelete(this._at(slug, automation));
   }
 
   /** Enable/disable the automation — the only way to flip `is_enabled`/`status`. */
-  async setStatus(automationId: string, data: SetAutomationStatus): Promise<void> {
-    await this.transport.request<void>("POST", `${this.detailUrl(this.pk(automationId))}status/`, {
+  async setStatus(slug: string, automation: string, data: SetAutomationStatus): Promise<void> {
+    await this.doCustomAction<void>("setStatus", {
+      method: "POST",
+      pathParams: { slug, automation_id: automation },
       data,
     });
   }

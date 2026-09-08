@@ -20,7 +20,18 @@ export interface ListWorkflowTransitionsParams {
   count?: boolean;
 }
 
-/** Transition edges of a workflow graph. `create` identifies the source state by its project State id. */
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface WorkflowTransitionShapeParams {
+  fields?: readonly WorkflowTransitionField[];
+}
+
+/**
+ * Transition edges of a workflow graph; `create` identifies the source state by its
+ * project State id.
+ *
+ * Reached flat — `v2.projects.workflows.transitions.list(slug, project, workflow)` — or
+ * from a fetched workflow: `workflow.transitions.list()`.
+ */
 export class WorkflowTransitions extends V2Resource<
   WorkflowTransition,
   CreateWorkflowTransition,
@@ -35,54 +46,102 @@ export class WorkflowTransitions extends V2Resource<
     delete: "workflow_transitions_destroy",
   };
 
-  private pk(workflowId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { workflow_id: workflowId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, project: string, workflow: string, transition?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, project_id: project, workflow_id: workflow };
+    if (transition !== undefined) params.pk = transition;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkflowTransitionField, "all"> & keyof WorkflowTransition>(
-    workflowId: string,
+    slug: string,
+    project: string,
+    workflow: string,
     params: ListWorkflowTransitionsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkflowTransition, F | "id">>>;
-  list(workflowId: string, params?: ListWorkflowTransitionsParams): Promise<Page<WorkflowTransition>>;
-  list(workflowId: string, params?: ListWorkflowTransitionsParams): Promise<Page<WorkflowTransition>> {
-    return this.doList(this.pk(workflowId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    workflow: string,
+    params?: ListWorkflowTransitionsParams
+  ): Promise<Page<WorkflowTransition>>;
+  list(
+    slug: string,
+    project: string,
+    workflow: string,
+    params?: ListWorkflowTransitionsParams
+  ): Promise<Page<WorkflowTransition>> {
+    return this.doList(this._at(slug, project, workflow), params as Record<string, unknown>);
   }
 
   /** Every transition, following pages automatically. */
-  iterate(workflowId: string, params?: ListWorkflowTransitionsParams): AsyncGenerator<WorkflowTransition> {
-    return this.doIterate(this.pk(workflowId), params as Record<string, unknown>);
+  iterate<F extends Exclude<WorkflowTransitionField, "all"> & keyof WorkflowTransition>(
+    slug: string,
+    project: string,
+    workflow: string,
+    params: ListWorkflowTransitionsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkflowTransition, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    workflow: string,
+    params?: ListWorkflowTransitionsParams
+  ): AsyncGenerator<WorkflowTransition>;
+  iterate(
+    slug: string,
+    project: string,
+    workflow: string,
+    params?: ListWorkflowTransitionsParams
+  ): AsyncGenerator<WorkflowTransition> {
+    return this.doIterate(this._at(slug, project, workflow), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkflowTransitionField, "all"> & keyof WorkflowTransition>(
-    workflowId: string,
-    transitionId: string,
+    slug: string,
+    project: string,
+    workflow: string,
+    transition: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkflowTransition, F | "id">>;
   retrieve(
-    workflowId: string,
-    transitionId: string,
+    slug: string,
+    project: string,
+    workflow: string,
+    transition: string,
     params?: { fields?: readonly WorkflowTransitionField[] }
   ): Promise<WorkflowTransition>;
   retrieve(
-    workflowId: string,
-    transitionId: string,
+    slug: string,
+    project: string,
+    workflow: string,
+    transition: string,
     params?: { fields?: readonly WorkflowTransitionField[] }
   ): Promise<WorkflowTransition> {
-    return this.doRetrieve(this.pk(workflowId, transitionId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, project, workflow, transition), params as Record<string, unknown>);
   }
 
-  create(workflowId: string, data: CreateWorkflowTransition): Promise<WorkflowTransition> {
-    return this.doCreate(data, this.pk(workflowId));
+  create(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: CreateWorkflowTransition,
+    params?: WorkflowTransitionShapeParams
+  ): Promise<WorkflowTransition> {
+    return this.doCreate(data, this._at(slug, project, workflow), params as Record<string, unknown>);
   }
 
-  update(workflowId: string, transitionId: string, data: UpdateWorkflowTransition): Promise<WorkflowTransition> {
-    return this.doUpdate(data, this.pk(workflowId, transitionId));
+  update(
+    slug: string,
+    project: string,
+    workflow: string,
+    transition: string,
+    data: UpdateWorkflowTransition,
+    params?: WorkflowTransitionShapeParams
+  ): Promise<WorkflowTransition> {
+    return this.doUpdate(data, this._at(slug, project, workflow, transition), params as Record<string, unknown>);
   }
 
-  delete(workflowId: string, transitionId: string): Promise<void> {
-    return this.doDelete(this.pk(workflowId, transitionId));
+  delete(slug: string, project: string, workflow: string, transition: string): Promise<void> {
+    return this.doDelete(this._at(slug, project, workflow, transition));
   }
 }

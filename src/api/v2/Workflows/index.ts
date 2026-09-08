@@ -1,8 +1,10 @@
 import { Page } from "../../../models/v2/common";
 import { Workflow, UpdateWorkflow, CreateWorkflow } from "../../../models/v2/Workflow";
 import { FIELDS, ORDER_BY } from "../generated/constants";
-import { OperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { OperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import { LoadedWorkflow, LoadedWorkflowRow, WORKFLOW_ID_NAMES, WorkflowNavigation } from "../loaded/Workflow";
 import { WorkflowStates } from "./States";
 import { WorkflowTransitions } from "./Transitions";
 
@@ -20,8 +22,19 @@ export interface ListWorkflowsParams {
   count?: boolean;
 }
 
-/** Project workflow graphs — CRUD plus `states`/`transitions` sub-resources. No upsert/bulk-write here. */
-export class Workflows extends V2Resource<Workflow, CreateWorkflow, UpdateWorkflow> {
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface WorkflowShapeParams {
+  fields?: readonly WorkflowField[];
+}
+
+/**
+ * Project workflow graphs — CRUD plus `states`/`transitions`. No upsert/bulk-write here.
+ *
+ * Reached flat — `v2.projects.workflows.list(slug, project)` — or from a fetched project:
+ * `project.workflows.list()`. Every row-returning method answers a {@link LoadedWorkflow},
+ * so `workflow.states.list()` repeats no id.
+ */
+export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, UpdateWorkflow, WorkflowNavigation> {
   protected path = "/workspaces/{slug}/projects/{project_id}/workflows/";
   protected operations: Record<string, OperationId> = {
     list: "workflows_list",
@@ -30,53 +43,105 @@ export class Workflows extends V2Resource<Workflow, CreateWorkflow, UpdateWorkfl
     update: "workflows_partial_update",
     delete: "workflows_destroy",
   };
+  protected loadedIdNames = WORKFLOW_ID_NAMES;
 
   public states: WorkflowStates;
   public transitions: WorkflowTransitions;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.states = new WorkflowStates(transport, scope);
-    this.transitions = new WorkflowTransitions(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.states = new WorkflowStates(transport);
+    this.transitions = new WorkflowTransitions(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<WorkflowNavigation> {
+    const ids = meta.ids as [string, string, string];
+    return {
+      states: () => owned(this.states, ids, meta.idNames),
+      transitions: () => owned(this.transitions, ids, meta.idNames),
+    };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
+    slug: string,
+    project: string,
     params: ListWorkflowsParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<Workflow, F | "id">>>;
-  list(params?: ListWorkflowsParams): Promise<Page<Workflow>>;
-  list(params?: ListWorkflowsParams): Promise<Page<Workflow>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedWorkflowRow<Pick<Workflow, F | "id">>>>;
+  list(slug: string, project: string, params?: ListWorkflowsParams): Promise<Page<LoadedWorkflow>>;
+  async list(slug: string, project: string, params?: ListWorkflowsParams): Promise<Page<LoadedWorkflow>> {
+    const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug, project], params?.fields);
   }
 
-  /** Every workflow, following pages automatically. */
-  iterate(params?: ListWorkflowsParams): AsyncGenerator<Workflow> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every workflow in the project, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
+    slug: string,
+    project: string,
+    params: ListWorkflowsParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedWorkflowRow<Pick<Workflow, F | "id">>>;
+  iterate(slug: string, project: string, params?: ListWorkflowsParams): AsyncGenerator<LoadedWorkflow>;
+  iterate(slug: string, project: string, params?: ListWorkflowsParams): AsyncGenerator<LoadedWorkflow> {
+    return this.loadIterate(
+      this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
+      [slug, project],
+      params?.fields
+    );
   }
 
   retrieve<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
-    workflowId: string,
+    slug: string,
+    project: string,
+    workflow: string,
     params: { fields: readonly F[] }
-  ): Promise<Pick<Workflow, F | "id">>;
-  retrieve(workflowId: string, params?: { fields?: readonly WorkflowField[] }): Promise<Workflow>;
-  retrieve(workflowId: string, params?: { fields?: readonly WorkflowField[] }): Promise<Workflow> {
-    return this.doRetrieve({ pk: workflowId }, params as Record<string, unknown>);
+  ): Promise<LoadedWorkflowRow<Pick<Workflow, F | "id">>>;
+  retrieve(slug: string, project: string, workflow: string, params?: WorkflowShapeParams): Promise<LoadedWorkflow>;
+  async retrieve(
+    slug: string,
+    project: string,
+    workflow: string,
+    params?: WorkflowShapeParams
+  ): Promise<LoadedWorkflow> {
+    const row = await this.doRetrieve({ slug, project_id: project, pk: workflow }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  create(data: CreateWorkflow): Promise<Workflow> {
-    return this.doCreate(data, {});
+  async create(
+    slug: string,
+    project: string,
+    data: CreateWorkflow,
+    params?: WorkflowShapeParams
+  ): Promise<LoadedWorkflow> {
+    const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  update(workflowId: string, data: UpdateWorkflow): Promise<Workflow> {
-    return this.doUpdate(data, { pk: workflowId });
+  async update(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: UpdateWorkflow,
+    params?: WorkflowShapeParams
+  ): Promise<LoadedWorkflow> {
+    const row = await this.doUpdate(
+      data,
+      { slug, project_id: project, pk: workflow },
+      params as Record<string, unknown>
+    );
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  delete(workflowId: string): Promise<void> {
-    return this.doDelete({ pk: workflowId });
+  delete(slug: string, project: string, workflow: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: workflow });
   }
 }
 
 export { WorkflowStates } from "./States";
 export { WorkflowTransitions } from "./Transitions";
-export type { ListWorkflowStatesParams, WorkflowStateField, WorkflowStateOrderBy } from "./States";
+export type {
+  ListWorkflowStatesParams,
+  WorkflowStateField,
+  WorkflowStateOrderBy,
+  WorkflowStateShapeParams,
+} from "./States";
 export type { ListWorkflowTransitionsParams, WorkflowTransitionField, WorkflowTransitionOrderBy } from "./Transitions";

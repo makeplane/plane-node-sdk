@@ -6,11 +6,10 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeWorkflows = () =>
-  new Workflows(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeWorkflows = () => new Workflows(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+
+const SLUG = "acme";
+const PROJECT = "ENG";
 
 afterEach(() => nock.cleanAll());
 
@@ -24,7 +23,7 @@ describe("Workflows (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeWorkflows().list();
+    const page = await makeWorkflows().list(SLUG, PROJECT);
 
     expect(page.data[0].name).toBe("Default");
   });
@@ -38,7 +37,7 @@ describe("Workflows (v2)", () => {
     // Dynamic field list is typed as the widened `WorkflowField[]`, so it falls
     // back to the full `Workflow` return type (see states.test.ts).
     const dynamicFields: WorkflowField[] = ["id"];
-    const page = await makeWorkflows().list({ fields: dynamicFields });
+    const page = await makeWorkflows().list(SLUG, PROJECT, { fields: dynamicFields });
 
     expect(page.data[0].id).toBe("wf1");
     expect(page.data[0].name).toBeUndefined();
@@ -53,8 +52,8 @@ describe("Workflows (v2)", () => {
       .reply(200, { id: "wf1", name: "Support", is_active: true });
 
     const workflows = makeWorkflows();
-    const created = await workflows.create({ name: "Support" });
-    const updated = await workflows.update(created.id, { is_active: true });
+    const created = await workflows.create(SLUG, PROJECT, { name: "Support" });
+    const updated = await workflows.update(SLUG, PROJECT, created.id, { is_active: true });
 
     expect(updated.is_active).toBe(true);
   });
@@ -62,7 +61,7 @@ describe("Workflows (v2)", () => {
   it("deletes a workflow", async () => {
     const scope = nock(BASE).delete("/api/v2/workspaces/acme/projects/ENG/workflows/wf1/").reply(204);
 
-    await makeWorkflows().delete("wf1");
+    await makeWorkflows().delete(SLUG, PROJECT, "wf1");
 
     expect(scope.isDone()).toBe(true);
   });
@@ -70,7 +69,7 @@ describe("Workflows (v2)", () => {
   it("rejects an unknown order_by before making the request", async () => {
     // "description" is a valid `fields` value for workflows_list but not a
     // cursor-safe/allowed `order_by` — see generated/constants.ts's ORDER_BY entry.
-    await expect(makeWorkflows().list({ order_by: "description" as never })).rejects.toThrow(
+    await expect(makeWorkflows().list(SLUG, PROJECT, { order_by: "description" as never })).rejects.toThrow(
       /Unknown order_by 'description' for workflows_list/
     );
   });
@@ -84,7 +83,7 @@ describe("Workflows (v2)", () => {
           { id: "ws2", state_id: "s2", workflow_id: "wf1" },
         ]);
 
-      const attached = await makeWorkflows().states.attach("wf1", { state_ids: ["s1", "s2"] });
+      const attached = await makeWorkflows().states.attach(SLUG, PROJECT, "wf1", { state_ids: ["s1", "s2"] });
 
       expect(attached).toHaveLength(2);
       expect(attached[1].state_id).toBe("s2");
@@ -100,13 +99,13 @@ describe("Workflows (v2)", () => {
       nock(BASE).delete("/api/v2/workspaces/acme/projects/ENG/workflows/wf1/states/ws1/").reply(204);
 
       const states = makeWorkflows().states;
-      const page = await states.list("wf1");
+      const page = await states.list(SLUG, PROJECT, "wf1");
       expect(page.data[0].type).toBe("backlog");
 
-      const updated = await states.update("wf1", "ws1", { allow_issue_creation: true });
+      const updated = await states.update(SLUG, PROJECT, "wf1", "ws1", { allow_issue_creation: true });
       expect(updated.allow_issue_creation).toBe(true);
 
-      await states.delete("wf1", "ws1");
+      await states.delete(SLUG, PROJECT, "wf1", "ws1");
     });
   });
 
@@ -128,16 +127,16 @@ describe("Workflows (v2)", () => {
         .reply(200, { id: "wt1", required_approvals: 2 });
 
       const transitions = makeWorkflows().transitions;
-      const created = await transitions.create("wf1", {
+      const created = await transitions.create(SLUG, PROJECT, "wf1", {
         state_id: "s1",
         transition_state_id: "s2",
       });
       expect(created.id).toBe("wt1");
 
-      const fetched = await transitions.retrieve("wf1", created.id);
+      const fetched = await transitions.retrieve(SLUG, PROJECT, "wf1", created.id);
       expect(fetched.member_ids).toEqual([]);
 
-      const updated = await transitions.update("wf1", created.id, { required_approvals: 2 });
+      const updated = await transitions.update(SLUG, PROJECT, "wf1", created.id, { required_approvals: 2 });
       expect(updated.required_approvals).toBe(2);
     });
 
@@ -146,9 +145,27 @@ describe("Workflows (v2)", () => {
         .delete("/api/v2/workspaces/acme/projects/ENG/workflows/wf1/state-transitions/wt1/")
         .reply(204);
 
-      await makeWorkflows().transitions.delete("wf1", "wt1");
+      await makeWorkflows().transitions.delete(SLUG, PROJECT, "wf1", "wt1");
 
       expect(scope.isDone()).toBe(true);
     });
+  });
+});
+
+describe("navigable workflow rows (v2)", () => {
+  it("reaches both halves of a fetched workflow's graph with no id repeated", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/workflows/wf1/").reply(200, { id: "wf1", name: "Default" });
+    const states = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/workflows/wf1/states/")
+      .reply(200, { data: [{ id: "ws1" }], pagination: { style: "offset" } });
+    const transitions = nock(BASE)
+      .get("/api/v2/workspaces/acme/projects/ENG/workflows/wf1/state-transitions/")
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    const workflow = await makeWorkflows().retrieve(SLUG, PROJECT, "wf1");
+    await workflow.states.list();
+    await workflow.transitions.list();
+
+    expect([states.isDone(), transitions.isDone()]).toEqual([true, true]);
   });
 });

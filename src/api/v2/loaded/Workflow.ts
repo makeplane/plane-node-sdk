@@ -1,0 +1,25 @@
+import type { Workflow } from "../../../models/v2/Workflow";
+import type { WorkflowStates } from "../Workflows/States";
+import type { WorkflowTransitions } from "../Workflows/Transitions";
+import type { Loaded, Owned } from "../kernel/loaded";
+
+/**
+ * The path ids a child of a workflow row needs, in URL order, ending with the workflow's
+ * own. `Owned` drops exactly these, so `workflow.states.list()` is what is left of
+ * `WorkflowStates.list(slug, project, workflow)`.
+ */
+export type WorkflowIds = [slug: string, project: string, workflow: string];
+
+/** The parameter names behind {@link WorkflowIds}, in the same order. */
+export const WORKFLOW_ID_NAMES = ["slug", "project", "workflow"] as const;
+
+/** Everything a fetched workflow can reach: the two halves of its graph. */
+export interface WorkflowNavigation {
+  readonly states: Owned<WorkflowStates, WorkflowIds>;
+  readonly transitions: Owned<WorkflowTransitions, WorkflowIds>;
+}
+
+/** A fetched workflow row that is also the place its graph lives. */
+export type LoadedWorkflowRow<TRow> = Loaded<TRow, WorkflowNavigation>;
+
+export type LoadedWorkflow = LoadedWorkflowRow<Workflow>;

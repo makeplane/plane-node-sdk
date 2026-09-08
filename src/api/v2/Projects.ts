@@ -1,6 +1,7 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
 import { Project, UpdateProject, ProjectPriority, ProjectSummary, CreateProject } from "../../models/v2/Project";
 import { ProjectRoleDistribution as ProjectRoleDistributionShape } from "../../models/v2/ProjectRoleDistribution";
+import { ProjectAutomations } from "./Automations/ProjectAutomations";
 import { Cycles } from "./Cycles";
 import { Estimates } from "./Estimates";
 import { ProjectFeatures } from "./Features";
@@ -23,6 +24,7 @@ import { ProjectWorkItemTemplates } from "./WorkItemTemplates/ProjectTemplates";
 import { WorkItemProperties } from "./WorkItemProperties";
 import { WorkItems } from "./WorkItems";
 import { WorkItemTypes } from "./WorkItemTypes";
+import { Workflows } from "./Workflows";
 
 export type ProjectField = (typeof FIELDS)["projects_list"][number];
 export type ProjectOrderBy = (typeof ORDER_BY)["projects_list"][number];
@@ -121,6 +123,8 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
   public estimates: Estimates;
   public workItemTypes: WorkItemTypes;
   public workItemProperties: WorkItemProperties;
+  public workflows: Workflows;
+  public automations: ProjectAutomations;
 
   constructor(transport: V2Transport) {
     super(transport);
@@ -141,6 +145,8 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     this.estimates = new Estimates(transport);
     this.workItemTypes = new WorkItemTypes(transport);
     this.workItemProperties = new WorkItemProperties(transport);
+    this.workflows = new Workflows(transport);
+    this.automations = new ProjectAutomations(transport);
   }
 
   protected navigationOf(meta: LoadedMeta): NavigationFactories<ProjectNavigation> {
@@ -163,6 +169,8 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
       estimates: () => owned(this.estimates, ids, meta.idNames),
       workItemTypes: () => owned(this.workItemTypes, ids, meta.idNames),
       workItemProperties: () => owned(this.workItemProperties, ids, meta.idNames),
+      workflows: () => owned(this.workflows, ids, meta.idNames),
+      automations: () => owned(this.automations, ids, meta.idNames),
     };
   }
 

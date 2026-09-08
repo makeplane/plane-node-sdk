@@ -1,4 +1,5 @@
 import type { Project } from "../../../models/v2/Project";
+import type { ProjectAutomations } from "../Automations/ProjectAutomations";
 import type { Cycles } from "../Cycles";
 import type { Estimates } from "../Estimates";
 import type { ProjectFeatures } from "../Features";
@@ -17,6 +18,7 @@ import type { ProjectWorkItemTemplates } from "../WorkItemTemplates/ProjectTempl
 import type { WorkItemProperties } from "../WorkItemProperties";
 import type { WorkItems } from "../WorkItems";
 import type { WorkItemTypes } from "../WorkItemTypes";
+import type { Workflows } from "../Workflows";
 
 /**
  * The path ids a child of a project row needs, in URL order, ending with the project's
@@ -61,6 +63,8 @@ export interface ProjectNavigation {
   readonly estimates: Owned<Estimates, ProjectIds>;
   readonly workItemTypes: Owned<WorkItemTypes, ProjectIds>;
   readonly workItemProperties: Owned<WorkItemProperties, ProjectIds>;
+  readonly workflows: Owned<Workflows, ProjectIds>;
+  readonly automations: Owned<ProjectAutomations, ProjectIds>;
 }
 
 /**

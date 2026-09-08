@@ -22,6 +22,7 @@ import { WorkItemRelationDefinitions } from "./WorkItemRelationDefinitions";
 import { WorkspaceWorkItemTemplates } from "./WorkItemTemplates/WorkspaceTemplates";
 import { WorkspaceMembers } from "./WorkspaceMembers";
 import { WorkspaceViews } from "./WorkspaceViews";
+import { WorkspaceAutomations } from "./Automations/WorkspaceAutomations";
 import { WorkspaceWorkItemProperties } from "./WorkspaceWorkItemProperties";
 import { WorkspaceWorkItems } from "./WorkspaceWorkItems";
 import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
@@ -78,6 +79,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
   public customerProperties: CustomerProperties;
   public workItemTypes: WorkspaceWorkItemTypes;
   public workItemProperties: WorkspaceWorkItemProperties;
+  public automations: WorkspaceAutomations;
   /**
    * IdP group sync. A grouping node, not a resource: it consumes no path id of its own, so
    * it is not a navigation property on a fetched row (its children each take `slug`
@@ -112,6 +114,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
     this.customerProperties = new CustomerProperties(transport);
     this.workItemTypes = new WorkspaceWorkItemTypes(transport);
     this.workItemProperties = new WorkspaceWorkItemProperties(transport);
+    this.automations = new WorkspaceAutomations(transport);
     this.groupSync = new GroupSync(transport);
     this.wiki = new Wiki(transport);
   }
@@ -138,6 +141,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
       customerProperties: () => owned(this.customerProperties, ids, meta.idNames),
       workItemTypes: () => owned(this.workItemTypes, ids, meta.idNames),
       workItemProperties: () => owned(this.workItemProperties, ids, meta.idNames),
+      automations: () => owned(this.automations, ids, meta.idNames),
     };
   }
 

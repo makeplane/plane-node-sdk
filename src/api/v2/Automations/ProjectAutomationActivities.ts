@@ -27,42 +27,77 @@ export class ProjectAutomationActivities extends V2Resource<AutomationActivity, 
     retrieve: "project_automation_activities_retrieve",
   };
 
-  private pk(automationId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { automation_id: automationId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, project: string, automation: string, activity?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, project_id: project, automation_id: automation };
+    if (activity !== undefined) params.pk = activity;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ProjectAutomationActivityField, "all"> & keyof AutomationActivity>(
-    automationId: string,
+    slug: string,
+    project: string,
+    automation: string,
     params: ListProjectAutomationActivitiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<AutomationActivity, F | "id">>>;
-  list(automationId: string, params?: ListProjectAutomationActivitiesParams): Promise<Page<AutomationActivity>>;
-  list(automationId: string, params?: ListProjectAutomationActivitiesParams): Promise<Page<AutomationActivity>> {
-    return this.doList(this.pk(automationId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationActivitiesParams
+  ): Promise<Page<AutomationActivity>>;
+  list(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationActivitiesParams
+  ): Promise<Page<AutomationActivity>> {
+    return this.doList(this._at(slug, project, automation), params as Record<string, unknown>);
   }
 
   /** Every activity, following pages automatically. */
-  iterate(automationId: string, params?: ListProjectAutomationActivitiesParams): AsyncGenerator<AutomationActivity> {
-    return this.doIterate(this.pk(automationId), params as Record<string, unknown>);
+  iterate<F extends Exclude<ProjectAutomationActivityField, "all"> & keyof AutomationActivity>(
+    slug: string,
+    project: string,
+    automation: string,
+    params: ListProjectAutomationActivitiesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<AutomationActivity, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationActivitiesParams
+  ): AsyncGenerator<AutomationActivity>;
+  iterate(
+    slug: string,
+    project: string,
+    automation: string,
+    params?: ListProjectAutomationActivitiesParams
+  ): AsyncGenerator<AutomationActivity> {
+    return this.doIterate(this._at(slug, project, automation), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ProjectAutomationActivityField, "all"> & keyof AutomationActivity>(
-    automationId: string,
-    activityId: string,
+    slug: string,
+    project: string,
+    automation: string,
+    activity: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<AutomationActivity, F | "id">>;
   retrieve(
-    automationId: string,
-    activityId: string,
+    slug: string,
+    project: string,
+    automation: string,
+    activity: string,
     params?: { fields?: readonly ProjectAutomationActivityField[] }
   ): Promise<AutomationActivity>;
   retrieve(
-    automationId: string,
-    activityId: string,
+    slug: string,
+    project: string,
+    automation: string,
+    activity: string,
     params?: { fields?: readonly ProjectAutomationActivityField[] }
   ): Promise<AutomationActivity> {
-    return this.doRetrieve(this.pk(automationId, activityId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, project, automation, activity), params as Record<string, unknown>);
   }
 }

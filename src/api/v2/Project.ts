@@ -59,8 +59,8 @@ export class Project {
     this.workItemTypes = new WorkItemTypes(transport);
     this.workItemProperties = new WorkItemProperties(transport);
     this.workItemTemplates = new ProjectWorkItemTemplates(transport, scope);
-    this.workflows = new Workflows(transport, scope);
-    this.automations = new ProjectAutomations(transport, scope);
+    this.workflows = new Workflows(transport);
+    this.automations = new ProjectAutomations(transport);
     this.worklogs = new ProjectWorklogs(transport, scope);
   }
 }

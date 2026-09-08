@@ -85,7 +85,7 @@ export class Workspace {
     this.workItemRelationDefinitions = new WorkItemRelationDefinitions(transport, scope);
     this.workItemTemplates = new WorkspaceWorkItemTemplates(transport, scope);
     this.groupSync = new GroupSync(transport, scope);
-    this.automations = new WorkspaceAutomations(transport, scope);
+    this.automations = new WorkspaceAutomations(transport);
     this.assets = new Assets(transport, scope);
     this.artifacts = new Artifacts(transport, scope);
     this.webhooks = new Webhooks(transport, scope);
