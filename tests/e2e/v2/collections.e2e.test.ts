@@ -11,54 +11,50 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 collections (live)", () => {
   const suite = useV2Project("collections", env);
 
-  const wiki = () => suite.client.v2.workspace(suite.workspaceSlug).wiki;
+  // Flat: `wiki` is a grouping node with no path id of its own, so its children take the
+  // slug per call and are never navigation properties on a fetched row.
+  const wiki = () => suite.client.v2.workspaces.wiki;
+  const slug = () => suite.workspaceSlug;
 
   it("creates, retrieves, updates, deletes", async () => {
     const name = uniqueName("collection");
-    const created = await wiki().collections.create({ name });
+    const created = await wiki().collections.create(slug(), { name });
     expect(created.name).toBe(name);
 
-    const fetched = await wiki().collections.retrieve(created.id);
+    const fetched = await wiki().collections.retrieve(slug(), created.id);
     expect(fetched.id).toBe(created.id);
 
-    const updated = await wiki().collections.update(created.id, {
+    const updated = await wiki().collections.update(slug(), created.id, {
       name: `${name}-renamed`,
     });
     expect(updated.name).toBe(`${name}-renamed`);
 
-    await expect(wiki().collections.delete(created.id)).resolves.toBeUndefined();
+    await expect(wiki().collections.delete(slug(), created.id)).resolves.toBeUndefined();
   });
 
   it("default() resolves the workspace's General collection", async () => {
-    const found = await wiki().collections.default();
+    const found = await wiki().collections.default(slug());
     expect(found.is_default).toBe(true);
   });
 
   describe("pages membership + pages.search", () => {
     it("adds/removes a wiki page and pages.search reflects addable pages", async () => {
-      const collection = await wiki().collections.create({
+      const collection = await wiki().collections.create(slug(), {
         name: uniqueName("collection-pages"),
       });
-      const page = await suite.client.v2
-        .workspace(suite.workspaceSlug)
-        .project(suite.projectId)
-        .pages.create({
-          name: uniqueName("page-for-collection"),
-        });
+      const page = await suite.projectRow.pages.create({
+        name: uniqueName("page-for-collection"),
+      });
       try {
-        const added = await wiki().collections.pages.add(collection.id, [page.id]);
+        const added = await wiki().collections.pages.add(slug(), collection.id, [page.id]);
         expect(added).toContain(page.id);
 
-        const removed = await wiki().collections.pages.remove(collection.id, [page.id]);
+        const removed = await wiki().collections.pages.remove(slug(), collection.id, [page.id]);
         expect(removed).toContain(page.id);
       } finally {
-        await suite.client.v2
-          .workspace(suite.workspaceSlug)
-          .project(suite.projectId)
-          .pages.delete(page.id)
-          .catch(() => undefined);
+        await suite.projectRow.pages.delete(page.id).catch(() => undefined);
         await wiki()
-          .collections.delete(collection.id)
+          .collections.delete(slug(), collection.id)
           .catch(() => undefined);
       }
     });
@@ -66,15 +62,15 @@ maybe("v2 collections (live)", () => {
 
   describe("members", () => {
     it("lists members as a raw array and manages membership", async () => {
-      const collection = await wiki().collections.create({
+      const collection = await wiki().collections.create(slug(), {
         name: uniqueName("collection-members"),
       });
       try {
-        const members = await wiki().collections.members.list(collection.id);
+        const members = await wiki().collections.members.list(slug(), collection.id);
         expect(Array.isArray(members)).toBe(true);
       } finally {
         await wiki()
-          .collections.delete(collection.id)
+          .collections.delete(slug(), collection.id)
           .catch(() => undefined);
       }
     });

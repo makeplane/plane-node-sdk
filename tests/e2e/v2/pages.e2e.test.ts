@@ -11,8 +11,12 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 pages (live)", () => {
   const suite = useV2Project("pages", env);
 
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
-  const proj = () => ws().project(suite.projectId);
+  // Project pages navigated off the fetched project row; the wiki (workspace) pages flat,
+  // because `wiki` is a grouping node — it consumes no path id of its own, so it is never
+  // a navigation property on a row and its children each take the slug themselves.
+  const wiki = () => suite.client.v2.workspaces.wiki;
+  const slug = () => suite.workspaceSlug;
+  const proj = () => suite.projectRow;
 
   /** Archive (PATCH archived_at + is_locked: false), then delete — the server-mandated order. */
   async function archiveAndDelete(pageId: string): Promise<void> {
@@ -25,11 +29,11 @@ maybe("v2 pages (live)", () => {
 
   /** Workspace-path equivalent of {@link archiveAndDelete}. */
   async function archiveAndDeleteWorkspace(pageId: string): Promise<void> {
-    await ws().wiki.pages.update(pageId, {
+    await wiki().pages.update(slug(), pageId, {
       archived_at: new Date().toISOString(),
       is_locked: false,
     });
-    await ws().wiki.pages.delete(pageId);
+    await wiki().pages.delete(slug(), pageId);
   }
 
   describe("project-scoped", () => {
@@ -71,13 +75,13 @@ maybe("v2 pages (live)", () => {
   describe("workspace-scoped", () => {
     it("creates, retrieves, updates, deletes at the workspace path", async () => {
       const name = uniqueName("wpage");
-      const created = await ws().wiki.pages.create({ name });
+      const created = await wiki().pages.create(slug(), { name });
       expect(created.name).toBe(name);
 
-      const fetched = await ws().wiki.pages.retrieve(created.id);
+      const fetched = await wiki().pages.retrieve(slug(), created.id);
       expect(fetched.id).toBe(created.id);
 
-      const updated = await ws().wiki.pages.update(created.id, {
+      const updated = await wiki().pages.update(slug(), created.id, {
         name: `${name}-renamed`,
       });
       expect(updated.name).toBe(`${name}-renamed`);
@@ -90,7 +94,7 @@ maybe("v2 pages (live)", () => {
         name: uniqueName("page-not-in-ws-list"),
       });
       try {
-        const page = await ws().wiki.pages.list();
+        const page = await wiki().pages.list(slug());
         expect(page.data.some((p) => p.id === created.id)).toBe(false);
       } finally {
         await archiveAndDelete(created.id).catch(() => undefined);
@@ -98,11 +102,11 @@ maybe("v2 pages (live)", () => {
     });
 
     it("does include a page created at the workspace path", async () => {
-      const created = await ws().wiki.pages.create({
+      const created = await wiki().pages.create(slug(), {
         name: uniqueName("page-in-ws-list"),
       });
       try {
-        const page = await ws().wiki.pages.list();
+        const page = await wiki().pages.list(slug());
         expect(page.data.some((p) => p.id === created.id)).toBe(true);
       } finally {
         await archiveAndDeleteWorkspace(created.id).catch(() => undefined);

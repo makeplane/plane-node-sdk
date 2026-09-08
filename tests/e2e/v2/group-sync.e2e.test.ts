@@ -10,11 +10,14 @@ const maybe = env.ready ? describe : describe.skip;
 
 maybe("GroupSync (v2, live)", () => {
   const suite = useV2Project("groupsync", env);
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
+  // Flat: `groupSync` is a grouping node — it consumes no path id itself, so it is never
+  // a navigation property on a row and each child takes the slug per call.
+  const groupSync = () => suite.client.v2.workspaces.groupSync;
+  const slug = () => suite.workspaceSlug;
 
   it("reads the workspace config singleton", async () => {
     try {
-      const config = await ws().groupSync.config.get();
+      const config = await groupSync().config.get(slug());
       expect(config.id).toBeTruthy();
     } catch (error) {
       if (error instanceof PlaneApiError && error.status === 402) return; // feature not enabled — expected on some plans
@@ -25,17 +28,17 @@ maybe("GroupSync (v2, live)", () => {
   it("creates, retrieves, updates, then deletes a project mapping", async () => {
     let createdId: string | undefined;
     try {
-      const created = await ws().groupSync.projectMappings.create({
+      const created = await groupSync().projectMappings.create(slug(), {
         idp_group_name: `sdk-e2e-${Date.now()}`,
         role_slug: "member",
         project_id: suite.projectId,
       });
       createdId = created.id;
 
-      const retrieved = await ws().groupSync.projectMappings.retrieve(created.id);
+      const retrieved = await groupSync().projectMappings.retrieve(slug(), created.id);
       expect(retrieved.project_id).toBe(suite.projectId);
 
-      const updated = await ws().groupSync.projectMappings.update(created.id, {
+      const updated = await groupSync().projectMappings.update(slug(), created.id, {
         role_slug: "admin",
       });
       expect(updated.role_slug).toBe("admin");
@@ -44,8 +47,8 @@ maybe("GroupSync (v2, live)", () => {
       throw error;
     } finally {
       if (createdId) {
-        await ws()
-          .groupSync.projectMappings.delete(createdId)
+        await groupSync()
+          .projectMappings.delete(slug(), createdId)
           .catch(() => undefined);
       }
     }
@@ -55,13 +58,13 @@ maybe("GroupSync (v2, live)", () => {
     let createdId: string | undefined;
     try {
       const idpGroupName = `sdk-e2e-ws-${Date.now()}`;
-      const created = await ws().groupSync.workspaceMappings.create({
+      const created = await groupSync().workspaceMappings.create(slug(), {
         idp_group_name: idpGroupName,
         role_slug: "member",
       });
       createdId = created.id;
 
-      const page = await ws().groupSync.workspaceMappings.list({
+      const page = await groupSync().workspaceMappings.list(slug(), {
         search: idpGroupName,
       });
       expect(page.data.some((mapping) => mapping.id === created.id)).toBe(true);
@@ -70,8 +73,8 @@ maybe("GroupSync (v2, live)", () => {
       throw error;
     } finally {
       if (createdId) {
-        await ws()
-          .groupSync.workspaceMappings.delete(createdId)
+        await groupSync()
+          .workspaceMappings.delete(slug(), createdId)
           .catch(() => undefined);
       }
     }
