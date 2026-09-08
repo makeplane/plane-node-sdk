@@ -78,11 +78,19 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
 
   /** Put catalog labels on a release (1..100 ids); resolves to the ids actually added. */
   add(releaseId: string, labelIds: readonly string[]): Promise<string[]> {
-    return this.doBridgeAt(this.urlFor(RELEASE_LABELS_BRIDGE_PATH, { release_id: releaseId }), "add", labelIds);
+    return this.doBridgeAt(
+      this.urlForTemplate(RELEASE_LABELS_BRIDGE_PATH, "add", { release_id: releaseId }),
+      "add",
+      labelIds
+    );
   }
 
   /** Take labels off a release (1..100 ids); the catalog entries stay. Resolves to the ids actually removed. */
   remove(releaseId: string, labelIds: readonly string[]): Promise<string[]> {
-    return this.doBridgeAt(this.urlFor(RELEASE_LABELS_BRIDGE_PATH, { release_id: releaseId }), "remove", labelIds);
+    return this.doBridgeAt(
+      this.urlForTemplate(RELEASE_LABELS_BRIDGE_PATH, "remove", { release_id: releaseId }),
+      "remove",
+      labelIds
+    );
   }
 }

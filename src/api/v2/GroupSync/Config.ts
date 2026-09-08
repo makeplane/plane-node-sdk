@@ -13,10 +13,10 @@ export class GroupSyncConfigResource extends V2Resource<GroupSyncConfig, never, 
   // `async` is required: `urlFor` throws synchronously, and a non-async method
   // returning the transport promise directly would let that escape as a throw.
   async get(): Promise<GroupSyncConfig> {
-    return this.transport.request<GroupSyncConfig>("GET", this.urlFor(this.path, {}));
+    return this.transport.request<GroupSyncConfig>("GET", this.urlFor("get", {}));
   }
 
   async update(data: UpdateGroupSyncConfig): Promise<GroupSyncConfig> {
-    return this.transport.request<GroupSyncConfig>("PATCH", this.urlFor(this.path, {}), { data });
+    return this.transport.request<GroupSyncConfig>("PATCH", this.urlFor("update", {}), { data });
   }
 }

@@ -42,7 +42,7 @@ export class WorkspaceWorkItems extends V2Resource<WorkItem, never, never> {
     params?: { fields?: readonly WorkItemField[]; expand?: readonly WorkItemExpand[] }
   ): Promise<WorkItem> {
     return this.doRetrieveAt(
-      this.urlFor(WORKSPACE_WORK_ITEM_BY_IDENTIFIER_PATH, { identifier }),
+      this.urlForTemplate(WORKSPACE_WORK_ITEM_BY_IDENTIFIER_PATH, "retrieveByIdentifier", { identifier }),
       "retrieveByIdentifier",
       params as Record<string, unknown>
     );

@@ -1,3 +1,4 @@
+import { MissingPathIdError } from "../../../errors/MissingPathIdError";
 import { MultipleMatchesFoundError, NoMatchFoundError } from "../../../errors/PlaneApiError";
 import { BridgeRequest, BridgeResponse } from "../../../models/v2/Bridge";
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../models/v2/common";
@@ -56,37 +57,96 @@ export function encodeExpand(operationId: AnyOperationId, values: readonly strin
   return values.join(",");
 }
 
-/** Base for every api_v2 resource. `scope` holds path placeholders a locator already bound. */
+/**
+ * Base for every api_v2 resource.
+ *
+ * A resource holds no bound scope of its own: it is constructed with the transport
+ * alone and every method takes the ids its URL template names as leading positional
+ * parameters, in path order (`states.retrieve(slug, project, state)`). Ids reach the
+ * kernel keyed by the template placeholder they fill (`{ slug, project_id: project }`),
+ * plus the pseudo-key `pk` for the row's own primary key, which the kernel appends to
+ * the collection URL rather than substituting.
+ */
 export abstract class V2Resource<TRead, TWrite, TPatch> {
   protected abstract path: string;
+  /**
+   * Per-method override templates: a method whose URL is not built from `path`.
+   *
+   * A catalog resource bridges `add`/`remove` at its parent's URL
+   * (`.../releases/{release_id}/labels/`, not its own `.../releases/labels/`); a report
+   * hangs off a sibling collection (`Projects.roleDistribution`). Keyed by method name,
+   * so `urlFor(action, ids)` makes the same choice at call time that the sweeps make
+   * when they check that method's leading parameters.
+   */
+  protected extraPaths: Record<string, string> = {};
   // `AnyOperationId`, not bare `string`: a typo'd operation id is a compile error
   // instead of silently disabling field/order_by validation for that action.
   protected abstract operations: Record<string, AnyOperationId>;
 
-  /** @param scope Path placeholders already bound by a locator (`{ slug }`, `{ slug, project_id }`). */
+  /**
+   * @param scope **Retired.** The pre-flat mechanism: path placeholders a locator bound
+   * once (`{ slug }`, `{ slug, project_id }`) so methods could omit them. Migrated
+   * resources pass nothing and take their ids per call; it survives only so the
+   * not-yet-migrated classes keep working mid-migration, and the last task of the
+   * variant-F plan deletes it along with the `Workspace`/`Project` locators. Do not use
+   * it in new code — `tests/unit/v2/pathIdNaming.test.ts` sweeps for the flat shape.
+   */
   constructor(
     protected transport: V2Transport,
     protected scope: Record<string, string> = {}
   ) {}
 
-  protected collectionUrl(pathParams: Record<string, string>): string {
-    return this.urlFor(this.path, pathParams);
-  }
-
-  /** Build a URL from an arbitrary template — an escape hatch for cross-family-shaped operations. */
-  protected urlFor(template: string, pathParams: Record<string, string>): string {
+  /**
+   * Fill `template` from `pathParams` (and any retired `scope`), percent-encoding each
+   * value so an id can never inject extra URL segments.
+   *
+   * `action` is the calling method's name and only feeds the error: a template key with
+   * no value behind it raises {@link MissingPathIdError}, which names the resource, the
+   * method, the template, the missing id and the ids that were supplied. An empty
+   * string counts as missing — it would otherwise build `/projects//states/`, a
+   * well-formed URL pointing at the wrong thing.
+   */
+  protected formatPath(template: string, action: string, pathParams: Record<string, string>): string {
     const merged = { ...this.scope, ...pathParams };
     return template.replace(/\{(\w+)\}/g, (_match, key: string) => {
       const value = merged[key];
-      if (value === undefined) throw new Error(`Missing path parameter '${key}' for ${template}`);
+      if (value === undefined || value === null || value === "") {
+        const supplied = Object.entries(merged)
+          .filter(([, candidate]) => candidate !== undefined && candidate !== null && candidate !== "")
+          .map(([name]) => name)
+          .sort();
+        throw new MissingPathIdError(this.constructor.name, action, template, key, supplied);
+      }
       return encodeURIComponent(value);
     });
   }
 
-  protected detailUrl(pathParams: Record<string, string>): string {
+  /** The URL for `action`: its {@link extraPaths} override if it declares one, else `path`. */
+  protected urlFor(action: string, pathParams: Record<string, string>): string {
+    return this.formatPath(this.extraPaths[action] ?? this.path, action, pathParams);
+  }
+
+  /** Build a URL from an arbitrary template — an escape hatch for cross-family-shaped operations. */
+  protected urlForTemplate(template: string, action: string, pathParams: Record<string, string>): string {
+    return this.formatPath(template, action, pathParams);
+  }
+
+  protected collectionUrl(pathParams: Record<string, string>, action = "<call>"): string {
+    return this.formatPath(this.path, action, pathParams);
+  }
+
+  protected detailUrl(pathParams: Record<string, string>, action = "<call>"): string {
     const { pk } = pathParams;
-    if (!pk) throw new Error(`Missing path parameter 'pk' for ${this.path}`);
-    return `${this.collectionUrl(pathParams)}${encodeURIComponent(pk)}/`;
+    if (pk === undefined || pk === null || pk === "") {
+      throw new MissingPathIdError(
+        this.constructor.name,
+        action,
+        `${this.path}{pk}/`,
+        "pk",
+        Object.keys(pathParams).sort()
+      );
+    }
+    return `${this.collectionUrl(pathParams, action)}${encodeURIComponent(pk)}/`;
   }
 
   /** The operation id for `action`, or throw — shared by the `fields` and `order_by` validators below. */
@@ -126,7 +186,7 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
   // method would throw before constructing a promise, breaking `.rejects.toThrow()`.
 
   protected async doList(pathParams: Record<string, string>, params?: Record<string, unknown>): Promise<Page<TRead>> {
-    return this.transport.request<Page<TRead>>("GET", this.collectionUrl(pathParams), {
+    return this.transport.request<Page<TRead>>("GET", this.collectionUrl(pathParams, "list"), {
       params: this.query(params, "list"),
     });
   }
@@ -137,14 +197,14 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     pathParams: Record<string, string>,
     params?: Record<string, unknown>
   ): AsyncGenerator<TRead> {
-    const url = this.collectionUrl(pathParams);
+    const url = this.collectionUrl(pathParams, "iterate");
     const fetch = (query: Record<string, unknown>) =>
       this.transport.request<Page<TRead>>("GET", url, { params: query });
     yield* iterate(fetch, this.query(params, "list"));
   }
 
   protected async doRetrieve(pathParams: Record<string, string>, params?: Record<string, unknown>): Promise<TRead> {
-    return this.transport.request<TRead>("GET", this.detailUrl(pathParams), {
+    return this.transport.request<TRead>("GET", this.detailUrl(pathParams, "retrieve"), {
       params: this.query(params, "retrieve"),
     });
   }
@@ -171,7 +231,7 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     pathParams: Record<string, string>,
     params?: Record<string, unknown>
   ): Promise<TRead> {
-    return this.transport.request<TRead>("POST", this.collectionUrl(pathParams), {
+    return this.transport.request<TRead>("POST", this.collectionUrl(pathParams, "create"), {
       params: this.query(params, "create"),
       data,
     });
@@ -182,14 +242,14 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     pathParams: Record<string, string>,
     params?: Record<string, unknown>
   ): Promise<TRead> {
-    return this.transport.request<TRead>("PATCH", this.detailUrl(pathParams), {
+    return this.transport.request<TRead>("PATCH", this.detailUrl(pathParams, "update"), {
       params: this.query(params, "update"),
       data,
     });
   }
 
   protected async doDelete(pathParams: Record<string, string>): Promise<void> {
-    await this.transport.request<void>("DELETE", this.detailUrl(pathParams));
+    await this.transport.request<void>("DELETE", this.detailUrl(pathParams, "delete"));
   }
 
   /** POST a custom verb action on a detail row — `{pk}/{action}/`, e.g. `.../archive/`. */
@@ -198,7 +258,7 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     pathParams: Record<string, string>,
     params?: Record<string, unknown>
   ): Promise<TResult> {
-    return this.transport.request<TResult>("POST", `${this.detailUrl(pathParams)}${action}/`, {
+    return this.transport.request<TResult>("POST", `${this.detailUrl(pathParams, action)}${action}/`, {
       params: this.query(params, action),
     });
   }
@@ -209,10 +269,81 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     pathParams: Record<string, string>,
     params?: Record<string, unknown>
   ): Promise<TRead> {
-    return this.transport.request<TRead>("POST", `${this.collectionUrl(pathParams)}upsert/`, {
+    return this.transport.request<TRead>("POST", `${this.collectionUrl(pathParams, "upsert")}upsert/`, {
       params: this.query(params, "upsert"),
       data,
     });
+  }
+
+  /**
+   * GET a route whose row *is* the collection — a workspace (the slug is the key), a
+   * feature-toggle set, a group-sync config. There is no pk to append, so this goes
+   * through {@link urlFor} (honouring any `extraPaths` override) rather than `detailUrl`.
+   */
+  protected async doRetrieveSingleton<TResult = TRead>(
+    pathParams: Record<string, string>,
+    action = "retrieve",
+    params?: Record<string, unknown>
+  ): Promise<TResult> {
+    return this.transport.request<TResult>("GET", this.urlFor(action, pathParams), {
+      params: this.query(params, action),
+    });
+  }
+
+  /** PATCH the counterpart of {@link doRetrieveSingleton}. */
+  protected async doUpdateSingleton<TResult = TRead>(
+    data: unknown,
+    pathParams: Record<string, string>,
+    action = "update",
+    params?: Record<string, unknown>
+  ): Promise<TResult> {
+    return this.transport.request<TResult>("PATCH", this.urlFor(action, pathParams), {
+      params: this.query(params, action),
+      data,
+    });
+  }
+
+  /**
+   * A custom action whose *response envelope* is not this resource's own row, so
+   * {@link doAction} cannot type it — a summary, a bulk envelope, a presigned upload, a
+   * report.
+   *
+   * Two URL shapes, matching the two that occur. With `pk`, the verb hangs off a row
+   * (`{detailUrl}{action}/`, exactly `doAction`'s URL); without it, the action has a
+   * template of its own and goes through {@link urlFor}, which fills its `extraPaths`
+   * override or falls back to `path`. Either way `action` keys `operations`, so the
+   * query string is validated against the golden like any other call.
+   *
+   * Prefer `doAction` whenever the response *is* a row of this resource; this is only
+   * for the envelopes that are not — it exists so those stop being hand-rolled
+   * `transport.request` blocks, one per resource.
+   */
+  protected async doCustomAction<TResult>(
+    action: string,
+    options: {
+      method?: string;
+      pathParams?: Record<string, string>;
+      /** Set when the verb hangs off a row: the URL becomes `{detailUrl}{action}/`. */
+      pk?: string;
+      data?: unknown;
+      params?: Record<string, unknown>;
+      /** Append `{action}/` to the collection URL instead of overriding the template. */
+      onCollection?: boolean;
+    } = {}
+  ): Promise<TResult> {
+    const { method = "POST", pathParams = {}, pk, data, params, onCollection = false } = options;
+    const url =
+      pk !== undefined
+        ? `${this.detailUrl({ ...pathParams, pk }, action)}${action}/`
+        : onCollection
+          ? `${this.collectionUrl(pathParams, action)}${action}/`
+          : this.urlFor(action, pathParams);
+    return this.transport.request<TResult>(method, url, { params: this.query(params, action), data });
+  }
+
+  /** POST a single-row verb action that answers 204 with no body — the no-response-model twin of {@link doAction}. */
+  protected async doVoidAction(action: string, pathParams: Record<string, string>, data?: unknown): Promise<void> {
+    await this.transport.request<void>("POST", `${this.detailUrl(pathParams, action)}${action}/`, { data });
   }
 
   // An empty batch is a client-side error (the API requires `minItems: 1`), rejected
@@ -227,7 +358,7 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
   }
 
   private async batch(action: string, body: unknown, pathParams: Record<string, string>): Promise<BulkWriteResponse> {
-    return this.transport.request<BulkWriteResponse>("POST", `${this.collectionUrl(pathParams)}${action}/`, {
+    return this.transport.request<BulkWriteResponse>("POST", `${this.collectionUrl(pathParams, action)}${action}/`, {
       data: body,
     });
   }
@@ -284,7 +415,7 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     items: readonly TItem[],
     pathParams: Record<string, string>
   ): Promise<string[]> {
-    return this.doBridgeAt(this.collectionUrl(pathParams), verb, items);
+    return this.doBridgeAt(this.urlFor(verb, pathParams), verb, items);
   }
 
   /** Resolve exactly one row by identity filter, or throw; asks for two to detect ambiguity. */

@@ -2,6 +2,7 @@ import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
 import { OperationId, V2Resource } from "../../../src/api/v2/kernel/resource";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
+import { MissingPathIdError } from "../../../src/errors/MissingPathIdError";
 import { PlaneError } from "../../../src/errors/PlaneError";
 
 const BASE = "https://api.example.com";
@@ -207,7 +208,7 @@ describe("V2Resource", () => {
     await expect(rows.archive("acme", "ENG", "abc", { fields: ["nope"] })).rejects.toThrow(/nope/);
   });
 
-  it("supports an alternate path template via urlFor/doListAt/doRetrieveAt/doIterateAt", async () => {
+  it("supports an alternate path template via urlForTemplate/doListAt/doRetrieveAt/doIterateAt", async () => {
     class WorkItemRows extends V2Resource<Row, { name: string }, { name?: string }> {
       protected path = "/workspaces/{slug}/projects/{project_id}/work-items/";
       protected operations: Record<string, OperationId> = {
@@ -216,12 +217,23 @@ describe("V2Resource", () => {
       };
 
       listWorkspace = (slug: string, params?: Record<string, unknown>) =>
-        this.doListAt(this.urlFor("/workspaces/{slug}/work-items/", { slug }), "listWorkspace", params);
+        this.doListAt(
+          this.urlForTemplate("/workspaces/{slug}/work-items/", "listWorkspace", { slug }),
+          "listWorkspace",
+          params
+        );
       iterateWorkspace = (slug: string, params?: Record<string, unknown>) =>
-        this.doIterateAt(this.urlFor("/workspaces/{slug}/work-items/", { slug }), "listWorkspace", params);
+        this.doIterateAt(
+          this.urlForTemplate("/workspaces/{slug}/work-items/", "listWorkspace", { slug }),
+          "listWorkspace",
+          params
+        );
       retrieveByIdentifier = (slug: string, identifier: string, params?: Record<string, unknown>) =>
         this.doRetrieveAt(
-          this.urlFor("/workspaces/{slug}/work-items/{identifier}/", { slug, identifier }),
+          this.urlForTemplate("/workspaces/{slug}/work-items/{identifier}/", "retrieveByIdentifier", {
+            slug,
+            identifier,
+          }),
           "retrieveByIdentifier",
           params
         );
@@ -340,15 +352,80 @@ describe("V2Resource", () => {
 
     const rows = new Incomplete(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
-    await expect(rows.listMissingSlug()).rejects.toThrow(/Missing path parameter 'slug'/);
-    await expect(rows.retrieveMissingPk()).rejects.toThrow(/Missing path parameter 'pk'/);
+    await expect(rows.listMissingSlug()).rejects.toThrow(MissingPathIdError);
+    await expect(rows.listMissingSlug()).rejects.toThrow(/needs the path id 'slug'/);
+    await expect(rows.retrieveMissingPk()).rejects.toThrow(/needs the path id 'pk'/);
 
     // Pins that doCreate/doUpdate/doDelete/doUpsert stay `async` (see doList at
     // :77-81) so a synchronous throw from collectionUrl/detailUrl rejects instead
     // of escaping the call synchronously.
-    await expect(rows.createMissingProjectId()).rejects.toThrow(/Missing path parameter 'project_id'/);
-    await expect(rows.updateMissingPk()).rejects.toThrow(/Missing path parameter 'pk'/);
-    await expect(rows.deleteMissingPk()).rejects.toThrow(/Missing path parameter 'pk'/);
-    await expect(rows.upsertMissingSlug()).rejects.toThrow(/Missing path parameter 'slug'/);
+    await expect(rows.createMissingProjectId()).rejects.toThrow(/needs the path id 'project_id'/);
+    await expect(rows.updateMissingPk()).rejects.toThrow(/needs the path id 'pk'/);
+    await expect(rows.deleteMissingPk()).rejects.toThrow(/needs the path id 'pk'/);
+    await expect(rows.upsertMissingSlug()).rejects.toThrow(/needs the path id 'slug'/);
+  });
+
+  it("names the resource, the method, the template and the ids that were supplied", async () => {
+    class Incomplete extends V2Resource<Row, { name: string }, { name?: string }> {
+      protected path = "/workspaces/{slug}/projects/{project_id}/states/";
+      protected operations: Record<string, OperationId> = { list: "states_list" };
+
+      list = (slug: string) => this.doList({ slug });
+    }
+
+    const rows = new Incomplete(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+    let error!: MissingPathIdError;
+    try {
+      await rows.list("acme");
+    } catch (caught) {
+      error = caught as MissingPathIdError;
+    }
+
+    expect(error).toBeInstanceOf(MissingPathIdError);
+    expect(error.resource).toBe("Incomplete");
+    expect(error.action).toBe("list");
+    expect(error.template).toBe("/workspaces/{slug}/projects/{project_id}/states/");
+    expect(error.missing).toBe("project_id");
+    expect(error.supplied).toEqual(["slug"]);
+    expect(error.message).toContain("Incomplete.list() needs the path id 'project_id'");
+    expect(error.message).toContain("ids supplied: slug");
+  });
+
+  it("treats an empty path id as missing rather than building a URL with a hole in it", async () => {
+    class Rows2 extends V2Resource<Row, { name: string }, { name?: string }> {
+      protected path = "/workspaces/{slug}/projects/{project_id}/states/";
+      protected operations: Record<string, OperationId> = { list: "states_list" };
+
+      list = (slug: string, project: string) => this.doList({ slug, project_id: project });
+    }
+
+    const rows = new Rows2(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+
+    await expect(rows.list("acme", "")).rejects.toThrow(/needs the path id 'project_id'/);
+  });
+
+  it("routes a method with an `extraPaths` override to its own template", async () => {
+    class Reports extends V2Resource<Row, never, never> {
+      protected path = "/workspaces/{slug}/projects/";
+      protected extraPaths = { distribution: "/workspaces/{slug}/project-role-distribution/" };
+      protected operations: Record<string, OperationId> = { list: "projects_list" };
+
+      distribution = (slug: string) =>
+        this.doCustomAction<{ ok: boolean }>("distribution", {
+          method: "GET",
+          pathParams: { slug },
+        });
+      collection = (slug: string) => this.collectionUrl({ slug }, "list");
+      overridden = (slug: string) => this.urlFor("distribution", { slug });
+    }
+
+    const reports = new Reports(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
+    const scope = nock(BASE).get("/api/v2/workspaces/acme/project-role-distribution/").reply(200, { ok: true });
+
+    expect(await reports.distribution("acme")).toEqual({ ok: true });
+    expect(scope.isDone()).toBe(true);
+    // A method with no override still resolves to `path`.
+    expect(reports.collection("acme")).toBe("/workspaces/acme/projects/");
+    expect(reports.overridden("acme")).toBe("/workspaces/acme/project-role-distribution/");
   });
 });

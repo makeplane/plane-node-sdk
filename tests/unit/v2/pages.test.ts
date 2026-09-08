@@ -67,7 +67,7 @@ describe("ProjectPages (v2, project-scoped)", () => {
   it("throws a clear error when constructed with no scope", async () => {
     const pages = new ProjectPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
-    await expect(pages.list()).rejects.toThrow(/Missing path parameter 'slug'/);
+    await expect(pages.list()).rejects.toThrow(/needs the path id 'slug'/);
   });
 
   describe("findByName()", () => {

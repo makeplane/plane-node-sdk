@@ -75,7 +75,7 @@ export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiati
   /** Put catalog labels on an initiative (1..100 ids); resolves to the ids actually added. */
   add(initiativeId: string, labelIds: readonly string[]): Promise<string[]> {
     return this.doBridgeAt(
-      this.urlFor(INITIATIVE_LABELS_BRIDGE_PATH, { initiative_id: initiativeId }),
+      this.urlForTemplate(INITIATIVE_LABELS_BRIDGE_PATH, "add", { initiative_id: initiativeId }),
       "add",
       labelIds
     );
@@ -84,7 +84,7 @@ export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiati
   /** Take labels off an initiative (1..100 ids); the catalog entries stay. Resolves to the ids actually removed. */
   remove(initiativeId: string, labelIds: readonly string[]): Promise<string[]> {
     return this.doBridgeAt(
-      this.urlFor(INITIATIVE_LABELS_BRIDGE_PATH, { initiative_id: initiativeId }),
+      this.urlForTemplate(INITIATIVE_LABELS_BRIDGE_PATH, "remove", { initiative_id: initiativeId }),
       "remove",
       labelIds
     );

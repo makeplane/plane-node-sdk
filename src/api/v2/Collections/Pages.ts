@@ -31,8 +31,12 @@ export class CollectionPages extends V2Resource<never, never, never> {
     collectionId: string,
     params?: { fields?: readonly CollectionPageSearchField[]; search?: string }
   ): Promise<CollectionPageSearch[]> {
-    return this.transport.request<CollectionPageSearch[]>("GET", this.urlFor(PAGES_SEARCH_PATH, { pk: collectionId }), {
-      params: this.query(params as Record<string, unknown>, "search"),
-    });
+    return this.transport.request<CollectionPageSearch[]>(
+      "GET",
+      this.urlForTemplate(PAGES_SEARCH_PATH, "search", { pk: collectionId }),
+      {
+        params: this.query(params as Record<string, unknown>, "search"),
+      }
+    );
   }
 }
