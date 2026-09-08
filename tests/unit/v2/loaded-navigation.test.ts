@@ -61,11 +61,14 @@ import {
  * `options` on both work-item-property classes is the inlined choice list of an
  * OPTION-typed property. The Python SDK needed the identical three renames on the
  * identical three resources.
+ *
+ * Keyed `<module>#<Class>`, not by bare class name — `Comments` and `Links` each name two
+ * different resources, and a name-keyed entry would apply to both of a pair.
  */
 export const NAVIGATION_ALIASES: Readonly<Record<string, Record<string, string>>> = {
-  Estimates: { points: "estimatePoints" },
-  WorkItemProperties: { options: "propertyOptions" },
-  WorkspaceWorkItemProperties: { options: "propertyOptions" },
+  "Estimates/index#Estimates": { points: "estimatePoints" },
+  "WorkItemProperties/index#WorkItemProperties": { options: "propertyOptions" },
+  "WorkspaceWorkItemProperties/index#WorkspaceWorkItemProperties": { options: "propertyOptions" },
 };
 
 /**
@@ -96,18 +99,27 @@ export const NAVIGATION_ALIASES: Readonly<Record<string, Record<string, string>>
  * that is the mistake this ratchet exists to make impossible.
  */
 export const CATALOG_SIBLINGS: Readonly<Record<string, string>> = {
-  "Releases.labels":
+  "Releases/index#Releases.labels":
     "`ReleaseLabels` is one class holding two routes: the workspace-level label catalog " +
     "(`/releases/labels/`, binds `slug` alone) and the per-release bridge " +
     "(`/releases/{release_id}/labels/`, binds both). A fetched release binds the bridge; " +
     "the catalog is reached flat as `v2.workspaces.releases.labels.list(slug)`",
-  "Initiatives.labels":
+  "Initiatives/index#Initiatives.labels":
     "`InitiativeLabels` has the identical two-route shape as `Releases.labels` — a " +
     "workspace-level catalog at `/initiatives/labels/` plus a per-initiative bridge at " +
     "`/initiatives/{initiative_id}/labels/` — and the same split applies",
 };
 
 const NAVIGABLE = navigableEntries();
+
+/**
+ * Every (parent, child, grandchild) triple the grandchild-refusal assertion visited.
+ *
+ * A module-level accumulator, checked in the last block: the assertion runs inside
+ * `describe.each`, so without this a tree that suddenly had no two-level nesting at all
+ * would pass every per-entry run by finding nothing to check.
+ */
+const grandchildTriples: string[] = [];
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
@@ -131,8 +143,8 @@ function rowOf(resource: AnyResource): Record<string, unknown> {
  * shape here turns that refusal into a sweep: the collision fails in CI instead of silently
  * hiding the field behind a child resource at runtime.
  *
- * **Two sources, not one.** `FIELDS` is what the row carries by default, and `EXPAND` is
- * what `?expand=` adds to it under the relation's own name — and the expand names are where
+ * **Two sources and every operation.** `FIELDS` is what the row carries by default, and
+ * `EXPAND` is what `?expand=` adds to it under the relation's own name — and the expand names are where
  * the collisions actually are. `Estimate.points` is not in `FIELDS.estimates_list` at all;
  * it exists only as `EXPAND.estimates_list`, the inline point scale the server returns when
  * asked. A `FIELDS`-only version of this row passes while `estimates.retrieve(…, { expand:
@@ -151,9 +163,14 @@ function fullRowOf(resource: AnyResource): Record<string, unknown> {
   const own = ids[ids.length - 1];
 
   const row: Record<string, unknown> = {};
-  for (const action of ["retrieve", "list"]) {
-    const operationId = operations[action];
-    if (operationId === undefined) continue;
+  // **Every** operation, not `retrieve`/`list`. A field that only a `create`, `upsert` or
+  // custom-action response carries is still a field a navigation property can define over,
+  // and it is exactly the kind that gets missed: `Webhooks.create`'s `secret_key` is in
+  // `FIELDS.webhooks_create` and in no list or retrieve operation at all. A two-operation
+  // version of this row passes CI while the first call to the third operation throws in
+  // the consumer's hands. Enumerating the `operations` map costs nothing and cannot be
+  // narrower than the class itself is.
+  for (const operationId of Object.values(operations)) {
     for (const table of tables) {
       for (const key of table[operationId] ?? []) {
         // `all` is the golden's "no projection" sentinel, not a field name.
@@ -206,7 +223,7 @@ describe("loaded navigation", () => {
     // for `Parent.attribute` where no such attachment exists describes nothing.
     const attachments = new Set(
       migratedEntries().flatMap((candidate) =>
-        [...childResources(instantiate(candidate)).keys()].map((attribute) => `${candidate.name}.${attribute}`)
+        [...childResources(instantiate(candidate)).keys()].map((attribute) => `${candidate.key}.${attribute}`)
       )
     );
 
@@ -251,7 +268,7 @@ describe("loaded navigation", () => {
 describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key, entry) => {
   it("exposes exactly one navigation property per migrated child it attaches", () => {
     const resource = instantiate(entry);
-    const aliases = NAVIGATION_ALIASES[entry.name] ?? {};
+    const aliases = NAVIGATION_ALIASES[entry.key] ?? {};
     const expected = [...migratedChildren(resource).keys()].map((name) => aliases[name] ?? name).sort();
 
     expect(navigationProperties(rowOf(resource))).toEqual(expected);
@@ -259,7 +276,7 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
 
   it("wraps its own child behind each property, as an owned view rather than the bare resource", () => {
     const resource = instantiate(entry);
-    const aliases = NAVIGATION_ALIASES[entry.name] ?? {};
+    const aliases = NAVIGATION_ALIASES[entry.key] ?? {};
     const row = rowOf(resource);
 
     for (const [attribute, child] of migratedChildren(resource)) {
@@ -288,7 +305,7 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     const offenders: string[] = [];
 
     for (const [attribute, child] of migratedChildren(resource)) {
-      if (`${entry.name}.${attribute}` in CATALOG_SIBLINGS) continue;
+      if (`${entry.key}.${attribute}` in CATALOG_SIBLINGS) continue;
       const childEntry = entryOf(child);
       if (childEntry === undefined) continue;
       for (const method of publicMethods(childEntry)) {
@@ -317,7 +334,7 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     const unreasoned: string[] = [];
 
     for (const [attribute, child] of children) {
-      const qualified = `${entry.name}.${attribute}`;
+      const qualified = `${entry.key}.${attribute}`;
       if (!(qualified in CATALOG_SIBLINGS)) continue;
       const childEntry = entryOf(child);
       if (childEntry === undefined) continue;
@@ -347,6 +364,66 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     expect(() => fullRowOf(resource)).not.toThrow();
   });
 
+  it("refuses a grandchild reached through the view, naming both routes it could take", () => {
+    // The Python SDK's `Owned.__getattr__` answered a *sub-resource* here — unbound, with
+    // the ids the row already held silently dropped — so `project.estimates.points` meant
+    // one thing at three arguments and another at one. Node's `Owned` is a mapped type
+    // that drops every non-callable member, so the expression does not type-check and the
+    // view has no such property; what it used to hand a JavaScript consumer was
+    // `undefined`, and then `Cannot read properties of undefined (reading 'list')` one
+    // frame away from the cause.
+    //
+    // Enumerated, not sampled: every (parent, child, grandchild) triple the tree actually
+    // has. The floor below is what stops this passing by finding no triples at all.
+    const resource = instantiate(entry);
+    const aliases = NAVIGATION_ALIASES[entry.key] ?? {};
+    const row = rowOf(resource);
+    const triples: string[] = [];
+    const offenders: string[] = [];
+
+    for (const [attribute, child] of migratedChildren(resource)) {
+      const view = row[aliases[attribute] ?? attribute] as Record<string, unknown>;
+      for (const [grandchild] of childResources(child)) {
+        triples.push(`${entry.name}.${attribute}.${grandchild}`);
+        // Still absent from the view's own keys, so `Object.keys`/spread are unchanged.
+        if (Object.keys(view).includes(grandchild)) {
+          offenders.push(`${entry.name}.${attribute}.${grandchild} is an enumerable key of the owned view`);
+          continue;
+        }
+        let thrown: unknown;
+        let returned: unknown;
+        try {
+          returned = view[grandchild];
+        } catch (error) {
+          thrown = error;
+        }
+        if (!(thrown instanceof TypeError)) {
+          // Naming *what* came back is the difference between the two ways this rots:
+          // `undefined` is the refusal simply missing, and a `V2Resource` is the Python
+          // defect — a sub-resource handed back unbound, working at one arity by accident.
+          const answered =
+            thrown !== undefined
+              ? `threw ${String(thrown)}`
+              : `answered ${returned === undefined ? "undefined" : (returned as object).constructor.name}`;
+          offenders.push(
+            `${entry.name}.${attribute}.${grandchild} ${answered} instead of refusing: an owned view ` +
+              `cannot bind a grandchild, which needs an id only its own parent row carries`
+          );
+          continue;
+        }
+        // The message has to name the way *out*, not just the way in.
+        const message = thrown.message;
+        if (!message.includes(child.constructor.name) || !message.includes(grandchild)) {
+          offenders.push(`${entry.name}.${attribute}.${grandchild} refused without naming itself: ${message}`);
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+    // Recorded so the floor below can see how many triples this entry contributed.
+    grandchildTriples.push(...triples);
+  });
+
   it("carries the ids that produced the row, ending with the row's own", () => {
     const resource = instantiate(entry);
     const idNames = idNamesOf(resource);
@@ -355,5 +432,13 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     expect(meta.idNames).toEqual([...idNames]);
     expect(meta.ids).toHaveLength(idNames.length);
     expect(meta.ids[meta.ids.length - 1]).toBe(`id-${idNames[idNames.length - 1]}`);
+  });
+});
+
+describe("grandchildren, in aggregate", () => {
+  it("found two-level nesting to refuse at all", () => {
+    // The floor for the per-entry assertion above. `Projects` alone contributes
+    // `workItems.comments`, `estimates.points`, `cycles.workItems` and more.
+    expect(grandchildTriples.length).toBeGreaterThanOrEqual(20);
   });
 });

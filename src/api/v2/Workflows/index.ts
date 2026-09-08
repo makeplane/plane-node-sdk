@@ -1,3 +1,4 @@
+import { MultipleMatchesFoundError, NoMatchFoundError } from "../../../errors/PlaneApiError";
 import { Page } from "../../../models/v2/common";
 import { Workflow, UpdateWorkflow, CreateWorkflow } from "../../../models/v2/Workflow";
 import { FIELDS, ORDER_BY } from "../generated/constants";
@@ -114,6 +115,32 @@ export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, Upda
   ): Promise<LoadedWorkflow> {
     const row = await this.doRetrieve({ slug, project_id: project, pk: workflow }, params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);
+  }
+
+  /**
+   * The one workflow with this name; throws if none or several match.
+   *
+   * Filters **client-side**, walking `iterate`: `workflows_list` declares exactly one
+   * query filter, `search`, and no `?name=`. A server-side `doFindOne({ name })` would
+   * send a parameter the API ignores and then resolve against the unfiltered collection —
+   * returning an arbitrary workflow, or raising `MultipleMatchesFoundError` for a name
+   * that matched exactly once. `tests/unit/v2/lookup-coverage.test.ts` decides which
+   * mechanism each lookup must use, from the golden.
+   */
+  async findByName(slug: string, project: string, name: string): Promise<LoadedWorkflow> {
+    const matches: LoadedWorkflow[] = [];
+    for await (const row of this.iterate(slug, project)) {
+      if (row.name === name) matches.push(row);
+    }
+    if (matches.length === 0) {
+      throw new NoMatchFoundError(`No ${this.constructor.name} matched name=${JSON.stringify(name)}.`);
+    }
+    if (matches.length > 1) {
+      throw new MultipleMatchesFoundError(
+        `Multiple rows matched name=${JSON.stringify(name)}; use the id instead, or list to see every match.`
+      );
+    }
+    return matches[0];
   }
 
   create<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(

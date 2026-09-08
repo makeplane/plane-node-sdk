@@ -51,7 +51,8 @@ import {
 /**
  * A filter the SDK exposes under a different name from the golden's, with why.
  *
- * Keyed `ClassName.method`, then by the golden's own filter name. This is not an opt-out —
+ * Keyed `<module>#<Class>.method`, then by the golden's own filter name. This is not an
+ * opt-out —
  * the filter is still reachable, just spelled differently — so the assertions below are
  * strict in both directions: the alias must name a filter the operation really declares,
  * the new name must really be there, and the old name must really have been unusable.
@@ -67,19 +68,24 @@ interface FilterAlias {
 /**
  * The only place a filter may be spelled differently from the golden.
  *
+ * Keyed `<module>#<Class>.method`, not by bare class name: `Comments` and `Links` each
+ * name two different resources, so a name-keyed entry would silently apply to both. The
+ * `byQualified` lookup below is built on the same key for the same reason — as a `Map` on
+ * the ambiguous key, it kept only whichever of a colliding pair came last.
+ *
  * - `Roles.list` / `Roles.iterate` — `roles_list` declares `?slug=`, the *role's* slug,
  *   while every method of the class opens with `slug`, the *workspace*. Two different
  *   things called `slug` in one call is a trap; dropping the filter is what the Python SDK
  *   did, and the filter stayed unreachable for a whole port.
  */
 export const FILTER_ALIASES: Readonly<Record<string, Readonly<Record<string, FilterAlias>>>> = {
-  "Roles.list": {
+  "Roles#Roles.list": {
     slug: {
       exposedAs: "roleSlug",
       why: "the leading path id is already called `slug` and means the workspace, so the role's own slug filter is offered as `roleSlug`",
     },
   },
-  "Roles.iterate": {
+  "Roles#Roles.iterate": {
     slug: {
       exposedAs: "roleSlug",
       why: "the leading path id is already called `slug` and means the workspace, so the role's own slug filter is offered as `roleSlug`",
@@ -88,8 +94,8 @@ export const FILTER_ALIASES: Readonly<Record<string, Readonly<Record<string, Fil
 };
 
 /**
- * Filters the SDK deliberately does not offer, keyed `ClassName.method.filter`, each with
- * why.
+ * Filters the SDK deliberately does not offer, keyed `<module>#<Class>.method.filter`,
+ * each with why.
  *
  * **Empty, and meant to stay that way.** A filter is a capability the server already has;
  * not exposing one makes it unreachable from the SDK entirely, so an entry here needs a
@@ -139,7 +145,7 @@ function positionalOptions({ entry, method }: CapableMethod): Set<string> {
 
 /** How `capable` offers `filter`, or `undefined` if it does not offer it at all. */
 function exposureOf(capable: CapableMethod, filter: string): "params" | "positional" | undefined {
-  const alias = FILTER_ALIASES[`${capable.entry.name}.${capable.method.name}`]?.[filter];
+  const alias = FILTER_ALIASES[`${capable.entry.key}.${capable.method.name}`]?.[filter];
   const wanted = alias?.exposedAs ?? filter;
   if (capable.method.optionProperties.has(wanted)) return "params";
   const positional = positionalOptions(capable);
@@ -165,7 +171,7 @@ describe("filters coverage", () => {
     for (const capable of FILTERABLE) {
       const { entry, method, operationId, values } = capable;
       for (const filter of values) {
-        if (`${entry.name}.${method.name}.${filter}` in UNEXPOSED_FILTERS) continue;
+        if (`${entry.key}.${method.name}.${filter}` in UNEXPOSED_FILTERS) continue;
         if (exposureOf(capable, filter) !== undefined) continue;
         missing.push(`${entry.name}.${method.name}() — ${operationId} declares ?${filter}=, unreachable from the SDK`);
       }
@@ -188,7 +194,7 @@ describe("filters coverage", () => {
     // `absent` is why removing the `roleSlug` property fails even with the entry left in
     // place, and the sweep above is why removing the entry fails even with `roleSlug` left
     // in place. Neither half stands on its own.
-    const byQualified = new Map(FILTERABLE.map((capable) => [`${capable.entry.name}.${capable.method.name}`, capable]));
+    const byQualified = new Map(FILTERABLE.map((capable) => [`${capable.entry.key}.${capable.method.name}`, capable]));
     const unknownMethod: string[] = [];
     const unknownFilter: string[] = [];
     const gratuitous: string[] = [];
@@ -234,9 +240,7 @@ describe("filters coverage", () => {
 
   it("keeps every recorded omission real, still unexposed, and shrinking", () => {
     const declared = new Set(
-      FILTERABLE.flatMap(({ entry, method, values }) =>
-        values.map((filter) => `${entry.name}.${method.name}.${filter}`)
-      )
+      FILTERABLE.flatMap(({ entry, method, values }) => values.map((filter) => `${entry.key}.${method.name}.${filter}`))
     );
     const named = Object.keys(UNEXPOSED_FILTERS).sort();
 
@@ -245,10 +249,10 @@ describe("filters coverage", () => {
       unknown: named.filter((qualified) => !declared.has(qualified)),
       // An entry for a filter that *is* exposed reads as a gap that was never closed.
       exposed: named.filter((qualified) => {
-        const capable = FILTERABLE.find(({ entry, method }) => qualified.startsWith(`${entry.name}.${method.name}.`));
+        const capable = FILTERABLE.find(({ entry, method }) => qualified.startsWith(`${entry.key}.${method.name}.`));
         if (capable === undefined) return false;
         return (
-          exposureOf(capable, qualified.slice(`${capable.entry.name}.${capable.method.name}.`.length)) !== undefined
+          exposureOf(capable, qualified.slice(`${capable.entry.key}.${capable.method.name}.`.length)) !== undefined
         );
       }),
       // Every entry states why. A blank reason is not a reason.

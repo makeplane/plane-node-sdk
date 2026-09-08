@@ -14,8 +14,17 @@ export interface LoadedMeta {
   readonly ids: readonly string[];
   readonly idNames: readonly string[];
   /**
-   * The field names the response actually carried (narrowed by the caller's `fields`
-   * where one was given; `id` always counts as present).
+   * The field names the response actually carried, narrowed by the caller's `fields`
+   * where one was given.
+   *
+   * **What the server returned, never what the caller asked for.** `id` is the one name
+   * that survives a caller's `fields` without having been listed in it — the server sends
+   * it on every read whether or not it was projected for, and dropping it here would make
+   * `present` disagree with the row. But it survives the *projection*, not the response:
+   * where a server genuinely omits `id`, `present` omits it too. This doc used to claim
+   * "`id` always counts as present", which was not what the code did and is not what it
+   * should do — a set that reported a field the row does not have would be exactly the
+   * over-reporting this set exists to avoid. The contract was corrected, not the code.
    *
    * Runtime introspection only. Unlike Python, absence here is **not** what stops a
    * caller reading a field that was never fetched — that is a compile error, because
@@ -264,9 +273,47 @@ export function owned<TResource extends object, TIds extends readonly string[]>(
       return (method as (...callArgs: unknown[]) => unknown).apply(resource, [...ids, ...args]);
     };
   }
+  refuseGrandchildren(view, resource, idNames);
   const binding: OwnedBinding = { resource, ids: [...ids], idNames: [...idNames] };
   Object.defineProperty(view, OWNED, { value: binding, enumerable: false });
   return view as Owned<TResource, TIds>;
+}
+
+/**
+ * Make reaching a grandchild through an owned view say why it cannot work.
+ *
+ * `Owned` drops every non-callable member, so `project.workItems.comments` is already a
+ * compile error and the view has no such property — but a JavaScript consumer, or anyone
+ * who reached the view through `any`, got `undefined` and then
+ * `Cannot read properties of undefined (reading 'list')`, one frame away from the cause.
+ *
+ * The Python SDK had the same expression answer something *worse* than `undefined`: its
+ * `Owned.__getattr__` handed back the sub-resource **unbound**, silently dropping the ids
+ * the row already held, so `project.estimates.points.list(slug, project, estimate)`
+ * worked and `project.estimates.points.list(estimate)` built a wrong URL. Node cannot do
+ * that — the view is a plain object of bound functions, never a proxy onto the resource —
+ * and this throw is what makes the difference legible rather than incidental.
+ *
+ * The properties are non-enumerable, so the view's own keys are still exactly the child's
+ * public methods, which is what `loaded-navigation.test.ts` compares against.
+ */
+function refuseGrandchildren(view: Record<string, unknown>, resource: object, idNames: readonly string[]): void {
+  for (const [name, value] of Object.entries(resource)) {
+    if (name.startsWith("_") || !(value instanceof V2Resource)) continue;
+    Object.defineProperty(view, name, {
+      enumerable: false,
+      configurable: true,
+      get(): never {
+        throw new TypeError(
+          `${resource.constructor.name}.${name} is a child resource, not a method, so it is not ` +
+            `reachable through a navigated view: this view supplies [${idNames.join(", ")}], and ` +
+            `${value.constructor.name} additionally needs the id of the ${resource.constructor.name} ` +
+            `row itself, which only a fetched row carries. Either fetch that row and navigate from ` +
+            `it, or call ${value.constructor.name} flat with every id.`
+        );
+      },
+    });
+  }
 }
 
 /** Lazy factories, one per navigation property, keyed by the property name it defines. */

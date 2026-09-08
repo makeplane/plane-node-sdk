@@ -49,6 +49,11 @@ export class WorkspaceViews extends V2Resource<View, CreateView, UpdateView> {
     return this.doRetrieve({ slug, pk: view }, params as Record<string, unknown>);
   }
 
+  /** The one workspace view with this name; throws if none or several match. */
+  findByName(slug: string, name: string): Promise<View> {
+    return this.doFindOne({ name }, { slug });
+  }
+
   create<F extends Exclude<ViewField, "all"> & keyof View>(
     slug: string,
     data: CreateView,

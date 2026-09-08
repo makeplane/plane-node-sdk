@@ -49,7 +49,10 @@ import { CapableMethod, methodsOffering, resourceEntries } from "./tree-walk";
 
 /**
  * Methods that deliberately do not offer an `order_by` their operation declares, keyed
- * `ClassName.method`, each with why.
+ * `<module>#<Class>.method`, each with why.
+ *
+ * Qualified by module, not by bare class name: `Comments` and `Links` each name two
+ * different resources, so a name-keyed entry would silently exempt both.
  *
  * **Empty, and meant to stay that way.** A sort order is a capability the server already
  * has; not exposing it makes it unreachable from the SDK entirely. An entry here needs a
@@ -80,7 +83,7 @@ describe("order_by coverage", () => {
   it("exposes `order_by` on every method whose operation offers it", () => {
     const missing = ORDERABLE.filter(
       ({ entry, method }) =>
-        !method.optionProperties.has("order_by") && !(`${entry.name}.${method.name}` in UNORDERED_METHODS)
+        !method.optionProperties.has("order_by") && !(`${entry.key}.${method.name}` in UNORDERED_METHODS)
     )
       .map(
         ({ entry, method, operationId, values }) =>
@@ -94,7 +97,7 @@ describe("order_by coverage", () => {
   it("types `order_by` against its own operation's enum, not a sibling's", () => {
     const wrong = ORDERABLE.filter(
       ({ entry, method }) =>
-        method.optionProperties.has("order_by") && !(`${entry.name}.${method.name}` in UNORDERED_METHODS)
+        method.optionProperties.has("order_by") && !(`${entry.key}.${method.name}` in UNORDERED_METHODS)
     )
       .map((capable) => ({ capable, offered: admitted(capable) }))
       .filter(({ capable, offered }) => offered.join(",") !== [...capable.values].sort().join(","))
@@ -116,7 +119,7 @@ describe("order_by coverage", () => {
   });
 
   it("keeps every recorded omission real, still unexposed, and shrinking", () => {
-    const reachable = new Set(ORDERABLE.map(({ entry, method }) => `${entry.name}.${method.name}`));
+    const reachable = new Set(ORDERABLE.map(({ entry, method }) => `${entry.key}.${method.name}`));
     const named = Object.keys(UNORDERED_METHODS).sort();
 
     expect({
@@ -125,7 +128,7 @@ describe("order_by coverage", () => {
       // An entry for a method that *does* offer it reads as a gap that was never closed.
       exposed: named.filter((qualified) =>
         ORDERABLE.some(
-          ({ entry, method }) => `${entry.name}.${method.name}` === qualified && method.optionProperties.has("order_by")
+          ({ entry, method }) => `${entry.key}.${method.name}` === qualified && method.optionProperties.has("order_by")
         )
       ),
       // Every entry states why. A blank reason is not a reason.

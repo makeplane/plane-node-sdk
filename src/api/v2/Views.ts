@@ -87,6 +87,11 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
     return this.doRetrieve({ slug, project_id: project, pk: view }, params as Record<string, unknown>);
   }
 
+  /** The one view with this name; throws if none or several match. */
+  findByName(slug: string, project: string, name: string): Promise<View> {
+    return this.doFindOne({ name }, { slug, project_id: project });
+  }
+
   create<F extends Exclude<ViewField, "all"> & keyof View>(
     slug: string,
     project: string,

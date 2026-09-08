@@ -153,6 +153,20 @@ describe("navigable rows (v2)", () => {
     expect(project.$loaded.idNames).toEqual(["slug", "project"]);
   });
 
+  it("reports `id` as present only when the server actually sent it", async () => {
+    // `id` survives a caller's `fields` — the server sends it whether or not it was
+    // projected for — but it does not survive the server omitting it. `LoadedMeta.present`
+    // is what came back, so a row without an `id` must not claim one; the alternative is a
+    // set that reports a field the row does not have, which is the over-reporting the set
+    // exists to avoid. (The navigation call then fails loudly with `MissingPathIdError`,
+    // which is the right place for that to surface.)
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").query({ fields: "name" }).reply(200, { name: "Eng" });
+
+    const project = await makeProjects().retrieve("acme", "ENG", { fields: ["name"] });
+
+    expect([...project.$loaded.present].sort()).toEqual(["name"]);
+  });
+
   it("refuses to prepend ids into leading parameters that are ordered differently", async () => {
     nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
 
@@ -220,8 +234,12 @@ describe("navigation typing (compile-time)", () => {
     // @ts-expect-error the bound ids are gone from the signature — this is one too many
     void (() => project.states.retrieve("acme", "ENG", "s-1"));
 
+    // Not reachable in the type system — `Owned` drops every non-callable member — *and*
+    // refused at runtime, naming both routes, so a JavaScript consumer gets the reason
+    // rather than `undefined is not an object`. `loaded-navigation.test.ts` enumerates
+    // that refusal over every parent/child/grandchild triple in the tree.
     // @ts-expect-error a child that needs its own row's id is not reachable from the parent's view
-    void project.workItems.comments;
+    expect(() => project.workItems.comments).toThrow(/is a child resource, not a method/);
 
     expect(page.data[0].id).toBe("s-1");
     expect(one.name).toBe("Todo");

@@ -114,8 +114,24 @@ export const NESTED_BAND_MEMBERS: Readonly<Record<string, string>> = {
     "attached at v2.workspaces.initiatives.labels for the same reason as ReleaseLabels.",
 };
 
-/** How large {@link NESTED_BAND_MEMBERS} is allowed to be. A ratchet: lower it, never raise it. */
-export const NESTED_BAND_MEMBERS_CEILING = 2;
+/**
+ * The exact keys {@link NESTED_BAND_MEMBERS} may hold. A ratchet on *identity*, not count.
+ *
+ * This was `NESTED_BAND_MEMBERS_CEILING = 2`, a count-equality check sitting exactly at
+ * its current size — which admits a *swap*: drop one of these and add a different
+ * two-route catalog class, and the count still reads 2. The four guards below make an
+ * arbitrary swap fail (the newcomer must be band-shaped by its own URL, reachable, not
+ * already on a root, and reasoned), but a swap between two genuinely two-route catalog
+ * classes would pass all of them. An earlier fix on this branch made exactly this mistake
+ * on a different list and had to be redone as a membership subset; this is that form.
+ *
+ * Removing a name is free — the assertion is a subset check, so the list shrinking is
+ * always allowed. Adding one is a deliberate edit to this constant, in a diff.
+ */
+export const NESTED_BAND_MEMBERS_ALLOWED: ReadonlySet<string> = new Set([
+  "Releases/Labels#ReleaseLabels",
+  "Initiatives/Labels#InitiativeLabels",
+]);
 
 /**
  * Families not yet on their flat root, because their classes are still pre-flat.
@@ -125,6 +141,9 @@ export const NESTED_BAND_MEMBERS_CEILING = 2;
  * band member is migrated.
  */
 export const BAND_PENDING_CEILING: Readonly<Record<string, number>> = { workspace: 0, project: 0 };
+// Both are 0, which is the one count a swap cannot hide inside: there is nothing to swap
+// with. If either is ever raised it must become a membership subset like
+// NESTED_BAND_MEMBERS_ALLOWED, for the reason recorded there.
 
 const namespace = new V2Namespace(WALK_CONFIG);
 
@@ -291,7 +310,8 @@ describe("the roots of the two bands", () => {
       unreasoned: named.filter((key) => NESTED_BAND_MEMBERS[key].trim().length === 0),
     }).toEqual({ unknown: [], notABandMember: [], unreachable: [], alreadyAttached: [], unreasoned: [] });
 
-    expect(named.length).toBeLessThanOrEqual(NESTED_BAND_MEMBERS_CEILING);
+    // The ratchet, as membership rather than as a count — see NESTED_BAND_MEMBERS_ALLOWED.
+    expect(named.filter((key) => !NESTED_BAND_MEMBERS_ALLOWED.has(key))).toEqual([]);
   });
 });
 
