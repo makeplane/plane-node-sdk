@@ -80,6 +80,21 @@ describe("CustomerProperties (v2)", () => {
     expect(scope.isDone()).toBe(true);
   });
 
+  it("finds by display name, the label a user actually sees", async () => {
+    // Task 2 left this off because the Node golden was a stale copy that did not declare
+    // the filter; `origin/preview` does, on all three property list operations.
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/customer-properties/")
+      .query({ display_name: "Plan tier", per_page: "2", count: "false" })
+      .reply(200, {
+        data: [{ id: "1", display_name: "Plan tier", name: "plan_tier" }],
+        pagination: { style: "offset" },
+      });
+
+    expect((await makeResource().findByDisplayName(SLUG, "Plan tier")).id).toBe("1");
+    expect(scope.isDone()).toBe(true);
+  });
+
   it("passes through a valid order_by", async () => {
     const scope = nock(BASE)
       .get("/api/v2/workspaces/acme/customer-properties/")

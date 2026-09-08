@@ -14,6 +14,8 @@ export type CustomerPropertyOrderBy = (typeof ORDER_BY)["customer_properties_lis
 export interface ListCustomerPropertiesParams {
   fields?: readonly CustomerPropertyField[];
   name?: string;
+  /** The label a user sees in the UI, as opposed to `name`, which is the server-derived slug. */
+  display_name?: string;
   is_active?: boolean;
   is_required?: boolean;
   property_type?: CustomerPropertyType;
@@ -75,6 +77,16 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
   /** The one customer property with this `name` (the slugified key, not the display label); throws if none or several match. */
   findByName(slug: string, name: string): Promise<CustomerProperty> {
     return this.doFindOne({ name }, { slug });
+  }
+
+  /**
+   * The one customer property with this display name; throws if none or several match.
+   * `displayName` is the label a user sees in the UI — `name` is the slugified key the
+   * server derives from it, so this is the lookup a person reaching for a property they
+   * can see on screen actually wants.
+   */
+  findByDisplayName(slug: string, displayName: string): Promise<CustomerProperty> {
+    return this.doFindOne({ display_name: displayName }, { slug });
   }
 
   create(slug: string, data: CreateCustomerProperty, params?: CustomerPropertyFieldsParams): Promise<CustomerProperty> {

@@ -1,5 +1,5 @@
 // Generated from the api_v2 OpenAPI golden. Do not edit by hand.
-// Source golden: ../plane-ee/apps/api/plane/api_v2/core/schema/openapi
+// Source golden: ../plane-ee-preview/apps/api/plane/api_v2/core/schema/openapi
 // api_v2 OpenAPI version: 2.0.0
 // Regenerate with: pnpm codegen:v2 <path-to>/api_v2/core/schema/openapi
 
@@ -414,6 +414,7 @@ export const OPERATION_IDS = [
   "workspaces_artifacts_update_partial_update",
   "workspaces_permissions_me_retrieve",
   "workspaces_projects_permissions_me_retrieve",
+  "workspaces_retrieve",
 ] as const;
 
 export type OperationId = (typeof OPERATION_IDS)[number];
@@ -5025,6 +5026,18 @@ export const FIELDS = {
     "state_id",
     "target_date",
     "type_id",
+  ] as const,
+  workspaces_retrieve: [
+    "all",
+    "created_at",
+    "id",
+    "logo_url",
+    "name",
+    "organization_size",
+    "owner_id",
+    "slug",
+    "timezone",
+    "updated_at",
   ] as const,
 } as const;
 
