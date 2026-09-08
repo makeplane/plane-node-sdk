@@ -121,6 +121,16 @@ export class Collections extends LoadsNavigableRows<
     return matches[0];
   }
 
+  create<F extends Exclude<CollectionField, "all"> & keyof Collection>(
+    slug: string,
+    data: CreateCollection,
+    params: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] } & { fields: readonly F[] }
+  ): Promise<LoadedCollectionRow<Pick<Collection, F | "id">>>;
+  create(
+    slug: string,
+    data: CreateCollection,
+    params?: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] }
+  ): Promise<LoadedCollection>;
   async create(
     slug: string,
     data: CreateCollection,
@@ -130,6 +140,18 @@ export class Collections extends LoadsNavigableRows<
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<CollectionField, "all"> & keyof Collection>(
+    slug: string,
+    collection: string,
+    data: UpdateCollection,
+    params: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] } & { fields: readonly F[] }
+  ): Promise<LoadedCollectionRow<Pick<Collection, F | "id">>>;
+  update(
+    slug: string,
+    collection: string,
+    data: UpdateCollection,
+    params?: { fields?: readonly CollectionField[]; expand?: readonly CollectionExpand[] }
+  ): Promise<LoadedCollection>;
   async update(
     slug: string,
     collection: string,

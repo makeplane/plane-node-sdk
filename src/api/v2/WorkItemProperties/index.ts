@@ -151,6 +151,18 @@ export class WorkItemProperties extends LoadsNavigableRows<
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<WorkItemPropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    project: string,
+    data: CreateWorkItemProperty,
+    params: WorkItemPropertyShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  create(
+    slug: string,
+    project: string,
+    data: CreateWorkItemProperty,
+    params?: WorkItemPropertyShapeParams
+  ): Promise<LoadedWorkItemProperty>;
   async create(
     slug: string,
     project: string,
@@ -161,6 +173,20 @@ export class WorkItemProperties extends LoadsNavigableRows<
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<WorkItemPropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    project: string,
+    property: string,
+    data: UpdateWorkItemProperty,
+    params: WorkItemPropertyShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    property: string,
+    data: UpdateWorkItemProperty,
+    params?: WorkItemPropertyShapeParams
+  ): Promise<LoadedWorkItemProperty>;
   async update(
     slug: string,
     project: string,

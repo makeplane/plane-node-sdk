@@ -123,6 +123,13 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<EstimateField, "all"> & keyof Estimate>(
+    slug: string,
+    project: string,
+    data: CreateEstimate,
+    params: EstimateShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedEstimateRow<Pick<Estimate, F | "id">>>;
+  create(slug: string, project: string, data: CreateEstimate, params?: EstimateShapeParams): Promise<LoadedEstimate>;
   async create(
     slug: string,
     project: string,
@@ -133,6 +140,20 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<EstimateField, "all"> & keyof Estimate>(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: UpdateEstimate,
+    params: EstimateShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedEstimateRow<Pick<Estimate, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: UpdateEstimate,
+    params?: EstimateShapeParams
+  ): Promise<LoadedEstimate>;
   async update(
     slug: string,
     project: string,
@@ -153,6 +174,13 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<EstimateField, "all"> & keyof Estimate>(
+    slug: string,
+    project: string,
+    data: CreateEstimate,
+    params: EstimateShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedEstimateRow<Pick<Estimate, F | "id">>>;
+  upsert(slug: string, project: string, data: CreateEstimate, params?: EstimateShapeParams): Promise<LoadedEstimate>;
   async upsert(
     slug: string,
     project: string,

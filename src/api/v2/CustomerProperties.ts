@@ -89,10 +89,28 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
     return this.doFindOne({ display_name: displayName }, { slug });
   }
 
+  create<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
+    slug: string,
+    data: CreateCustomerProperty,
+    params: CustomerPropertyFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<CustomerProperty, F | "id">>;
+  create(slug: string, data: CreateCustomerProperty, params?: CustomerPropertyFieldsParams): Promise<CustomerProperty>;
   create(slug: string, data: CreateCustomerProperty, params?: CustomerPropertyFieldsParams): Promise<CustomerProperty> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
+    slug: string,
+    property: string,
+    data: UpdateCustomerProperty,
+    params: CustomerPropertyFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<CustomerProperty, F | "id">>;
+  update(
+    slug: string,
+    property: string,
+    data: UpdateCustomerProperty,
+    params?: CustomerPropertyFieldsParams
+  ): Promise<CustomerProperty>;
   update(
     slug: string,
     property: string,

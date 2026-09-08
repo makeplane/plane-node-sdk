@@ -134,6 +134,16 @@ export class Releases extends LoadsNavigableRows<Release, CreateRelease, UpdateR
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<ReleaseField, "all"> & keyof Release>(
+    slug: string,
+    data: CreateRelease,
+    params: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] } & { fields: readonly F[] }
+  ): Promise<LoadedReleaseRow<Pick<Release, F | "id">>>;
+  create(
+    slug: string,
+    data: CreateRelease,
+    params?: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] }
+  ): Promise<LoadedRelease>;
   async create(
     slug: string,
     data: CreateRelease,
@@ -143,6 +153,18 @@ export class Releases extends LoadsNavigableRows<Release, CreateRelease, UpdateR
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<ReleaseField, "all"> & keyof Release>(
+    slug: string,
+    release: string,
+    data: UpdateRelease,
+    params: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] } & { fields: readonly F[] }
+  ): Promise<LoadedReleaseRow<Pick<Release, F | "id">>>;
+  update(
+    slug: string,
+    release: string,
+    data: UpdateRelease,
+    params?: { fields?: readonly ReleaseField[]; expand?: readonly ReleaseExpand[] }
+  ): Promise<LoadedRelease>;
   async update(
     slug: string,
     release: string,

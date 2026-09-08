@@ -142,6 +142,18 @@ export class ProjectAutomations extends LoadsNavigableRows<
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<ProjectAutomationField, "all"> & keyof Automation>(
+    slug: string,
+    project: string,
+    data: CreateAutomation,
+    params: ProjectAutomationShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedAutomationRow<Pick<Automation, F | "id">>>;
+  create(
+    slug: string,
+    project: string,
+    data: CreateAutomation,
+    params?: ProjectAutomationShapeParams
+  ): Promise<LoadedAutomation>;
   async create(
     slug: string,
     project: string,
@@ -152,6 +164,20 @@ export class ProjectAutomations extends LoadsNavigableRows<
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<ProjectAutomationField, "all"> & keyof Automation>(
+    slug: string,
+    project: string,
+    automation: string,
+    data: UpdateAutomation,
+    params: ProjectAutomationShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedAutomationRow<Pick<Automation, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    automation: string,
+    data: UpdateAutomation,
+    params?: ProjectAutomationShapeParams
+  ): Promise<LoadedAutomation>;
   async update(
     slug: string,
     project: string,

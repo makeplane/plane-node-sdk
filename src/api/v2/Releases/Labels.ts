@@ -83,6 +83,16 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
     return this.doFindOne({ name }, { slug });
   }
 
+  create<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
+    slug: string,
+    data: CreateReleaseLabel,
+    params: { fields: readonly F[] }
+  ): Promise<Pick<ReleaseLabel, F | "id">>;
+  create(
+    slug: string,
+    data: CreateReleaseLabel,
+    params?: { fields?: readonly ReleaseLabelField[] }
+  ): Promise<ReleaseLabel>;
   create(
     slug: string,
     data: CreateReleaseLabel,
@@ -91,6 +101,18 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
+    slug: string,
+    label: string,
+    data: UpdateReleaseLabel,
+    params: { fields: readonly F[] }
+  ): Promise<Pick<ReleaseLabel, F | "id">>;
+  update(
+    slug: string,
+    label: string,
+    data: UpdateReleaseLabel,
+    params?: { fields?: readonly ReleaseLabelField[] }
+  ): Promise<ReleaseLabel>;
   update(
     slug: string,
     label: string,

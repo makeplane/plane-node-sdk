@@ -68,10 +68,28 @@ export class ReleaseTags extends V2Resource<ReleaseTag, CreateReleaseTag, Update
     return this.doFindOne({ version }, { slug });
   }
 
+  create<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
+    slug: string,
+    data: CreateReleaseTag,
+    params: { fields: readonly F[] }
+  ): Promise<Pick<ReleaseTag, F | "id">>;
+  create(slug: string, data: CreateReleaseTag, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag>;
   create(slug: string, data: CreateReleaseTag, params?: { fields?: readonly ReleaseTagField[] }): Promise<ReleaseTag> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
+    slug: string,
+    tag: string,
+    data: UpdateReleaseTag,
+    params: { fields: readonly F[] }
+  ): Promise<Pick<ReleaseTag, F | "id">>;
+  update(
+    slug: string,
+    tag: string,
+    data: UpdateReleaseTag,
+    params?: { fields?: readonly ReleaseTagField[] }
+  ): Promise<ReleaseTag>;
   update(
     slug: string,
     tag: string,

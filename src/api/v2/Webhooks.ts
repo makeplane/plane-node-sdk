@@ -92,6 +92,16 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
   }
 
   /** Returns `secret_key` once — store it now, it is never shown again outside of `regenerate`. */
+  create<F extends Exclude<WebhookField, "all"> & keyof WebhookCreateResponse>(
+    slug: string,
+    data: CreateWebhook,
+    params: { fields: readonly F[] }
+  ): Promise<Pick<WebhookCreateResponse, F | "id">>;
+  create(
+    slug: string,
+    data: CreateWebhook,
+    params?: { fields?: readonly WebhookField[] }
+  ): Promise<WebhookCreateResponse>;
   create(
     slug: string,
     data: CreateWebhook,
@@ -100,6 +110,18 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
+    slug: string,
+    webhook: string,
+    data: UpdateWebhook,
+    params: { fields: readonly F[] }
+  ): Promise<LoadedWebhookRow<Pick<Webhook, F | "id">>>;
+  update(
+    slug: string,
+    webhook: string,
+    data: UpdateWebhook,
+    params?: { fields?: readonly WebhookField[] }
+  ): Promise<LoadedWebhook>;
   async update(
     slug: string,
     webhook: string,

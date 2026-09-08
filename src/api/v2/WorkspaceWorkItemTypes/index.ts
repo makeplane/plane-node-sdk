@@ -93,6 +93,16 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    data: CreateWorkItemType,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  create(
+    slug: string,
+    data: CreateWorkItemType,
+    params?: WorkItemTypeShapeParams
+  ): Promise<LoadedWorkspaceWorkItemType>;
   async create(
     slug: string,
     data: CreateWorkItemType,
@@ -102,6 +112,18 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    type: string,
+    data: UpdateWorkItemType,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  update(
+    slug: string,
+    type: string,
+    data: UpdateWorkItemType,
+    params?: WorkItemTypeShapeParams
+  ): Promise<LoadedWorkspaceWorkItemType>;
   async update(
     slug: string,
     type: string,
@@ -117,6 +139,12 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
   }
 
   /** Mark this workspace-scoped type as the workspace's default. Answers the updated row, navigable. */
+  markDefault<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    type: string,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  markDefault(slug: string, type: string, params?: WorkItemTypeShapeParams): Promise<LoadedWorkspaceWorkItemType>;
   async markDefault(
     slug: string,
     type: string,

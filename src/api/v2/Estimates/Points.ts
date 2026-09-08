@@ -130,6 +130,20 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     return this.doFindOne({ key }, this._at(slug, project, estimate));
   }
 
+  create<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: CreateEstimatePoint,
+    params: EstimatePointShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<EstimatePoint, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: CreateEstimatePoint,
+    params?: EstimatePointShapeParams
+  ): Promise<EstimatePoint>;
   create(
     slug: string,
     project: string,
@@ -140,6 +154,22 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     return this.doCreate(data, this._at(slug, project, estimate), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
+    slug: string,
+    project: string,
+    estimate: string,
+    point: string,
+    data: UpdateEstimatePoint,
+    params: EstimatePointShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<EstimatePoint, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    estimate: string,
+    point: string,
+    data: UpdateEstimatePoint,
+    params?: EstimatePointShapeParams
+  ): Promise<EstimatePoint>;
   update(
     slug: string,
     project: string,
@@ -156,6 +186,20 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: CreateEstimatePoint,
+    params: EstimatePointShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<EstimatePoint, F | "id">>;
+  upsert(
+    slug: string,
+    project: string,
+    estimate: string,
+    data: CreateEstimatePoint,
+    params?: EstimatePointShapeParams
+  ): Promise<EstimatePoint>;
   upsert(
     slug: string,
     project: string,

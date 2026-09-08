@@ -73,6 +73,11 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
   }
 
   /** Step 2: confirm the upload. Takes no body — see {@link UserAssetConfirmRequest}. */
+  update<F extends Exclude<UserAssetField, "all"> & keyof UserAsset>(
+    asset: string,
+    params: UserAssetFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<UserAsset, F | "id">>;
+  update(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset>;
   update(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset> {
     return this.doUpdate({}, { pk: asset }, params as Record<string, unknown>);
   }

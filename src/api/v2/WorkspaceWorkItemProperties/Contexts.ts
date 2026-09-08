@@ -118,6 +118,18 @@ export class WorkItemPropertyContexts extends V2Resource<
     return this.doFindOne({ name }, this._at(slug, property));
   }
 
+  create<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
+    slug: string,
+    property: string,
+    data: CreateWorkItemPropertyContext,
+    params: WorkItemPropertyContextShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemPropertyContext, F | "id">>;
+  create(
+    slug: string,
+    property: string,
+    data: CreateWorkItemPropertyContext,
+    params?: WorkItemPropertyContextShapeParams
+  ): Promise<WorkItemPropertyContext>;
   create(
     slug: string,
     property: string,
@@ -127,6 +139,20 @@ export class WorkItemPropertyContexts extends V2Resource<
     return this.doCreate(data, this._at(slug, property), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
+    slug: string,
+    property: string,
+    context: string,
+    data: UpdateWorkItemPropertyContext,
+    params: WorkItemPropertyContextShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemPropertyContext, F | "id">>;
+  update(
+    slug: string,
+    property: string,
+    context: string,
+    data: UpdateWorkItemPropertyContext,
+    params?: WorkItemPropertyContextShapeParams
+  ): Promise<WorkItemPropertyContext>;
   update(
     slug: string,
     property: string,

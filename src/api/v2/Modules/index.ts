@@ -114,11 +114,32 @@ export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModu
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<ModuleField, "all"> & keyof Module>(
+    slug: string,
+    project: string,
+    data: CreateModule,
+    params: ModuleShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedModuleRow<Pick<Module, F | "id">>>;
+  create(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule>;
   async create(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule> {
     const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<ModuleField, "all"> & keyof Module>(
+    slug: string,
+    project: string,
+    module: string,
+    data: UpdateModule,
+    params: ModuleShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedModuleRow<Pick<Module, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    module: string,
+    data: UpdateModule,
+    params?: ModuleShapeParams
+  ): Promise<LoadedModule>;
   async update(
     slug: string,
     project: string,
@@ -135,6 +156,13 @@ export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModu
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<ModuleField, "all"> & keyof Module>(
+    slug: string,
+    project: string,
+    data: CreateModule,
+    params: ModuleShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedModuleRow<Pick<Module, F | "id">>>;
+  upsert(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule>;
   async upsert(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule> {
     const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);

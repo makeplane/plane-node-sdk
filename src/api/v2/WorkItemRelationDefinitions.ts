@@ -93,6 +93,16 @@ export class WorkItemRelationDefinitions extends V2Resource<
     return matches[0];
   }
 
+  create<F extends Exclude<WorkItemRelationDefinitionField, "all"> & keyof WorkItemRelationDefinition>(
+    slug: string,
+    data: CreateWorkItemRelationDefinition,
+    params: WorkItemRelationDefinitionFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemRelationDefinition, F | "id">>;
+  create(
+    slug: string,
+    data: CreateWorkItemRelationDefinition,
+    params?: WorkItemRelationDefinitionFieldsParams
+  ): Promise<WorkItemRelationDefinition>;
   create(
     slug: string,
     data: CreateWorkItemRelationDefinition,
@@ -101,6 +111,18 @@ export class WorkItemRelationDefinitions extends V2Resource<
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkItemRelationDefinitionField, "all"> & keyof WorkItemRelationDefinition>(
+    slug: string,
+    definition: string,
+    data: UpdateWorkItemRelationDefinition,
+    params: WorkItemRelationDefinitionFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemRelationDefinition, F | "id">>;
+  update(
+    slug: string,
+    definition: string,
+    data: UpdateWorkItemRelationDefinition,
+    params?: WorkItemRelationDefinitionFieldsParams
+  ): Promise<WorkItemRelationDefinition>;
   update(
     slug: string,
     definition: string,

@@ -85,10 +85,25 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
     return this.doFindOne({ name }, { slug, project_id: project });
   }
 
+  create<F extends Exclude<StateField, "all"> & keyof State>(
+    slug: string,
+    project: string,
+    data: CreateState,
+    params: StateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<State, F | "id">>;
+  create(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State>;
   create(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State> {
     return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<StateField, "all"> & keyof State>(
+    slug: string,
+    project: string,
+    state: string,
+    data: UpdateState,
+    params: StateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<State, F | "id">>;
+  update(slug: string, project: string, state: string, data: UpdateState, params?: StateFieldsParams): Promise<State>;
   update(slug: string, project: string, state: string, data: UpdateState, params?: StateFieldsParams): Promise<State> {
     return this.doUpdate(data, { slug, project_id: project, pk: state }, params as Record<string, unknown>);
   }
@@ -98,6 +113,13 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<StateField, "all"> & keyof State>(
+    slug: string,
+    project: string,
+    data: CreateState,
+    params: StateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<State, F | "id">>;
+  upsert(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State>;
   upsert(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State> {
     return this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
   }

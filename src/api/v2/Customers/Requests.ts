@@ -87,6 +87,18 @@ export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomer
     return this.doRetrieve(this._at(slug, customer, request), params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
+    slug: string,
+    customer: string,
+    data: CreateCustomerRequest,
+    params: CustomerRequestShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<CustomerRequest, F | "id">>;
+  create(
+    slug: string,
+    customer: string,
+    data: CreateCustomerRequest,
+    params?: CustomerRequestShapeParams
+  ): Promise<CustomerRequest>;
   create(
     slug: string,
     customer: string,
@@ -96,6 +108,20 @@ export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomer
     return this.doCreate(data, this._at(slug, customer), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
+    slug: string,
+    customer: string,
+    request: string,
+    data: UpdateCustomerRequest,
+    params: CustomerRequestShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<CustomerRequest, F | "id">>;
+  update(
+    slug: string,
+    customer: string,
+    request: string,
+    data: UpdateCustomerRequest,
+    params?: CustomerRequestShapeParams
+  ): Promise<CustomerRequest>;
   update(
     slug: string,
     customer: string,

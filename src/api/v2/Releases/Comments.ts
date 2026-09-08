@@ -89,6 +89,18 @@ export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, U
     return this.doRetrieve(this._at(slug, release, comment), params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
+    slug: string,
+    release: string,
+    data: CreateReleaseComment,
+    params: ReleaseCommentShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<ReleaseComment, F | "id">>;
+  create(
+    slug: string,
+    release: string,
+    data: CreateReleaseComment,
+    params?: ReleaseCommentShapeParams
+  ): Promise<ReleaseComment>;
   create(
     slug: string,
     release: string,
@@ -98,6 +110,20 @@ export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, U
     return this.doCreate(data, this._at(slug, release), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
+    slug: string,
+    release: string,
+    comment: string,
+    data: UpdateReleaseComment,
+    params: ReleaseCommentShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<ReleaseComment, F | "id">>;
+  update(
+    slug: string,
+    release: string,
+    comment: string,
+    data: UpdateReleaseComment,
+    params?: ReleaseCommentShapeParams
+  ): Promise<ReleaseComment>;
   update(
     slug: string,
     release: string,

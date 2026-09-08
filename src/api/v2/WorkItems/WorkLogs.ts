@@ -111,6 +111,20 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
     );
   }
 
+  create<F extends Exclude<WorkItemWorklogField, "all"> & keyof WorkItemWorklog>(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemWorklog,
+    params: WorkItemWorklogShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemWorklog, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemWorklog,
+    params?: WorkItemWorklogShapeParams
+  ): Promise<WorkItemWorklog>;
   create(
     slug: string,
     project: string,
@@ -125,6 +139,22 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
     );
   }
 
+  update<F extends Exclude<WorkItemWorklogField, "all"> & keyof WorkItemWorklog>(
+    slug: string,
+    project: string,
+    workItem: string,
+    worklog: string,
+    data: UpdateWorkItemWorklog,
+    params: WorkItemWorklogShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemWorklog, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    workItem: string,
+    worklog: string,
+    data: UpdateWorkItemWorklog,
+    params?: WorkItemWorklogShapeParams
+  ): Promise<WorkItemWorklog>;
   update(
     slug: string,
     project: string,

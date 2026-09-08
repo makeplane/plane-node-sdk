@@ -127,6 +127,20 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     );
   }
 
+  create<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemComment,
+    params: WorkItemCommentShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemComment, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemComment,
+    params?: WorkItemCommentShapeParams
+  ): Promise<WorkItemComment>;
   create(
     slug: string,
     project: string,
@@ -141,6 +155,22 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     );
   }
 
+  update<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
+    slug: string,
+    project: string,
+    workItem: string,
+    comment: string,
+    data: UpdateWorkItemComment,
+    params: WorkItemCommentShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemComment, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    workItem: string,
+    comment: string,
+    data: UpdateWorkItemComment,
+    params?: WorkItemCommentShapeParams
+  ): Promise<WorkItemComment>;
   update(
     slug: string,
     project: string,
@@ -161,6 +191,20 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemComment,
+    params: WorkItemCommentShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemComment, F | "id">>;
+  upsert(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemComment,
+    params?: WorkItemCommentShapeParams
+  ): Promise<WorkItemComment>;
   upsert(
     slug: string,
     project: string,

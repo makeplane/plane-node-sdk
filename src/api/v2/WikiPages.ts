@@ -63,10 +63,23 @@ export class WikiPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
   }
 
   /** Omitting `collection_id` lands **public** pages in the default ("General") collection; **private** pages need one explicitly. */
+  create<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
+    slug: string,
+    data: CreatePage,
+    params: WikiPageShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WikiPage, F | "id">>;
+  create(slug: string, data: CreatePage, params?: WikiPageShapeParams): Promise<WikiPage>;
   create(slug: string, data: CreatePage, params?: WikiPageShapeParams): Promise<WikiPage> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
+    slug: string,
+    page: string,
+    data: UpdatePage,
+    params: WikiPageShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WikiPage, F | "id">>;
+  update(slug: string, page: string, data: UpdatePage, params?: WikiPageShapeParams): Promise<WikiPage>;
   update(slug: string, page: string, data: UpdatePage, params?: WikiPageShapeParams): Promise<WikiPage> {
     return this.doUpdate(data, { slug, pk: page }, params as Record<string, unknown>);
   }

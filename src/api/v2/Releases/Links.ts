@@ -87,6 +87,13 @@ export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateRele
     return this.doRetrieve(this._at(slug, release, link), params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
+    slug: string,
+    release: string,
+    data: CreateReleaseLink,
+    params: ReleaseLinkShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<ReleaseLink, F | "id">>;
+  create(slug: string, release: string, data: CreateReleaseLink, params?: ReleaseLinkShapeParams): Promise<ReleaseLink>;
   create(
     slug: string,
     release: string,
@@ -96,6 +103,20 @@ export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateRele
     return this.doCreate(data, this._at(slug, release), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
+    slug: string,
+    release: string,
+    link: string,
+    data: UpdateReleaseLink,
+    params: ReleaseLinkShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<ReleaseLink, F | "id">>;
+  update(
+    slug: string,
+    release: string,
+    link: string,
+    data: UpdateReleaseLink,
+    params?: ReleaseLinkShapeParams
+  ): Promise<ReleaseLink>;
   update(
     slug: string,
     release: string,

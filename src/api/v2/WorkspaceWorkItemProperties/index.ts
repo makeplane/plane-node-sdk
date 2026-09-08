@@ -150,6 +150,16 @@ export class WorkspaceWorkItemProperties extends LoadsNavigableRows<
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<WorkspaceWorkItemPropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    data: CreateWorkItemProperty,
+    params: WorkspaceWorkItemPropertyShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  create(
+    slug: string,
+    data: CreateWorkItemProperty,
+    params?: WorkspaceWorkItemPropertyShapeParams
+  ): Promise<LoadedWorkspaceWorkItemProperty>;
   async create(
     slug: string,
     data: CreateWorkItemProperty,
@@ -159,6 +169,18 @@ export class WorkspaceWorkItemProperties extends LoadsNavigableRows<
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<WorkspaceWorkItemPropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    property: string,
+    data: UpdateWorkItemProperty,
+    params: WorkspaceWorkItemPropertyShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  update(
+    slug: string,
+    property: string,
+    data: UpdateWorkItemProperty,
+    params?: WorkspaceWorkItemPropertyShapeParams
+  ): Promise<LoadedWorkspaceWorkItemProperty>;
   async update(
     slug: string,
     property: string,

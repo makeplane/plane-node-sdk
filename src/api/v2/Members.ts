@@ -75,6 +75,18 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
   }
 
   /** `member_id` is required; `role` defaults to `"member"` server-side when omitted. */
+  create<F extends Exclude<ProjectMemberField, "all"> & keyof ProjectMember>(
+    slug: string,
+    project: string,
+    data: CreateProjectMember,
+    params: ProjectMemberShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<ProjectMember, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    data: CreateProjectMember,
+    params?: ProjectMemberShapeParams
+  ): Promise<ProjectMember>;
   create(
     slug: string,
     project: string,
@@ -85,6 +97,20 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
   }
 
   /** `role` only — `member_id` is immutable on update, see {@link UpdateProjectMember}. */
+  update<F extends Exclude<ProjectMemberField, "all"> & keyof ProjectMember>(
+    slug: string,
+    project: string,
+    member: string,
+    data: UpdateProjectMember,
+    params: ProjectMemberShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<ProjectMember, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    member: string,
+    data: UpdateProjectMember,
+    params?: ProjectMemberShapeParams
+  ): Promise<ProjectMember>;
   update(
     slug: string,
     project: string,

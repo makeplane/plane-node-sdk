@@ -102,6 +102,18 @@ export class ProjectWorkItemTemplates extends V2Resource<
     return this.doRetrieve({ slug, project_id: project, pk: template }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<WorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    project: string,
+    data: CreateWorkItemTemplate,
+    params: WorkItemTemplateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemTemplate, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    data: CreateWorkItemTemplate,
+    params?: WorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate>;
   create(
     slug: string,
     project: string,
@@ -111,6 +123,20 @@ export class ProjectWorkItemTemplates extends V2Resource<
     return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    project: string,
+    template: string,
+    data: UpdateWorkItemTemplate,
+    params: WorkItemTemplateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemTemplate, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    template: string,
+    data: UpdateWorkItemTemplate,
+    params?: WorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate>;
   update(
     slug: string,
     project: string,
@@ -132,6 +158,20 @@ export class ProjectWorkItemTemplates extends V2Resource<
    * The response is a {@link WorkItem}, not a template row, so this goes through the
    * kernel's custom-action helper rather than `doAction`.
    */
+  use<F extends Exclude<WorkItemTemplateUseField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    template: string,
+    data: WorkItemTemplateUseRequest | undefined,
+    params: WorkItemTemplateUseParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItem, F | "id">>;
+  use(
+    slug: string,
+    project: string,
+    template: string,
+    data?: WorkItemTemplateUseRequest,
+    params?: WorkItemTemplateUseParams
+  ): Promise<WorkItem>;
   use(
     slug: string,
     project: string,

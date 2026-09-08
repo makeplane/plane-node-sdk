@@ -95,6 +95,18 @@ export class WorkspaceAutomationEdges extends V2Resource<AutomationEdge, CreateA
     return this.doRetrieve(this._at(slug, automation, edge), params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<WorkspaceAutomationEdgeField, "all"> & keyof AutomationEdge>(
+    slug: string,
+    automation: string,
+    data: CreateAutomationEdge,
+    params: WorkspaceAutomationEdgeShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<AutomationEdge, F | "id">>;
+  create(
+    slug: string,
+    automation: string,
+    data: CreateAutomationEdge,
+    params?: WorkspaceAutomationEdgeShapeParams
+  ): Promise<AutomationEdge>;
   create(
     slug: string,
     automation: string,
@@ -104,6 +116,20 @@ export class WorkspaceAutomationEdges extends V2Resource<AutomationEdge, CreateA
     return this.doCreate(data, this._at(slug, automation), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkspaceAutomationEdgeField, "all"> & keyof AutomationEdge>(
+    slug: string,
+    automation: string,
+    edge: string,
+    data: UpdateAutomationEdge,
+    params: WorkspaceAutomationEdgeShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<AutomationEdge, F | "id">>;
+  update(
+    slug: string,
+    automation: string,
+    edge: string,
+    data: UpdateAutomationEdge,
+    params?: WorkspaceAutomationEdgeShapeParams
+  ): Promise<AutomationEdge>;
   update(
     slug: string,
     automation: string,

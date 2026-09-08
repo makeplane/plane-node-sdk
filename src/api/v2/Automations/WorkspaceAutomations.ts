@@ -138,6 +138,16 @@ export class WorkspaceAutomations extends LoadsNavigableRows<
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
+    slug: string,
+    data: CreateAutomation,
+    params: WorkspaceAutomationShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>;
+  create(
+    slug: string,
+    data: CreateAutomation,
+    params?: WorkspaceAutomationShapeParams
+  ): Promise<LoadedWorkspaceAutomation>;
   async create(
     slug: string,
     data: CreateAutomation,
@@ -147,6 +157,18 @@ export class WorkspaceAutomations extends LoadsNavigableRows<
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
+    slug: string,
+    automation: string,
+    data: UpdateAutomation,
+    params: WorkspaceAutomationShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>;
+  update(
+    slug: string,
+    automation: string,
+    data: UpdateAutomation,
+    params?: WorkspaceAutomationShapeParams
+  ): Promise<LoadedWorkspaceAutomation>;
   async update(
     slug: string,
     automation: string,

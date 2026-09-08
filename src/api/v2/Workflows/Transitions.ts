@@ -120,6 +120,20 @@ export class WorkflowTransitions extends V2Resource<
     return this.doRetrieve(this._at(slug, project, workflow, transition), params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<WorkflowTransitionField, "all"> & keyof WorkflowTransition>(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: CreateWorkflowTransition,
+    params: WorkflowTransitionShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkflowTransition, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: CreateWorkflowTransition,
+    params?: WorkflowTransitionShapeParams
+  ): Promise<WorkflowTransition>;
   create(
     slug: string,
     project: string,
@@ -130,6 +144,22 @@ export class WorkflowTransitions extends V2Resource<
     return this.doCreate(data, this._at(slug, project, workflow), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkflowTransitionField, "all"> & keyof WorkflowTransition>(
+    slug: string,
+    project: string,
+    workflow: string,
+    transition: string,
+    data: UpdateWorkflowTransition,
+    params: WorkflowTransitionShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkflowTransition, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    workflow: string,
+    transition: string,
+    data: UpdateWorkflowTransition,
+    params?: WorkflowTransitionShapeParams
+  ): Promise<WorkflowTransition>;
   update(
     slug: string,
     project: string,

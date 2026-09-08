@@ -116,6 +116,13 @@ export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, U
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
+    slug: string,
+    project: string,
+    data: CreateMilestone,
+    params: MilestoneShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  create(slug: string, project: string, data: CreateMilestone, params?: MilestoneShapeParams): Promise<LoadedMilestone>;
   async create(
     slug: string,
     project: string,
@@ -126,6 +133,20 @@ export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, U
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
+    slug: string,
+    project: string,
+    milestone: string,
+    data: UpdateMilestone,
+    params: MilestoneShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    milestone: string,
+    data: UpdateMilestone,
+    params?: MilestoneShapeParams
+  ): Promise<LoadedMilestone>;
   async update(
     slug: string,
     project: string,
@@ -146,6 +167,13 @@ export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, U
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
+    slug: string,
+    project: string,
+    data: CreateMilestone,
+    params: MilestoneShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  upsert(slug: string, project: string, data: CreateMilestone, params?: MilestoneShapeParams): Promise<LoadedMilestone>;
   async upsert(
     slug: string,
     project: string,

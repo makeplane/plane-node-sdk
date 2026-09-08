@@ -136,6 +136,22 @@ export class Attachments extends V2Resource<
   }
 
   /** Step 2: confirm the upload. */
+  update<F extends Exclude<WorkItemAttachmentField, "all"> & keyof WorkItemAttachment>(
+    slug: string,
+    project: string,
+    workItem: string,
+    attachment: string,
+    data: WorkItemAttachmentConfirmRequest,
+    params: WorkItemAttachmentFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemAttachment, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    workItem: string,
+    attachment: string,
+    data: WorkItemAttachmentConfirmRequest,
+    params?: WorkItemAttachmentFieldsParams
+  ): Promise<WorkItemAttachment>;
   update(
     slug: string,
     project: string,

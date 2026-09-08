@@ -69,6 +69,16 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
     return this.doRetrieve({ slug, pk: template }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    data: CreateWorkItemTemplate,
+    params: WorkspaceWorkItemTemplateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemTemplate, F | "id">>;
+  create(
+    slug: string,
+    data: CreateWorkItemTemplate,
+    params?: WorkspaceWorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate>;
   create(
     slug: string,
     data: CreateWorkItemTemplate,
@@ -77,6 +87,18 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
+    slug: string,
+    template: string,
+    data: UpdateWorkItemTemplate,
+    params: WorkspaceWorkItemTemplateFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemTemplate, F | "id">>;
+  update(
+    slug: string,
+    template: string,
+    data: UpdateWorkItemTemplate,
+    params?: WorkspaceWorkItemTemplateFieldsParams
+  ): Promise<WorkItemTemplate>;
   update(
     slug: string,
     template: string,

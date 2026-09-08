@@ -114,11 +114,29 @@ export class Initiatives extends LoadsNavigableRows<
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
+    slug: string,
+    data: CreateInitiative,
+    params: InitiativeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedInitiativeRow<Pick<Initiative, F | "id">>>;
+  create(slug: string, data: CreateInitiative, params?: InitiativeShapeParams): Promise<LoadedInitiative>;
   async create(slug: string, data: CreateInitiative, params?: InitiativeShapeParams): Promise<LoadedInitiative> {
     const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
+    slug: string,
+    initiative: string,
+    data: UpdateInitiative,
+    params: InitiativeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedInitiativeRow<Pick<Initiative, F | "id">>>;
+  update(
+    slug: string,
+    initiative: string,
+    data: UpdateInitiative,
+    params?: InitiativeShapeParams
+  ): Promise<LoadedInitiative>;
   async update(
     slug: string,
     initiative: string,

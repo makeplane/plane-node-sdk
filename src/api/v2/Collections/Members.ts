@@ -21,6 +21,12 @@ export class CollectionMembers extends V2Resource<CollectionMember, never, never
   };
 
   /** Every member row for the collection — not paginated; see the class doc comment. */
+  list<F extends Exclude<CollectionMemberField, "all"> & keyof CollectionMember>(
+    slug: string,
+    collection: string,
+    params: ListCollectionMembersParams & { fields: readonly F[] }
+  ): Promise<Pick<CollectionMember, F | "id">[]>;
+  list(slug: string, collection: string, params?: ListCollectionMembersParams): Promise<CollectionMember[]>;
   list(slug: string, collection: string, params?: ListCollectionMembersParams): Promise<CollectionMember[]> {
     return this.doCustomAction<CollectionMember[]>("list", {
       method: "GET",

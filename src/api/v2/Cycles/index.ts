@@ -117,11 +117,32 @@ export class Cycles extends LoadsNavigableRows<Cycle, CreateCycle, UpdateCycle, 
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<CycleField, "all"> & keyof Cycle>(
+    slug: string,
+    project: string,
+    data: CreateCycle,
+    params: CycleShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedCycleRow<Pick<Cycle, F | "id">>>;
+  create(slug: string, project: string, data: CreateCycle, params?: CycleShapeParams): Promise<LoadedCycle>;
   async create(slug: string, project: string, data: CreateCycle, params?: CycleShapeParams): Promise<LoadedCycle> {
     const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<CycleField, "all"> & keyof Cycle>(
+    slug: string,
+    project: string,
+    cycle: string,
+    data: UpdateCycle,
+    params: CycleShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedCycleRow<Pick<Cycle, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    cycle: string,
+    data: UpdateCycle,
+    params?: CycleShapeParams
+  ): Promise<LoadedCycle>;
   async update(
     slug: string,
     project: string,
@@ -138,6 +159,13 @@ export class Cycles extends LoadsNavigableRows<Cycle, CreateCycle, UpdateCycle, 
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<CycleField, "all"> & keyof Cycle>(
+    slug: string,
+    project: string,
+    data: CreateCycle,
+    params: CycleShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedCycleRow<Pick<Cycle, F | "id">>>;
+  upsert(slug: string, project: string, data: CreateCycle, params?: CycleShapeParams): Promise<LoadedCycle>;
   async upsert(slug: string, project: string, data: CreateCycle, params?: CycleShapeParams): Promise<LoadedCycle> {
     const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
     return this.load(row, [slug, project], params?.fields);

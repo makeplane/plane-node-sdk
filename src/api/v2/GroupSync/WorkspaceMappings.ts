@@ -79,6 +79,16 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
     return this.doRetrieve({ slug, pk: mapping }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
+    slug: string,
+    data: CreateWorkspaceGroupMapping,
+    params: GroupSyncWorkspaceMappingFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkspaceGroupMapping, F | "id">>;
+  create(
+    slug: string,
+    data: CreateWorkspaceGroupMapping,
+    params?: GroupSyncWorkspaceMappingFieldsParams
+  ): Promise<WorkspaceGroupMapping>;
   create(
     slug: string,
     data: CreateWorkspaceGroupMapping,
@@ -87,6 +97,18 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
+    slug: string,
+    mapping: string,
+    data: UpdateWorkspaceGroupMapping,
+    params: GroupSyncWorkspaceMappingFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkspaceGroupMapping, F | "id">>;
+  update(
+    slug: string,
+    mapping: string,
+    data: UpdateWorkspaceGroupMapping,
+    params?: GroupSyncWorkspaceMappingFieldsParams
+  ): Promise<WorkspaceGroupMapping>;
   update(
     slug: string,
     mapping: string,

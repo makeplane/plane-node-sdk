@@ -106,6 +106,13 @@ export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, Upda
     return this.load(row, [slug, project], params?.fields);
   }
 
+  create<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
+    slug: string,
+    project: string,
+    data: CreateWorkflow,
+    params: WorkflowShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkflowRow<Pick<Workflow, F | "id">>>;
+  create(slug: string, project: string, data: CreateWorkflow, params?: WorkflowShapeParams): Promise<LoadedWorkflow>;
   async create(
     slug: string,
     project: string,
@@ -116,6 +123,20 @@ export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, Upda
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: UpdateWorkflow,
+    params: WorkflowShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkflowRow<Pick<Workflow, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: UpdateWorkflow,
+    params?: WorkflowShapeParams
+  ): Promise<LoadedWorkflow>;
   async update(
     slug: string,
     project: string,

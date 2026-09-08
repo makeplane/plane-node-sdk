@@ -70,10 +70,28 @@ export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGro
     return this.doRetrieve({ slug, pk: mapping }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
+    slug: string,
+    data: CreateGroupMapping,
+    params: GroupSyncProjectMappingFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<GroupMapping, F | "id">>;
+  create(slug: string, data: CreateGroupMapping, params?: GroupSyncProjectMappingFieldsParams): Promise<GroupMapping>;
   create(slug: string, data: CreateGroupMapping, params?: GroupSyncProjectMappingFieldsParams): Promise<GroupMapping> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
+    slug: string,
+    mapping: string,
+    data: UpdateGroupMapping,
+    params: GroupSyncProjectMappingFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<GroupMapping, F | "id">>;
+  update(
+    slug: string,
+    mapping: string,
+    data: UpdateGroupMapping,
+    params?: GroupSyncProjectMappingFieldsParams
+  ): Promise<GroupMapping>;
   update(
     slug: string,
     mapping: string,

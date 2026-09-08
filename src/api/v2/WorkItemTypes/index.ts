@@ -139,6 +139,18 @@ export class WorkItemTypes extends LoadsNavigableRows<
     return this.load(row, [slug, project]);
   }
 
+  create<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    project: string,
+    data: CreateWorkItemType,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  create(
+    slug: string,
+    project: string,
+    data: CreateWorkItemType,
+    params?: WorkItemTypeShapeParams
+  ): Promise<LoadedWorkItemType>;
   async create(
     slug: string,
     project: string,
@@ -149,6 +161,20 @@ export class WorkItemTypes extends LoadsNavigableRows<
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    project: string,
+    type: string,
+    data: UpdateWorkItemType,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    type: string,
+    data: UpdateWorkItemType,
+    params?: WorkItemTypeShapeParams
+  ): Promise<LoadedWorkItemType>;
   async update(
     slug: string,
     project: string,
@@ -165,6 +191,18 @@ export class WorkItemTypes extends LoadsNavigableRows<
   }
 
   /** Mark this type as the project's default. Answers the updated row, navigable. */
+  markDefault<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    project: string,
+    type: string,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  markDefault(
+    slug: string,
+    project: string,
+    type: string,
+    params?: WorkItemTypeShapeParams
+  ): Promise<LoadedWorkItemType>;
   async markDefault(
     slug: string,
     project: string,
@@ -190,6 +228,12 @@ export class WorkItemTypes extends LoadsNavigableRows<
   }
 
   /** Enable the project's Epic type (idempotent). A collection-level action, so it has no pk. */
+  enable<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
+    slug: string,
+    project: string,
+    params: WorkItemTypeShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  enable(slug: string, project: string, params?: WorkItemTypeShapeParams): Promise<LoadedWorkItemType>;
   async enable(slug: string, project: string, params?: WorkItemTypeShapeParams): Promise<LoadedWorkItemType> {
     const row = await this.doCustomAction<WorkItemType>("enable", {
       method: "POST",

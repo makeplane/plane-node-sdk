@@ -83,10 +83,25 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
     return this.doFindOne({ name }, { slug, project_id: project });
   }
 
+  create<F extends Exclude<LabelField, "all"> & keyof Label>(
+    slug: string,
+    project: string,
+    data: CreateLabel,
+    params: LabelFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Label, F | "id">>;
+  create(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label>;
   create(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label> {
     return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<LabelField, "all"> & keyof Label>(
+    slug: string,
+    project: string,
+    label: string,
+    data: UpdateLabel,
+    params: LabelFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Label, F | "id">>;
+  update(slug: string, project: string, label: string, data: UpdateLabel, params?: LabelFieldsParams): Promise<Label>;
   update(slug: string, project: string, label: string, data: UpdateLabel, params?: LabelFieldsParams): Promise<Label> {
     return this.doUpdate(data, { slug, project_id: project, pk: label }, params as Record<string, unknown>);
   }
@@ -96,6 +111,13 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<LabelField, "all"> & keyof Label>(
+    slug: string,
+    project: string,
+    data: CreateLabel,
+    params: LabelFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Label, F | "id">>;
+  upsert(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label>;
   upsert(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label> {
     return this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);
   }

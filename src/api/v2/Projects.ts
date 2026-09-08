@@ -225,12 +225,25 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<ProjectField, "all"> & keyof Project>(
+    slug: string,
+    data: CreateProject,
+    params: ProjectShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  create(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject>;
   async create(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject> {
     const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
     return this.load(row, [slug], params?.fields);
   }
 
   /** `project` accepts a project UUID or its bare identifier — see this class's own doc comment. */
+  update<F extends Exclude<ProjectField, "all"> & keyof Project>(
+    slug: string,
+    project: string,
+    data: UpdateProject,
+    params: ProjectShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  update(slug: string, project: string, data: UpdateProject, params?: ProjectShapeParams): Promise<LoadedProject>;
   async update(
     slug: string,
     project: string,
@@ -247,6 +260,12 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<ProjectField, "all"> & keyof Project>(
+    slug: string,
+    data: CreateProject,
+    params: ProjectShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  upsert(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject>;
   async upsert(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject> {
     const row = await this.doUpsert(data, { slug }, params as Record<string, unknown>);
     return this.load(row, [slug], params?.fields);

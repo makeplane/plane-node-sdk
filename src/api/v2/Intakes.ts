@@ -82,6 +82,18 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
     return this.doRetrieve({ slug, project_id: project, pk: intake }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
+    slug: string,
+    project: string,
+    data: CreateIntakeWorkItem,
+    params: IntakeWorkItemFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<IntakeWorkItem, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    data: CreateIntakeWorkItem,
+    params?: IntakeWorkItemFieldsParams
+  ): Promise<IntakeWorkItem>;
   create(
     slug: string,
     project: string,
@@ -92,6 +104,20 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
   }
 
   /** Ordinary field edits and/or a triage decision (`status`/`snoozed_till`/`duplicate_to_id`) in one call. */
+  update<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
+    slug: string,
+    project: string,
+    intake: string,
+    data: UpdateIntakeWorkItem,
+    params: IntakeWorkItemFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<IntakeWorkItem, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    intake: string,
+    data: UpdateIntakeWorkItem,
+    params?: IntakeWorkItemFieldsParams
+  ): Promise<IntakeWorkItem>;
   update(
     slug: string,
     project: string,

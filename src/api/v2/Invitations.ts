@@ -69,6 +69,12 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
     return this.doRetrieve({ slug, pk: invite }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
+    slug: string,
+    data: CreateWorkspaceInvite,
+    params: WorkspaceInviteFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkspaceInvite, F | "id">>;
+  create(slug: string, data: CreateWorkspaceInvite, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite>;
   create(slug: string, data: CreateWorkspaceInvite, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
@@ -85,6 +91,16 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
    * live view returns a list), so it goes through the kernel's custom-action helper at
    * its own `extraPaths` template.
    */
+  bulk<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
+    slug: string,
+    data: BulkCreateWorkspaceInvites,
+    params: WorkspaceInviteFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkspaceInvite, F | "id">[]>;
+  bulk(
+    slug: string,
+    data: BulkCreateWorkspaceInvites,
+    params?: WorkspaceInviteFieldsParams
+  ): Promise<WorkspaceInvite[]>;
   bulk(
     slug: string,
     data: BulkCreateWorkspaceInvites,

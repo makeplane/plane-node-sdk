@@ -134,6 +134,20 @@ export class ProjectAutomationNodes extends V2Resource<AutomationNode, CreateAut
     return this.doFindOne({ name }, this._at(slug, project, automation));
   }
 
+  create<F extends Exclude<ProjectAutomationNodeField, "all"> & keyof AutomationNode>(
+    slug: string,
+    project: string,
+    automation: string,
+    data: CreateAutomationNode,
+    params: ProjectAutomationNodeShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<AutomationNode, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    automation: string,
+    data: CreateAutomationNode,
+    params?: ProjectAutomationNodeShapeParams
+  ): Promise<AutomationNode>;
   create(
     slug: string,
     project: string,
@@ -144,6 +158,22 @@ export class ProjectAutomationNodes extends V2Resource<AutomationNode, CreateAut
     return this.doCreate(data, this._at(slug, project, automation), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<ProjectAutomationNodeField, "all"> & keyof AutomationNode>(
+    slug: string,
+    project: string,
+    automation: string,
+    node: string,
+    data: UpdateAutomationNode,
+    params: ProjectAutomationNodeShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<AutomationNode, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    automation: string,
+    node: string,
+    data: UpdateAutomationNode,
+    params?: ProjectAutomationNodeShapeParams
+  ): Promise<AutomationNode>;
   update(
     slug: string,
     project: string,

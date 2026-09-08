@@ -96,6 +96,20 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
     );
   }
 
+  create<F extends Exclude<WorkItemLinkField, "all"> & keyof WorkItemLink>(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemLink,
+    params: WorkItemLinkFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemLink, F | "id">>;
+  create(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: CreateWorkItemLink,
+    params?: WorkItemLinkFieldsParams
+  ): Promise<WorkItemLink>;
   create(
     slug: string,
     project: string,
@@ -110,6 +124,22 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
     );
   }
 
+  update<F extends Exclude<WorkItemLinkField, "all"> & keyof WorkItemLink>(
+    slug: string,
+    project: string,
+    workItem: string,
+    link: string,
+    data: UpdateWorkItemLink,
+    params: WorkItemLinkFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkItemLink, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    workItem: string,
+    link: string,
+    data: UpdateWorkItemLink,
+    params?: WorkItemLinkFieldsParams
+  ): Promise<WorkItemLink>;
   update(
     slug: string,
     project: string,

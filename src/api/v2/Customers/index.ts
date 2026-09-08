@@ -116,11 +116,24 @@ export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, Upda
     return this.load(row, [slug]);
   }
 
+  create<F extends Exclude<CustomerField, "all"> & keyof Customer>(
+    slug: string,
+    data: CreateCustomer,
+    params: CustomerShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedCustomerRow<Pick<Customer, F | "id">>>;
+  create(slug: string, data: CreateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer>;
   async create(slug: string, data: CreateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer> {
     const row = await this.doCreate(data, { slug }, params as Record<string, unknown>);
     return this.load(row, [slug], params?.fields);
   }
 
+  update<F extends Exclude<CustomerField, "all"> & keyof Customer>(
+    slug: string,
+    customer: string,
+    data: UpdateCustomer,
+    params: CustomerShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedCustomerRow<Pick<Customer, F | "id">>>;
+  update(slug: string, customer: string, data: UpdateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer>;
   async update(
     slug: string,
     customer: string,
@@ -136,6 +149,12 @@ export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, Upda
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<CustomerField, "all"> & keyof Customer>(
+    slug: string,
+    data: CreateCustomer,
+    params: CustomerShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedCustomerRow<Pick<Customer, F | "id">>>;
+  upsert(slug: string, data: CreateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer>;
   async upsert(slug: string, data: CreateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer> {
     const row = await this.doUpsert(data, { slug }, params as Record<string, unknown>);
     return this.load(row, [slug], params?.fields);

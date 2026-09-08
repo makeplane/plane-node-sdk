@@ -117,6 +117,18 @@ export class WorkspaceAutomationNodes extends V2Resource<AutomationNode, CreateA
     return this.doFindOne({ name }, this._at(slug, automation));
   }
 
+  create<F extends Exclude<WorkspaceAutomationNodeField, "all"> & keyof AutomationNode>(
+    slug: string,
+    automation: string,
+    data: CreateAutomationNode,
+    params: WorkspaceAutomationNodeShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<AutomationNode, F | "id">>;
+  create(
+    slug: string,
+    automation: string,
+    data: CreateAutomationNode,
+    params?: WorkspaceAutomationNodeShapeParams
+  ): Promise<AutomationNode>;
   create(
     slug: string,
     automation: string,
@@ -126,6 +138,20 @@ export class WorkspaceAutomationNodes extends V2Resource<AutomationNode, CreateA
     return this.doCreate(data, this._at(slug, automation), params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<WorkspaceAutomationNodeField, "all"> & keyof AutomationNode>(
+    slug: string,
+    automation: string,
+    node: string,
+    data: UpdateAutomationNode,
+    params: WorkspaceAutomationNodeShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<AutomationNode, F | "id">>;
+  update(
+    slug: string,
+    automation: string,
+    node: string,
+    data: UpdateAutomationNode,
+    params?: WorkspaceAutomationNodeShapeParams
+  ): Promise<AutomationNode>;
   update(
     slug: string,
     automation: string,

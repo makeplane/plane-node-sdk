@@ -91,10 +91,28 @@ export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiati
     return this.doFindOne({ name }, { slug });
   }
 
+  create<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
+    slug: string,
+    data: CreateInitiativeLabel,
+    params: InitiativeLabelShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<InitiativeLabel, F | "id">>;
+  create(slug: string, data: CreateInitiativeLabel, params?: InitiativeLabelShapeParams): Promise<InitiativeLabel>;
   create(slug: string, data: CreateInitiativeLabel, params?: InitiativeLabelShapeParams): Promise<InitiativeLabel> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
+    slug: string,
+    label: string,
+    data: UpdateInitiativeLabel,
+    params: InitiativeLabelShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<InitiativeLabel, F | "id">>;
+  update(
+    slug: string,
+    label: string,
+    data: UpdateInitiativeLabel,
+    params?: InitiativeLabelShapeParams
+  ): Promise<InitiativeLabel>;
   update(
     slug: string,
     label: string,

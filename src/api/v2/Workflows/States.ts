@@ -116,6 +116,20 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
    * Attach project states to this workflow; already-attached ids are accepted
    * idempotently. Answers an array, not the single object the golden's `201` implies.
    */
+  attach<F extends Exclude<WorkflowStateField, "all"> & keyof WorkflowState>(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: WorkflowStateAttachRequest,
+    params: WorkflowStateShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkflowState, F | "id">[]>;
+  attach(
+    slug: string,
+    project: string,
+    workflow: string,
+    data: WorkflowStateAttachRequest,
+    params?: WorkflowStateShapeParams
+  ): Promise<WorkflowState[]>;
   attach(
     slug: string,
     project: string,
@@ -131,6 +145,22 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     });
   }
 
+  update<F extends Exclude<WorkflowStateField, "all"> & keyof WorkflowState>(
+    slug: string,
+    project: string,
+    workflow: string,
+    workflowState: string,
+    data: UpdateWorkflowState,
+    params: WorkflowStateShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkflowState, F | "id">>;
+  update(
+    slug: string,
+    project: string,
+    workflow: string,
+    workflowState: string,
+    data: UpdateWorkflowState,
+    params?: WorkflowStateShapeParams
+  ): Promise<WorkflowState>;
   update(
     slug: string,
     project: string,

@@ -74,10 +74,23 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
     return this.doFindOne({ name }, { slug });
   }
 
+  create<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
+    slug: string,
+    data: CreateTeamspace,
+    params: TeamspaceShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<Teamspace, F | "id">>;
+  create(slug: string, data: CreateTeamspace, params?: TeamspaceShapeParams): Promise<Teamspace>;
   create(slug: string, data: CreateTeamspace, params?: TeamspaceShapeParams): Promise<Teamspace> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
+    slug: string,
+    teamspace: string,
+    data: UpdateTeamspace,
+    params: TeamspaceShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<Teamspace, F | "id">>;
+  update(slug: string, teamspace: string, data: UpdateTeamspace, params?: TeamspaceShapeParams): Promise<Teamspace>;
   update(slug: string, teamspace: string, data: UpdateTeamspace, params?: TeamspaceShapeParams): Promise<Teamspace> {
     return this.doUpdate(data, { slug, pk: teamspace }, params as Record<string, unknown>);
   }

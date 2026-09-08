@@ -65,10 +65,23 @@ export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
     return this.doRetrieve({ slug, pk: sticky }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<StickyField, "all"> & keyof Sticky>(
+    slug: string,
+    data: CreateSticky,
+    params: StickyFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Sticky, F | "id">>;
+  create(slug: string, data: CreateSticky, params?: StickyFieldsParams): Promise<Sticky>;
   create(slug: string, data: CreateSticky, params?: StickyFieldsParams): Promise<Sticky> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<StickyField, "all"> & keyof Sticky>(
+    slug: string,
+    sticky: string,
+    data: UpdateSticky,
+    params: StickyFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Sticky, F | "id">>;
+  update(slug: string, sticky: string, data: UpdateSticky, params?: StickyFieldsParams): Promise<Sticky>;
   update(slug: string, sticky: string, data: UpdateSticky, params?: StickyFieldsParams): Promise<Sticky> {
     return this.doUpdate(data, { slug, pk: sticky }, params as Record<string, unknown>);
   }

@@ -172,6 +172,13 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     return this.load(row, [slug, project], params?.fields);
   }
 
+  create<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    data: CreateWorkItem,
+    params: WorkItemShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  create(slug: string, project: string, data: CreateWorkItem, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async create(
     slug: string,
     project: string,
@@ -182,6 +189,20 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     return this.load(row, [slug, project], params?.fields);
   }
 
+  update<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: UpdateWorkItem,
+    params: WorkItemShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  update(
+    slug: string,
+    project: string,
+    workItem: string,
+    data: UpdateWorkItem,
+    params?: WorkItemShapeParams
+  ): Promise<LoadedWorkItem>;
   async update(
     slug: string,
     project: string,
@@ -202,6 +223,13 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   }
 
   /** Reconciles on (external_source, external_id) when both are set. */
+  upsert<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    data: CreateWorkItem,
+    params: WorkItemShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  upsert(slug: string, project: string, data: CreateWorkItem, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async upsert(
     slug: string,
     project: string,
@@ -231,6 +259,13 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   }
 
   /** Archive a work item. Returns the archived row. */
+  archive<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: WorkItemShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  archive(slug: string, project: string, workItem: string, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async archive(
     slug: string,
     project: string,
@@ -246,6 +281,13 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   }
 
   /** Unarchive a work item. Returns the restored row. */
+  unarchive<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
+    slug: string,
+    project: string,
+    workItem: string,
+    params: WorkItemShapeParams & { fields: readonly F[] }
+  ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  unarchive(slug: string, project: string, workItem: string, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async unarchive(
     slug: string,
     project: string,

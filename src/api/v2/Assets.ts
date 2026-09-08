@@ -79,6 +79,12 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
   }
 
   /** Step 2: confirm the upload. Takes no body — see {@link WorkspaceAssetConfirmRequest}. */
+  update<F extends Exclude<WorkspaceAssetField, "all"> & keyof WorkspaceAsset>(
+    slug: string,
+    asset: string,
+    params: WorkspaceAssetFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkspaceAsset, F | "id">>;
+  update(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset>;
   update(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset> {
     return this.doUpdate({}, { slug, pk: asset }, params as Record<string, unknown>);
   }

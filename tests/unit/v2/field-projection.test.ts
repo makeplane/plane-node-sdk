@@ -47,6 +47,26 @@ describe("typed field projection", () => {
       expect(row.group).toBeUndefined();
     }
   });
+
+  it("narrows a written row too — `create` honours the `fields` it accepts", async () => {
+    nock(BASE)
+      .post("/api/v2/workspaces/acme/projects/ENG/states/")
+      .query({ fields: "id,name" })
+      .reply(201, { id: "1", name: "Todo" });
+
+    const row = await makeStates().create(
+      "acme",
+      "ENG",
+      { name: "Todo", color: "#000000" },
+      { fields: ["id", "name"] as const }
+    );
+
+    expect(row.name).toBe("Todo");
+    // @ts-expect-error `group` was not requested, so the created row does not claim it either.
+    // Before the write-projection codemod this directive was *unused*: `create` answered the
+    // full `State` while asking the server to drop everything but two fields.
+    expect(row.group).toBeUndefined();
+  });
 });
 
 /**
@@ -89,5 +109,51 @@ describe("projection soundness", () => {
     }).filter((offender): offender is string => offender !== undefined);
 
     expect(offenders.sort()).toEqual([]);
+  });
+});
+
+/**
+ * The same question, asked of every method that takes `fields` rather than only of the
+ * `list`/`iterate` pair.
+ *
+ * `create`, `update` and `upsert` accepted `fields`, passed it to the server, and declared
+ * the **full** row as their return type — so the compiler claimed presence for exactly the
+ * fields the caller had just asked the server to drop. It is the identical unsoundness the
+ * rule above closed for `iterate`, and the identical unsoundness the long comment on
+ * `Owned<…>` cites as the reason not to match the overload set. It sat in the write
+ * direction on ~90 classes because the `fields` sweep obliges a method to *offer* the
+ * option and nothing obliged it to *honour* it.
+ *
+ * Stated as one rule over every public method, not as three method names: a method that
+ * accepts `fields` promises the caller a projection, and the type has to keep that promise.
+ * Written that way it also covers the next method somebody adds — `retrieve`-shaped or
+ * not — without anybody remembering this file exists.
+ *
+ * There is no exception list, and there is deliberately no way to spell one: a method that
+ * cannot narrow should not be advertising `fields`. `Webhooks.regenerate` is the precedent
+ * — the option came off the method rather than an exemption going in.
+ */
+describe("projection soundness across every method that takes `fields`", () => {
+  const PROJECTING = migratedEntries().flatMap((entry) =>
+    [...classMethods(entry).values()]
+      .filter((method) => method.optionProperties.has("fields"))
+      .map((method) => ({ entry, method }))
+  );
+
+  it("finds methods offering `fields` at all", () => {
+    // A floor, not a pin: a broken enumeration would make the assertion below vacuous.
+    expect(PROJECTING.length).toBeGreaterThanOrEqual(280);
+  });
+
+  it("narrows the row type wherever `fields` is accepted", () => {
+    const offenders = PROJECTING.filter(({ method }) => !narrowsToRequestedFields(method))
+      .map(
+        ({ entry, method }) =>
+          `${entry.key}.${method.name}() accepts \`fields\` and answers the full row — it claims ` +
+          `presence for every field the server was just told to drop`
+      )
+      .sort();
+
+    expect(offenders).toEqual([]);
   });
 });

@@ -77,10 +77,25 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
     return this.doRetrieve({ slug, project_id: project, pk: view }, params as Record<string, unknown>);
   }
 
+  create<F extends Exclude<ViewField, "all"> & keyof View>(
+    slug: string,
+    project: string,
+    data: CreateView,
+    params: ViewShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<View, F | "id">>;
+  create(slug: string, project: string, data: CreateView, params?: ViewShapeParams): Promise<View>;
   create(slug: string, project: string, data: CreateView, params?: ViewShapeParams): Promise<View> {
     return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
+  update<F extends Exclude<ViewField, "all"> & keyof View>(
+    slug: string,
+    project: string,
+    view: string,
+    data: UpdateView,
+    params: ViewShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<View, F | "id">>;
+  update(slug: string, project: string, view: string, data: UpdateView, params?: ViewShapeParams): Promise<View>;
   update(slug: string, project: string, view: string, data: UpdateView, params?: ViewShapeParams): Promise<View> {
     return this.doUpdate(data, { slug, project_id: project, pk: view }, params as Record<string, unknown>);
   }
