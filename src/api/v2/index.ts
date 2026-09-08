@@ -3,6 +3,7 @@ import { Projects } from "./Projects";
 import { UserAssets } from "./UserAssets";
 import { Users } from "./UsersMe";
 import { Workspace } from "./Workspace";
+import { Workspaces } from "./Workspaces";
 import { V2Transport } from "./kernel/transport";
 
 /**
@@ -21,12 +22,18 @@ export class V2Namespace {
   public users: Users;
   public userAssets: UserAssets;
   public projects: Projects;
+  /**
+   * The workspace root: `v2.workspaces.retrieve(slug)` answers a row that reaches every
+   * workspace-scoped family without the slug being repeated.
+   */
+  public workspaces: Workspaces;
 
   constructor(config: Configuration) {
     this.transport = new V2Transport(config);
     this.users = new Users(this.transport);
     this.userAssets = new UserAssets(this.transport);
     this.projects = new Projects(this.transport);
+    this.workspaces = new Workspaces(this.transport);
   }
 
   /** Bind a workspace. Makes no request. */
@@ -41,6 +48,8 @@ export { Milestones, MilestoneWorkItems } from "./Milestones";
 export { Modules, ModuleWorkItems } from "./Modules";
 export { States } from "./States";
 export { Workspace } from "./Workspace";
+export { Workspaces } from "./Workspaces";
+export type { WorkspaceField, WorkspaceFieldsParams } from "./Workspaces";
 export { Project } from "./Project";
 export { Wiki } from "./Wiki";
 export { Activities, Attachments, Comments, Dependencies, Links, Relations, WorkItems, WorkLogs } from "./WorkItems";
@@ -77,6 +86,8 @@ export { PROJECT_ID_NAMES } from "./loaded/Project";
 export type { LoadedProject, LoadedProjectRow, ProjectIds, ProjectNavigation } from "./loaded/Project";
 export { WORK_ITEM_ID_NAMES } from "./loaded/WorkItem";
 export type { LoadedWorkItem, LoadedWorkItemRow, WorkItemIds, WorkItemNavigation } from "./loaded/WorkItem";
+export { WORKSPACE_ID_NAMES } from "./loaded/Workspace";
+export type { LoadedWorkspace, LoadedWorkspaceRow, WorkspaceIds, WorkspaceNavigation } from "./loaded/Workspace";
 // Narrow a `Page<T>` to its offset or cursor envelope — see README "API v2".
 export { isCursorPage, isOffsetPage } from "./kernel/pagination";
 // Field-name/order_by unions for dynamically-built `fields`/`order_by` values, and the

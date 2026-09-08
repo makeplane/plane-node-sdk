@@ -274,6 +274,7 @@ export type { WorkItemType as V2WorkItemType } from "./models/v2/WorkItemType";
 export type { Workflow as V2Workflow } from "./models/v2/Workflow";
 export type { WorkflowState as V2WorkflowState } from "./models/v2/WorkflowState";
 export type { WorkflowTransition as V2WorkflowTransition } from "./models/v2/WorkflowTransition";
+export type { Workspace as V2Workspace } from "./models/v2/Workspace";
 export type { WorkspaceMember as V2WorkspaceMember } from "./models/v2/Member";
 
 // Same `ListLabelsParams` situation (a referenced-only v1 type that only ever had

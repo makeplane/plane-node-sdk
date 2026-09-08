@@ -77,29 +77,14 @@ function discoverResourceClasses(): Map<string, V2ResourceClass> {
 const transport = new V2Transport(new Configuration({ baseUrl: "https://api.example.com", apiKey: "secret" }));
 
 /**
- * Golden operations the SDK does not implement yet, each with why and where it lands.
+ * Every golden operation is implemented. There is no "not built yet" list any more.
  *
- * **This list may only shrink** — the assertions below enforce that from both ends: an
- * entry naming an operation that *is* implemented fails as stale, an entry naming an
- * operation the golden does not have fails as bogus, and the size is ratcheted so nothing
- * can quietly join. Like `UNMIGRATED_RESOURCES`, it exists so that "not built yet" is
- * something somebody wrote down rather than something the suite failed to notice.
- *
- * - `workspaces_retrieve` — `GET /workspaces/{slug}/`. It appeared when the golden was
- *   refreshed from the stale 406-operation copy to `origin/preview`'s 407, which is the
- *   whole reason the refresh mattered. Implementing it means introducing a `Workspaces`
- *   resource and the `v2.workspaces` attachment point, and the variant-F plan schedules
- *   that root for the tree-wiring task (see `Workspace.ts`'s own doc comment) — inventing
- *   its shape here would pre-empt that design, so it is recorded instead of guessed at.
- *   Note that when it lands it must be navigable: it is precisely the resource whose
- *   Python twin answered a bare row with 24 unreachable children.
+ * There was one, holding `workspaces_retrieve` behind the tree-wiring task; the workspace
+ * root landed and emptied it, so it is gone rather than left as an empty ratchet nobody
+ * would notice filling back up. If an operation ever genuinely cannot be implemented, the
+ * assertion below fails by name and whoever hits it re-introduces the list *with the
+ * guards it had* — real-in-the-golden, actually-unimplemented, and a ceiling.
  */
-export const UNIMPLEMENTED_OPERATIONS: Readonly<Record<string, string>> = {
-  workspaces_retrieve: "needs the `v2.workspaces` root, which the variant-F plan schedules for the tree-wiring task",
-};
-
-/** How large {@link UNIMPLEMENTED_OPERATIONS} is allowed to be. A ratchet: lower it, never raise it. */
-export const UNIMPLEMENTED_CEILING = 1;
 
 describe("api_v2 operations coverage", () => {
   const classes = discoverResourceClasses();
@@ -145,10 +130,10 @@ describe("api_v2 operations coverage", () => {
       throw new Error(`operationId(s) declared by more than one class:\n${detail}`);
     }
 
-    // (b) the union of all declared values equals the full OPERATION_IDS set, bar the
-    // operations explicitly recorded as not built yet.
+    // (b) the union of all declared values equals the full OPERATION_IDS set — every
+    // one of them, with no exemption list.
     const declaredIds = new Set(declaredBy.keys());
-    const missing = OPERATION_IDS.filter((id) => !declaredIds.has(id) && !(id in UNIMPLEMENTED_OPERATIONS));
+    const missing = OPERATION_IDS.filter((id) => !declaredIds.has(id));
     const extra = [...declaredIds].filter((id) => !goldenIds.has(id));
 
     if (missing.length > 0 || extra.length > 0) {
@@ -166,28 +151,6 @@ describe("api_v2 operations coverage", () => {
 
     expect(missing).toEqual([]);
     expect(extra).toEqual([]);
-  });
-
-  it("keeps every operation recorded as unimplemented real, still unimplemented, and shrinking", () => {
-    const goldenIds = new Set<string>(OPERATION_IDS);
-    const declared = new Set<string>();
-    for (const Cls of classes.values()) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const operations = (new Cls(transport) as any).operations as Record<string, AnyOperationId> | undefined;
-      for (const id of Object.values(operations ?? {})) declared.add(id);
-    }
-
-    const named = Object.keys(UNIMPLEMENTED_OPERATIONS).sort();
-
-    expect({
-      // An entry the golden has never heard of describes nothing.
-      notInGolden: named.filter((id) => !goldenIds.has(id)),
-      // An entry for an operation that *is* implemented reads as a gap that was never closed.
-      actuallyImplemented: named.filter((id) => declared.has(id)),
-    }).toEqual({ notInGolden: [], actuallyImplemented: [] });
-
-    // The ratchet. Lower `UNIMPLEMENTED_CEILING` as these are built; never raise it.
-    expect(named.length).toBeLessThanOrEqual(UNIMPLEMENTED_CEILING);
   });
 
   it("gives every public method of a migrated resource an `operations` key of its own", () => {

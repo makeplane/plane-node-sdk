@@ -44,6 +44,7 @@ export * from "./View";
 export * from "./Webhook";
 export * from "./WebhookLog";
 export * from "./WhoAmI";
+export * from "./Workspace";
 // `Page` (wiki page) and `common`'s `Page<T>` (pagination envelope) both export a
 // member named `Page`; this explicit re-export wins the bare `Page` name for the
 // wiki page model — the envelope stays reachable as `Page<T>` or `V2PageEnvelope`.

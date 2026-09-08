@@ -50,8 +50,33 @@ const project = await client.projects.create("workspace-slug", {
 
 `client.v2` reaches the v2 surface. The v1 resources on the client are unchanged.
 
-The bound/chained form is the **only** public shape: bind a workspace, then (for
-project-scoped resources) a project — both locators do zero I/O, so building the
+### The workspace root
+
+`client.v2.workspaces` is the root of the tree. Fetch a workspace by its slug and the
+row you get back is also the place its children live — the slug is supplied once, at
+fetch time, and never repeated:
+
+```ts
+const workspace = await client.v2.workspaces.retrieve("acme");
+
+await workspace.projects.list(); // no slug
+await workspace.roles.list(); // no slug
+
+// And it chains: a fetched project carries both ids.
+const eng = await workspace.projects.retrieve("ENG");
+await eng.states.list(); // no slug, no project key
+```
+
+Every resource is also reachable flat, taking the ids its URL names as leading
+positional arguments — `client.v2.projects.states.list("acme", "ENG")`. Use the flat
+form when you already have the ids, or when you want the narrowed row type a literal
+`fields` tuple gives (a navigated call cannot carry that through; see `Owned`).
+
+The families still being migrated are reached through the locator below, which the last
+task of the migration removes.
+
+The bound/chained form is the **only** public shape for those: bind a workspace, then
+(for project-scoped resources) a project — both locators do zero I/O, so building the
 chain never makes a request on its own.
 
 ```ts
