@@ -19,7 +19,7 @@ export const PROJECT_ID_NAMES = ["slug", "project"] as const;
  * Everything a fetched project can reach.
  *
  * One property per child `Projects` attaches whose own migration is done;
- * `tests/unit/v2/loadedNavigation.test.ts` compares the two sets and fails by name if a
+ * `tests/unit/v2/loaded-navigation.test.ts` compares the two sets and fails by name if a
  * migrated child has no way to be reached from a row. The Python port shipped a project
  * row that reached 3 of its 15 children with every other test green — this is the check
  * that catches that.

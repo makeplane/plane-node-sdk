@@ -72,24 +72,40 @@ export type Owned<TResource, TIds extends readonly unknown[]> = {
     : never;
 };
 
-/** Kernel helpers are `protected`, which is compile-time only — exclude them by name at runtime. */
-const KERNEL_METHOD_NAMES: ReadonlySet<string> = new Set(Object.getOwnPropertyNames(V2Resource.prototype));
+/**
+ * The kernel's overridable hooks. Abstract or overridden, they land on the *subclass*
+ * prototype, past the point the walk below stops, and `protected` leaves no runtime trace
+ * — so they have to be named. `loaded-navigation.test.ts` compares an owned view's keys
+ * against the child's public methods read off the TypeScript source, which is what caught
+ * these leaking onto the view in the first place.
+ */
+const KERNEL_HOOK_NAMES: ReadonlySet<string> = new Set(["navigationOf", "rowId", "load", "loadPage", "loadIterate"]);
 
-/** Method names to prepend ids onto: the class's own and any intermediate class's, never the kernel's. */
+/**
+ * Method names to prepend ids onto: the resource's own and any intermediate class's,
+ * never the kernel's.
+ *
+ * `protected` is compile-time only, so the kernel's own helpers are ordinary properties
+ * at runtime and would otherwise be wrapped and exposed on the owned view — invisible to
+ * the type, but able to shadow a real method name. The walk therefore stops at whichever
+ * kernel prototype it reaches rather than filtering by a name list, which stays correct
+ * as bases are added.
+ */
 function publicMethodNames(resource: object): string[] {
+  const stopAt: ReadonlySet<unknown> = new Set([V2Resource.prototype, LoadsNavigableRows.prototype, Object.prototype]);
   const names = new Set<string>();
-  // Own properties first: a class field assigned an arrow function lives on the
-  // instance, not on the prototype, and is just as public as a method.
+  // Own properties first: a class field assigned an arrow function lives on the instance,
+  // not on the prototype, and is just as public as a method.
   for (const [name, value] of Object.entries(resource)) {
     if (typeof value === "function" && !name.startsWith("_")) names.add(name);
   }
   for (
     let prototype = Object.getPrototypeOf(resource) as object | null;
-    prototype !== null && prototype !== Object.prototype;
+    prototype !== null && !stopAt.has(prototype);
     prototype = Object.getPrototypeOf(prototype) as object | null
   ) {
     for (const name of Object.getOwnPropertyNames(prototype)) {
-      if (name === "constructor" || name.startsWith("_") || KERNEL_METHOD_NAMES.has(name)) continue;
+      if (name === "constructor" || name.startsWith("_") || KERNEL_HOOK_NAMES.has(name)) continue;
       const descriptor = Object.getOwnPropertyDescriptor(prototype, name);
       if (descriptor && typeof descriptor.value === "function") names.add(name);
     }
@@ -105,7 +121,7 @@ function publicMethodNames(resource: object): string[] {
  * Deliberately gives up rather than guessing: the check it feeds refuses a *definite*
  * mismatch and stays quiet otherwise, so a signature this cannot parse never becomes a
  * false alarm. The authoritative version of the same rule is a source-level sweep
- * (`tests/unit/v2/loadedNavigation.test.ts`), which reads the TypeScript rather than the
+ * (`tests/unit/v2/loaded-navigation.test.ts`), which reads the TypeScript rather than the
  * emitted JavaScript.
  */
 function leadingParameterNames(fn: AnyFunction, count: number): string[] | undefined {

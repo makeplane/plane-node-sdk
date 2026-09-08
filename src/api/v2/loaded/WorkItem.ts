@@ -15,7 +15,7 @@ export const WORK_ITEM_ID_NAMES = ["slug", "project", "workItem"] as const;
  * Everything a fetched work item can reach.
  *
  * One property per child `WorkItems` attaches whose own migration is done;
- * `tests/unit/v2/loadedNavigation.test.ts` compares the two sets and fails by name if a
+ * `tests/unit/v2/loaded-navigation.test.ts` compares the two sets and fails by name if a
  * migrated child has no way to be reached from a row.
  */
 export interface WorkItemNavigation {

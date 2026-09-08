@@ -89,7 +89,7 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
    * resources pass nothing and take their ids per call; it survives only so the
    * not-yet-migrated classes keep working mid-migration, and the last task of the
    * variant-F plan deletes it along with the `Workspace`/`Project` locators. Do not use
-   * it in new code — `tests/unit/v2/pathIdNaming.test.ts` sweeps for the flat shape.
+   * it in new code — `tests/unit/v2/path-id-naming.test.ts` sweeps for the flat shape.
    */
   constructor(
     protected transport: V2Transport,

@@ -98,7 +98,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
 
   public comments: Comments;
   // Not yet on the flat shape, and so not yet reachable from a fetched row — see the
-  // opt-out list in `tests/unit/v2/treeWalk.ts`, which is what makes that a scheduled
+  // opt-out list in `tests/unit/v2/tree-walk.ts`, which is what makes that a scheduled
   // migration rather than an omission.
   public attachments: Attachments;
   public links: Links;
