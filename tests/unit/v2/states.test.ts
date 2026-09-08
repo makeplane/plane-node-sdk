@@ -28,6 +28,20 @@ describe("States (v2)", () => {
     expect(page.data[0].group).toBe("unstarted");
   });
 
+  it("sends `group__in` as a comma-separated list", async () => {
+    // The filter the query-filter sweep forced into existence: `states_list` declares
+    // `?group__in=` (explode:false, style:form), and `ListStatesParams` omitted it, so
+    // "states in any of these groups" was one request the SDK could not make at all.
+    const scope = nock(BASE)
+      .get(COLLECTION)
+      .query({ group__in: "backlog,started" })
+      .reply(200, { data: [], pagination: { style: "offset" } });
+
+    await makeStates().list("acme", "ENG", { group__in: ["backlog", "started"] });
+
+    expect(scope.isDone()).toBe(true);
+  });
+
   it("iterates every state across pages", async () => {
     nock(BASE)
       .get(COLLECTION)

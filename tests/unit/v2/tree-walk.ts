@@ -350,6 +350,21 @@ export function expectedLeadingPathIds(template: string): string[] {
   return names;
 }
 
+/**
+ * How many of a signature's leading parameters really are path ids.
+ *
+ * The longest prefix of {@link expectedLeadingPathIds} the signature actually opens with —
+ * derived, not assumed. A flat method opens with all of them; a pre-flat one binds them
+ * through its retired `scope` and opens with none, and this answers `0` there without
+ * anybody having to consult the opt-out list.
+ */
+export function leadingPathIdCount(template: string, signature: readonly string[]): number {
+  const expected = expectedLeadingPathIds(template);
+  let count = 0;
+  while (count < expected.length && signature[count] === expected[count]) count += 1;
+  return count;
+}
+
 /** The template a method builds its URL from: its `extraPaths` override, else `path`. */
 export function templateFor(resource: AnyResource, method: string): string {
   return extraPathsOf(resource)[method] ?? pathOf(resource);
@@ -511,15 +526,27 @@ export interface CapableMethod {
 }
 
 /**
- * Every migrated method whose own operation declares the option `table` describes, and
- * that returns a body at all.
+ * Every method whose own operation declares the option `table` describes, and that
+ * returns a body at all.
  *
- * `table` is the golden's own `FIELDS` or `EXPAND` map, so the question asked is always
- * "does the API offer this here", never "did somebody remember to list this method".
+ * `table` is the golden's own `FIELDS`, `EXPAND` or `FILTERS` map, so the question asked
+ * is always "does the API offer this here", never "did somebody remember to list this
+ * method".
+ *
+ * `entries` defaults to the migrated set, because the `fields`/`expand` sweeps also check
+ * *where the option is declared* — a params object whose leading path ids are positional —
+ * and a pre-flat class has neither. The `filters` sweep passes {@link resourceEntries}
+ * instead: a query filter is a property of a params object either way, so nothing about
+ * it depends on the flat shape, and leaving the pre-flat classes out would have hidden
+ * `display_name` on both work-item-property lists behind the very opt-out list that is
+ * supposed to be about call shape.
  */
-export function methodsOffering(table: Record<string, readonly string[]>): CapableMethod[] {
+export function methodsOffering(
+  table: Record<string, readonly string[]>,
+  entries: ResourceEntry[] = migratedEntries()
+): CapableMethod[] {
   const found: CapableMethod[] = [];
-  for (const entry of migratedEntries()) {
+  for (const entry of entries) {
     const operations = operationsOf(instantiate(entry));
     for (const method of publicMethods(entry)) {
       const action = ACTION_ALIASES[method.name] ?? method.name;

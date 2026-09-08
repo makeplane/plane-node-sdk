@@ -1,12 +1,14 @@
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../models/v2/common";
-import { State, UpdateState, CreateState } from "../../models/v2/State";
+import { State, StateGroup, UpdateState, CreateState } from "../../models/v2/State";
 import { StateField, StateOrderBy } from "./generated/constants";
 import { AnyOperationId, V2Resource } from "./kernel/resource";
 
 export interface ListStatesParams {
   fields?: readonly StateField[];
   name?: string;
-  group?: string;
+  group?: StateGroup;
+  /** Any of these groups — `?group__in=`, sent comma-separated. */
+  group__in?: readonly StateGroup[];
   is_default?: boolean;
   external_id?: string;
   external_source?: string;

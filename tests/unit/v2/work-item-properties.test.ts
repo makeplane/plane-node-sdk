@@ -115,6 +115,39 @@ describe("WorkItemProperties (project-scoped, v2)", () => {
       await expect(make().findByName("dup")).rejects.toBeInstanceOf(MultipleMatchesFoundError);
     });
   });
+
+  describe("findByDisplayName()", () => {
+    it("resolves the one project property with this UI label via the server-side ?display_name= filter", async () => {
+      // The filter the query-filter sweep forced into existence. `display_name` reached the
+      // golden only when it was refreshed off `origin/preview`, and until that sweep nothing
+      // compared a params type against the filters its operation offers — so the lookup a
+      // caller actually wants (the label they can see on screen, not the slugified key) was
+      // unreachable from the SDK.
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ display_name: "Story Points", per_page: "2", count: "false" })
+        .reply(200, {
+          data: [{ id: "p1", display_name: "Story Points", name: "story-points" }],
+          pagination: { style: "offset" },
+        });
+
+      const found = await make().findByDisplayName("Story Points");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("p1");
+    });
+
+    it("passes `display_name` straight through on list()", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ display_name: "Story Points" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await make().list({ display_name: "Story Points" });
+
+      expect(scope.isDone()).toBe(true);
+    });
+  });
 });
 
 describe("WorkItemProperties.options (project-scoped, v2)", () => {
@@ -265,6 +298,39 @@ describe("WorkspaceWorkItemProperties (workspace-scoped, v2)", () => {
         .query({ name: "dup", per_page: "2", count: "false" })
         .reply(200, { data: [{ id: "p1" }, { id: "p2" }], pagination: { style: "offset" } });
       await expect(make().findByName("dup")).rejects.toBeInstanceOf(MultipleMatchesFoundError);
+    });
+  });
+
+  describe("findByDisplayName()", () => {
+    it("resolves the one workspace property with this UI label via the server-side ?display_name= filter", async () => {
+      // The filter the query-filter sweep forced into existence. `display_name` reached the
+      // golden only when it was refreshed off `origin/preview`, and until that sweep nothing
+      // compared a params type against the filters its operation offers — so the lookup a
+      // caller actually wants (the label they can see on screen, not the slugified key) was
+      // unreachable from the SDK.
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ display_name: "Story Points", per_page: "2", count: "false" })
+        .reply(200, {
+          data: [{ id: "p1", display_name: "Story Points", name: "story-points" }],
+          pagination: { style: "offset" },
+        });
+
+      const found = await make().findByDisplayName("Story Points");
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("p1");
+    });
+
+    it("passes `display_name` straight through on list()", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ display_name: "Story Points" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await make().list({ display_name: "Story Points" });
+
+      expect(scope.isDone()).toBe(true);
     });
   });
 });

@@ -4,6 +4,7 @@ import {
   BULK_MAX_ITEMS,
   EXPAND,
   FIELDS,
+  FILTERS,
   LABEL_FIELDS,
   OPENAPI_VERSION,
   ORDER_BY,
@@ -53,6 +54,28 @@ describe("generated constants", () => {
 
   it("does not carry expand for an operation the golden gives none to", () => {
     expect(EXPAND["states_list" as keyof typeof EXPAND]).toBeUndefined();
+  });
+
+  it("carries the query filters an operation declares, keyed by operation id", () => {
+    // The three axes with maps of their own are excluded — they are not filters — and so
+    // is the pagination envelope. What is left narrows *which rows come back*.
+    expect(FILTERS["states_list"]).toEqual(
+      expect.arrayContaining(["group", "group__in", "is_default", "name", "search"])
+    );
+    for (const axis of ["fields", "order_by", "expand", "offset", "per_page", "paginate", "count"]) {
+      expect(FILTERS["states_list"]).not.toContain(axis);
+    }
+  });
+
+  it("does not carry filters for an operation that declares none", () => {
+    expect(FILTERS["states_retrieve" as keyof typeof FILTERS]).toBeUndefined();
+  });
+
+  it("keeps the `?slug=` filter the roles list declares, name collision and all", () => {
+    // The filter Python lost: `roles_list` declares `?slug=` (the role's slug) while the
+    // path already names `{slug}` (the workspace's). The generator must not drop it —
+    // `Roles` exposes it as `roleSlug`, and `filters-coverage.test.ts` holds that in place.
+    expect(FILTERS["roles_list"]).toContain("slug");
   });
 
   it("caps batches at 50", () => {

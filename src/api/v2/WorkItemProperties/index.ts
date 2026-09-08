@@ -11,6 +11,8 @@ export type WorkItemPropertyOrderBy = (typeof ORDER_BY)["work_item_properties_li
 export interface ListWorkItemPropertiesParams {
   fields?: readonly WorkItemPropertyField[];
   name?: string;
+  /** The label a user sees in the UI, as opposed to `name`, which is the server-derived slug. Case-insensitive exact match. */
+  display_name?: string;
   external_id?: string;
   external_source?: string;
   search?: string;
@@ -67,6 +69,18 @@ export class WorkItemProperties extends V2Resource<WorkItemProperty, CreateWorkI
   /** The one property with this `name`, server-side via `?name=`. `name` is the property key (e.g. `story-points`, hyphen-slugified), not the UI label. */
   findByName(name: string): Promise<WorkItemProperty> {
     return this.doFindOne({ name }, {});
+  }
+
+  /**
+   * The one property with this display name, server-side via `?display_name=`; throws if
+   * none or several match.
+   *
+   * `displayName` is the label a user sees in the UI — `name` is the slugified key the
+   * server derives from it, so this is the lookup a person reaching for a property they
+   * can see on screen actually wants. The match is case-insensitive.
+   */
+  findByDisplayName(displayName: string): Promise<WorkItemProperty> {
+    return this.doFindOne({ display_name: displayName }, {});
   }
 
   create(data: CreateWorkItemProperty): Promise<WorkItemProperty> {

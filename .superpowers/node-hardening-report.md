@@ -5,12 +5,12 @@ Nothing pushed. Runs between task 2 (done) and task 3 (the families and navigabl
 
 Five commits:
 
-| Commit    | What                                                              |
-| --------- | ----------------------------------------------------------------- |
-| `4589433` | CRITICAL 1 + IMPORTANT 3 — enumeration holes in two sweeps        |
-| `fdd78f2` | IMPORTANT 2 — method -> `operations` correspondence               |
-| `76e24e6` | IMPORTANT 4 + 5 — the two kernel defects                          |
-| `1e3d059` | MINOR 6 — `iterate` projection soundness, plus a sweep for it     |
+| Commit    | What                                                                      |
+| --------- | ------------------------------------------------------------------------- |
+| `4589433` | CRITICAL 1 + IMPORTANT 3 — enumeration holes in two sweeps                |
+| `fdd78f2` | IMPORTANT 2 — method -> `operations` correspondence                       |
+| `76e24e6` | IMPORTANT 4 + 5 — the two kernel defects                                  |
+| `1e3d059` | MINOR 6 — `iterate` projection soundness, plus a sweep for it             |
 | `3aab31d` | golden regenerated 406 -> 407, `findByDisplayName` on customer properties |
 
 Gates at the end: `npx jest tests/unit` **619 passed, 317 skipped, 63 suites, 0 failures**
@@ -33,7 +33,7 @@ classes, attached its migrated children, and stayed `extends V2Resource` was the
 checked by **zero** navigation assertions while every URL test passed.
 
 **Fix.** A new assertion over `migratedEntries()` — not over `NAVIGABLE` — makes attaching a
-migrated child the thing that *obliges* a resource to be navigable. The selected set and the
+migrated child the thing that _obliges_ a resource to be navigable. The selected set and the
 set the rules apply to can no longer drift apart.
 
 **Proof.** Gave `States` (migrated, `extends V2Resource`, previously childless) a `labels`
@@ -55,7 +55,7 @@ Reverted; green again. Note that no other assertion in the file moved — which 
 `methodsOffering` does `operationId === undefined → continue`, so a method with no
 `operations` key is checked for neither `fields` nor `expand`, and nothing records that it
 was skipped. The pre-existing coverage net could not see it: it only asks whether each
-golden id is declared *somewhere*, never whether a given method *name* has a key.
+golden id is declared _somewhere_, never whether a given method _name_ has a key.
 
 **Fix.** A new assertion: every public method of every migrated resource must resolve to a
 key in its own class's `operations` map. Resolution goes through a new
@@ -162,7 +162,7 @@ on the opt-out list, so this will start biting during task 3, which is when it i
 
 The check reads parameter names out of `Function.prototype.toString`. esbuild and terser
 both mangle function parameters, so in a minified consumer bundle it saw `[a, b]` against
-`[slug, project]`, read that as a *definite* mismatch, and threw a `TypeError` on every
+`[slug, project]`, read that as a _definite_ mismatch, and threw a `TypeError` on every
 navigated call — hardest on entirely correct downstream code.
 
 **Fix.** Gated, not warned. A `parameterNameCanary(slugCanary, projectCanary)` lives in the
@@ -206,7 +206,7 @@ operation — `ACTION_ALIASES` already maps one onto the other — so a new asse
 `iterate` to narrow **exactly where `list` narrows**. That formulation needs no exception
 list, because it never asks a class to narrow, only to be consistent with itself, and it
 holds for task 3's families without anybody remembering it. `MethodInfo` gained
-`returnTypes` (the return type of each declaration, as *written*: resolving it would erase
+`returnTypes` (the return type of each declaration, as _written_: resolving it would erase
 `F` to its constraint and answer "every field", which is the very unsoundness being looked
 for) and `narrowsToRequestedFields()`.
 
@@ -251,11 +251,11 @@ The whole diff to `constants.ts` is three things: the header path, `workspaces_r
 `FIELDS`/`ORDER_BY`/`EXPAND`, never query filters. Confirmed directly against the two
 goldens instead:
 
-| operation                              | stale        | preview             |
-| -------------------------------------- | ------------ | ------------------- |
-| `customer_properties_list`              | no `display_name` | has `display_name` |
-| `work_item_properties_list`             | no `display_name` | has `display_name` |
-| `workspace_work_item_properties_list`   | no `display_name` | has `display_name` |
+| operation                             | stale             | preview            |
+| ------------------------------------- | ----------------- | ------------------ |
+| `customer_properties_list`            | no `display_name` | has `display_name` |
+| `work_item_properties_list`           | no `display_name` | has `display_name` |
+| `workspace_work_item_properties_list` | no `display_name` | has `display_name` |
 
 Of those three, only `CustomerProperties` is migrated (both work-item-property families are
 still on the opt-out list), so `findByDisplayName(slug, displayName)` and a `display_name`
