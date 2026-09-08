@@ -1,5 +1,12 @@
 /**
  * `markDefault` restores the prior default in a `finally` before delete: a default type 409s on delete, confirmed live.
+ *
+ * Driven flat throughout. This file's whole subject is *which path template* a call
+ * lands on — the workspace-scoped viewset and the project-scoped one differ by mode, and
+ * several cases branch between them inside a single test. Binding a row would fix the
+ * path before the branch and make the very thing under test invisible. The properties
+ * link/unlink pair is flat for a second reason: it is a grandchild, so a project row
+ * cannot reach it at all.
  */
 import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 import { WorkItemType } from "../../../src/models/v2/WorkItemType";
@@ -14,8 +21,10 @@ const maybe = env.ready ? describe : describe.skip;
 maybe("v2 work item types (live)", () => {
   const suite = useV2Project("wit", env);
 
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
-  const proj = () => ws().project(suite.projectId);
+  const ws = () => suite.client.v2.workspaces;
+  const proj = () => suite.client.v2.projects;
+  const slug = () => suite.workspaceSlug;
+  const project = () => suite.projectId;
 
   let mode: WorkItemTypeMode;
 
@@ -28,18 +37,20 @@ maybe("v2 work item types (live)", () => {
    */
   async function createAccessibleType(name: string): Promise<WorkItemType> {
     if (mode === "workspace") {
-      const created = await ws().workItemTypes.create({ name });
-      await proj().workItemTypes.import([created.id]);
+      const created = await ws().workItemTypes.create(slug(), { name });
+      await proj().workItemTypes.import(slug(), project(), [created.id]);
       return created;
     }
-    return proj().workItemTypes.create({ name });
+    return proj().workItemTypes.create(slug(), project(), { name });
   }
 
   /** Delete a row created by {@link createAccessibleType}, best-effort. */
   async function deleteAccessibleType(typeId: string): Promise<void> {
-    await (mode === "workspace" ? ws().workItemTypes.delete(typeId) : proj().workItemTypes.delete(typeId)).catch(
-      () => undefined
-    );
+    await (
+      mode === "workspace"
+        ? ws().workItemTypes.delete(slug(), typeId)
+        : proj().workItemTypes.delete(slug(), project(), typeId)
+    ).catch(() => undefined);
   }
 
   describe("CRUD (project-scoped)", () => {
@@ -47,25 +58,27 @@ maybe("v2 work item types (live)", () => {
       if (mode === "workspace") {
         // Project-level writes are locked out once the workspace owns work item
         // types — assert the real 409 instead of assuming project mode.
-        await expect(proj().workItemTypes.create({ name: uniqueName("wit-crud") })).rejects.toMatchObject<
-          Partial<PlaneApiError>
-        >({ status: 409, code: "work_item_types_managed_at_workspace" });
+        await expect(
+          proj().workItemTypes.create(slug(), project(), { name: uniqueName("wit-crud") })
+        ).rejects.toMatchObject<Partial<PlaneApiError>>({ status: 409, code: "work_item_types_managed_at_workspace" });
         return;
       }
 
-      const created = await proj().workItemTypes.create({ name: uniqueName("wit-crud") });
+      const created = await proj().workItemTypes.create(slug(), project(), { name: uniqueName("wit-crud") });
       expect(created.id).toBeDefined();
 
-      const fetched = await proj().workItemTypes.retrieve(created.id);
+      const fetched = await proj().workItemTypes.retrieve(slug(), project(), created.id);
       expect(fetched.name).toBe(created.name);
 
-      const updated = await proj().workItemTypes.update(created.id, {
+      const updated = await proj().workItemTypes.update(slug(), project(), created.id, {
         description: "Renamed via SDK e2e",
       });
       expect(updated.description).toBe("Renamed via SDK e2e");
 
-      await proj().workItemTypes.delete(created.id);
-      await expect(proj().workItemTypes.retrieve(created.id)).rejects.toMatchObject<Partial<PlaneApiError>>({
+      await proj().workItemTypes.delete(slug(), project(), created.id);
+      await expect(proj().workItemTypes.retrieve(slug(), project(), created.id)).rejects.toMatchObject<
+        Partial<PlaneApiError>
+      >({
         status: 404,
       });
     });
@@ -76,7 +89,7 @@ maybe("v2 work item types (live)", () => {
       // path needs to target the mode that's actually writable.
       const created = await createAccessibleType(uniqueName("wit-list"));
       try {
-        const page = await proj().workItemTypes.list({ fields: ["id", "name"] });
+        const page = await proj().workItemTypes.list(slug(), project(), { fields: ["id", "name"] });
         const found = page.data.find((row) => row.id === created.id);
         expect(found).toBeDefined();
         expect(found!.name).toBeDefined();
@@ -91,7 +104,7 @@ maybe("v2 work item types (live)", () => {
       const name = uniqueName("wit-find");
       const created = await createAccessibleType(name);
       try {
-        const found = await proj().workItemTypes.findByName(name);
+        const found = await proj().workItemTypes.findByName(slug(), project(), name);
         expect(found.id).toBe(created.id);
       } finally {
         await deleteAccessibleType(created.id);
@@ -101,20 +114,20 @@ maybe("v2 work item types (live)", () => {
 
   describe("markDefault", () => {
     it("marks a type as the default, then restores the prior default", async () => {
-      const priorDefault = (await proj().workItemTypes.list()).data.find((row) => row.is_default);
+      const priorDefault = (await proj().workItemTypes.list(slug(), project())).data.find((row) => row.is_default);
       const created = await createAccessibleType(uniqueName("wit-default"));
       try {
         const marked =
           mode === "workspace"
-            ? await ws().workItemTypes.markDefault(created.id)
-            : await proj().workItemTypes.markDefault(created.id);
+            ? await ws().workItemTypes.markDefault(slug(), created.id)
+            : await proj().workItemTypes.markDefault(slug(), project(), created.id);
         expect(marked.is_default).toBe(true);
       } finally {
         if (priorDefault) {
           await (
             mode === "workspace"
-              ? ws().workItemTypes.markDefault(priorDefault.id)
-              : proj().workItemTypes.markDefault(priorDefault.id)
+              ? ws().workItemTypes.markDefault(slug(), priorDefault.id)
+              : proj().workItemTypes.markDefault(slug(), project(), priorDefault.id)
           ).catch(() => undefined);
         }
         // Only deletable once it's no longer the default — see this file's own
@@ -130,7 +143,7 @@ maybe("v2 work item types (live)", () => {
       // mode-unaffected: a workspace type is visible via the project path either way.
       const created = await createAccessibleType(uniqueName("wit-schema"));
       try {
-        const schema = await proj().workItemTypes.schema(created.id);
+        const schema = await proj().workItemTypes.schema(slug(), project(), created.id);
         expect(schema.type_id).toBe(created.id);
         expect(schema.fields).toBeDefined();
       } finally {
@@ -145,11 +158,11 @@ maybe("v2 work item types (live)", () => {
       // `require_mode(required="project")` 409s once the workspace owns types.
       if (skipUnlessMode(mode, "project", "`enable` has no workspace-level equivalent in the golden.")) return;
 
-      await proj().workItemTypes.enable();
-      const enabledAgain = await proj().workItemTypes.enable();
+      await proj().workItemTypes.enable(slug(), project());
+      const enabledAgain = await proj().workItemTypes.enable(slug(), project());
       expect(enabledAgain.is_epic).toBe(true);
 
-      const page = await proj().workItemTypes.list();
+      const page = await proj().workItemTypes.list(slug(), project());
       expect(page.data.some((row) => row.is_epic)).toBe(true);
     });
   });
@@ -160,28 +173,28 @@ maybe("v2 work item types (live)", () => {
       // to create a workspace-level type while the workspace runs in project mode.
       if (skipUnlessMode(mode, "workspace", "Workspace-scoped type writes require workspace mode.")) return;
 
-      const created = await ws().workItemTypes.create({ name: uniqueName("wswit-crud") });
+      const created = await ws().workItemTypes.create(slug(), { name: uniqueName("wswit-crud") });
       try {
-        const fetched = await ws().workItemTypes.retrieve(created.id);
+        const fetched = await ws().workItemTypes.retrieve(slug(), created.id);
         expect(fetched.name).toBe(created.name);
 
-        const updated = await ws().workItemTypes.update(created.id, { description: "Updated" });
+        const updated = await ws().workItemTypes.update(slug(), created.id, { description: "Updated" });
         expect(updated.description).toBe("Updated");
 
-        const priorDefault = (await ws().workItemTypes.list()).data.find((row) => row.is_default);
-        const marked = await ws().workItemTypes.markDefault(created.id);
+        const priorDefault = (await ws().workItemTypes.list(slug())).data.find((row) => row.is_default);
+        const marked = await ws().workItemTypes.markDefault(slug(), created.id);
         expect(marked.is_default).toBe(true);
         // Restore the prior default before the `finally` below tries to delete
         // `created` — a default type can't be deleted (see this file's own
         // top-of-file note).
         if (priorDefault) {
           await ws()
-            .workItemTypes.markDefault(priorDefault.id)
+            .workItemTypes.markDefault(slug(), priorDefault.id)
             .catch(() => undefined);
         }
       } finally {
         await ws()
-          .workItemTypes.delete(created.id)
+          .workItemTypes.delete(slug(), created.id)
           .catch(() => undefined);
       }
     });
@@ -189,12 +202,12 @@ maybe("v2 work item types (live)", () => {
     it("lists at the workspace path and finds the created row", async () => {
       if (skipUnlessMode(mode, "workspace", "Workspace-scoped type writes require workspace mode.")) return;
 
-      const created = await ws().workItemTypes.create({ name: uniqueName("wswit-list") });
+      const created = await ws().workItemTypes.create(slug(), { name: uniqueName("wswit-list") });
       try {
-        const page = await ws().workItemTypes.list();
+        const page = await ws().workItemTypes.list(slug());
         expect(page.data.some((row) => row.id === created.id)).toBe(true);
       } finally {
-        await ws().workItemTypes.delete(created.id);
+        await ws().workItemTypes.delete(slug(), created.id);
       }
     });
   });
@@ -214,19 +227,21 @@ maybe("v2 work item types (live)", () => {
         return;
       }
 
-      const workspaceType = await ws().workItemTypes.create({ name: uniqueName("wit-import") });
+      const workspaceType = await ws().workItemTypes.create(slug(), { name: uniqueName("wit-import") });
       try {
-        await expect(proj().workItemTypes.import([workspaceType.id])).resolves.toBeUndefined();
+        await expect(proj().workItemTypes.import(slug(), project(), [workspaceType.id])).resolves.toBeUndefined();
       } finally {
         await ws()
-          .workItemTypes.delete(workspaceType.id)
+          .workItemTypes.delete(slug(), workspaceType.id)
           .catch(() => undefined);
         // Best-effort: `import` may have copied the type into the project under a new id;
         // clean it up by name so it doesn't linger past this test.
-        const imported = (await proj().workItemTypes.list()).data.find((row) => row.name === workspaceType.name);
+        const imported = (await proj().workItemTypes.list(slug(), project())).data.find(
+          (row) => row.name === workspaceType.name
+        );
         if (imported) {
           await proj()
-            .workItemTypes.delete(imported.id)
+            .workItemTypes.delete(slug(), project(), imported.id)
             .catch(() => undefined);
         }
       }
@@ -238,45 +253,45 @@ maybe("v2 work item types (live)", () => {
       const type = await createAccessibleType(uniqueName("wit-prop"));
       const property =
         mode === "workspace"
-          ? await ws().workItemProperties.create({
+          ? await ws().workItemProperties.create(slug(), {
               display_name: uniqueName("wit-prop-field"),
               property_type: "TEXT",
             })
-          : await proj().workItemProperties.create({
+          : await proj().workItemProperties.create(slug(), project(), {
               display_name: uniqueName("wit-prop-field"),
               property_type: "TEXT",
             });
       try {
         const linked =
           mode === "workspace"
-            ? await ws().workItemTypes.properties.link(type.id, [property.id])
-            : await proj().workItemTypes.properties.link(type.id, [property.id]);
+            ? await ws().workItemTypes.properties.link(slug(), type.id, [property.id])
+            : await proj().workItemTypes.properties.link(slug(), project(), type.id, [property.id]);
         expect(linked.properties).toContain(property.id);
 
         const page =
           mode === "workspace"
-            ? await ws().workItemTypes.properties.list(type.id)
-            : await proj().workItemTypes.properties.list(type.id);
+            ? await ws().workItemTypes.properties.list(slug(), type.id)
+            : await proj().workItemTypes.properties.list(slug(), project(), type.id);
         expect(page.data.some((row) => row.id === property.id)).toBe(true);
 
         if (mode === "workspace") {
-          await ws().workItemTypes.properties.unlink(type.id, property.id);
+          await ws().workItemTypes.properties.unlink(slug(), type.id, property.id);
         } else {
-          await proj().workItemTypes.properties.unlink(type.id, property.id);
+          await proj().workItemTypes.properties.unlink(slug(), project(), type.id, property.id);
         }
         const afterUnlink =
           mode === "workspace"
-            ? await ws().workItemTypes.properties.list(type.id)
-            : await proj().workItemTypes.properties.list(type.id);
+            ? await ws().workItemTypes.properties.list(slug(), type.id)
+            : await proj().workItemTypes.properties.list(slug(), project(), type.id);
         expect(afterUnlink.data.some((row) => row.id === property.id)).toBe(false);
       } finally {
         if (mode === "workspace") {
           await ws()
-            .workItemProperties.delete(property.id)
+            .workItemProperties.delete(slug(), property.id)
             .catch(() => undefined);
         } else {
           await proj()
-            .workItemProperties.delete(property.id)
+            .workItemProperties.delete(slug(), project(), property.id)
             .catch(() => undefined);
         }
         await deleteAccessibleType(type.id);
