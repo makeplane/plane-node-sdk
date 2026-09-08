@@ -50,136 +50,199 @@ const project = await client.projects.create("workspace-slug", {
 
 `client.v2` reaches the v2 surface. The v1 resources on the client are unchanged.
 
-### The workspace root
+There are **two ways in**, and they are the same resources either way.
 
-`client.v2.workspaces` is the root of the tree. Fetch a workspace by its slug and the
-row you get back is also the place its children live — the slug is supplied once, at
-fetch time, and never repeated:
+### 1. The flat path — every resource is an attribute, every id an argument
+
+A resource hangs off the namespace at the position its URL puts it, and takes the ids
+its URL names as **leading positional arguments**, in path order:
+
+```ts
+import { PlaneClient } from "@makeplane/plane-node-sdk";
+
+const client = new PlaneClient({ baseUrl: "https://api.plane.so", apiKey: "..." });
+
+// GET /workspaces/acme/projects/ENG/states/
+await client.v2.projects.states.list("acme", "ENG");
+
+// GET /workspaces/acme/projects/ENG/work-items/wi-1/comments/
+await client.v2.projects.workItems.comments.list("acme", "ENG", "wi-1");
+
+// GET /workspaces/acme/teamspaces/
+await client.v2.workspaces.teamspaces.list("acme");
+```
+
+`project` accepts a project's UUID **or** its readable identifier (`"ENG"`); a work item
+can be reached by its human key with `retrieveByIdentifier`. No v2 method takes a
+`workspaceSlug` or `project` option object — path ids are positional and always first,
+in URL order, and everything else lives in the trailing `params` object.
+
+### 2. Loaded rows — a fetched row is the place its children live
+
+A resource that has children answers **navigable rows** from every row-returning method:
+the row's own data, plus one property per child, with the ids that produced it already
+supplied. This is the id-consumption rule — _an id is passed once, at the point it is
+known_. (A resource with no children — `states`, `labels`, `roles` — answers the plain
+model, since there is nothing to reach from it.)
 
 ```ts
 const workspace = await client.v2.workspaces.retrieve("acme");
 
 await workspace.projects.list(); // no slug
-await workspace.roles.list(); // no slug
+await workspace.teamspaces.list(); // no slug
 
 // And it chains: a fetched project carries both ids.
 const eng = await workspace.projects.retrieve("ENG");
 await eng.states.list(); // no slug, no project key
+await eng.workItems.create({ name: "Fix login bug", state: "Todo", labels: ["bug"] });
+
+// Three levels deep: a fetched work item carries all three.
+const item = await eng.workItems.retrieve("wi-1");
+await item.comments.list();
 ```
 
-Every resource is also reachable flat, taking the ids its URL names as leading
-positional arguments — `client.v2.projects.states.list("acme", "ENG")`. Use the flat
-form when you already have the ids, or when you want the narrowed row type a literal
-`fields` tuple gives (a navigated call cannot carry that through; see `Owned`).
-
-The families still being migrated are reached through the locator below, which the last
-task of the migration removes.
-
-The bound/chained form is the **only** public shape for those: bind a workspace, then
-(for project-scoped resources) a project — both locators do zero I/O, so building the
-chain never makes a request on its own.
+Chaining works because a row _knows which ids fetched it_. `list` and `iterate` hand back
+navigable rows too, so paging does not lose navigation:
 
 ```ts
-import { PlaneClient, v2 } from "@makeplane/plane-node-sdk";
+for await (const project of client.v2.projects.iterate("acme")) {
+  await project.states.list(); // still navigable
+}
+```
 
-const client = new PlaneClient({ baseUrl: "https://api.plane.so", apiKey: "..." });
+Three details worth knowing:
 
-// Bind once. `project` accepts a project id or its key (e.g. "ENG").
-const ws = client.v2.workspace("acme");
-const eng = ws.project("ENG");
+- **`row.$loaded`** carries `ids`, `idNames` and `present` — the set of field names the
+  server actually returned. It and the navigation properties are non-enumerable, so
+  `{ ...row }`, `Object.keys(row)` and `JSON.stringify(row)` see the plain API row.
+- **A navigation property never shadows a field.** Where a child's natural name is
+  already a field of the row, the property is renamed and the field is kept:
+  `estimate.estimatePoints` (because `?expand=points` returns a real `points` field) and
+  `property.propertyOptions` (likewise `options`). Building a row that would shadow a
+  field throws rather than hiding data.
+- **Only methods survive navigation.** A grandchild resource is not reachable from a
+  view — `project.workItems.comments` does not exist, because a comment needs a work
+  item's own id, which only a fetched work item carries. Fetch the work item first.
 
-// States resolve by name; every method below takes only the arguments the
-// workspace/project scope doesn't already supply.
-const todo = await eng.states.findByName("Todo");
+`client.v2.workspace(slug)` and `.project(key)` are the retired locator chain. They are
+`@deprecated`, bind nothing (every resource takes its ids per call), and exist only until
+the SDK's own end-to-end suite stops calling them. New code should use either form above.
 
-// Ask for only the fields you need — list/retrieve narrow the return type to match.
-// An inline array literal needs no `as const`.
-const page = await eng.states.list({ fields: ["id", "name"] });
+### Field projection is a compile-time promise
+
+`fields` narrows the **return type**, not just the response. Ask for two fields and the
+row you get back has two fields plus `id`; reading anything else is a compile error, not
+an `undefined` at runtime:
+
+```ts
+const page = await client.v2.projects.states.list("acme", "ENG", { fields: ["id", "name"] });
 for (const state of page.data) {
   console.log(state.id, state.name); // typed — only id/name exist on this row
+  // console.log(state.color);       // compile error: `color` was not requested
 }
-
-// iterate() follows pagination automatically, but always returns the full row type
-for await (const state of eng.states.iterate()) {
-  console.log(state.id, state.name);
-}
-
-await eng.states.create({ name: "In Review", color: "#4ECDC4" });
-
-// Batches report per row; partial success is the default. `raiseForFailures` and the
-// other bulk helpers live on the `v2` namespace, not the package root.
-const result = await eng.states.bulkCreate([{ name: "QA", color: "#fff" }]);
-v2.raiseForFailures(result);
-
-// The 6 operations that aren't workspace-scoped at all stay on the top-level namespace.
-await client.v2.users.me();
 ```
 
-No v2 method takes `workspaceSlug`/`project` — the locator supplies both. Leaf ids
-(`workItemId`, `releaseId`, `collectionId`, …) stay as the first positional argument:
+An inline array literal needs no `as const`. The same holds for `iterate`, for
+`retrieve`, and — since it is the same claim — for **writes**: `create`, `update` and
+`upsert` accept `fields` and narrow their answer the same way.
 
 ```ts
-const item = await eng.workItems.create({ name: "Fix login bug", state: "Todo", labels: ["bug"] });
-await eng.workItems.comments.list(item.id);
-await ws.workItems.retrieveByIdentifier("ENG-12"); // by human key, no project needed
-await ws.releases.comments.list(releaseId);
+const created = await client.v2.projects.states.create(
+  "acme",
+  "ENG",
+  { name: "In Review", color: "#4ECDC4" },
+  { fields: ["id", "name"] }
+);
+console.log(created.name); // narrowed; `created.color` would not compile
 ```
 
-**Memberships** are `add`/`remove` on a sub-resource named for the thing being added
-(parent id first, then 1..100 ids — an empty or oversized list throws before any
-request). Each call sends only its own verb and resolves to the ids the server
-actually changed. Properties on a work item type use `link`/`unlink` instead, matching
-the web app; `unlink` deletes that property's values on every work item of the type.
-
-```ts
-await eng.cycles.workItems.add(cycleId, [item.id]); // -> ["<item id>"]
-await eng.modules.workItems.remove(moduleId, [item.id]);
-await ws.releases.labels.add(releaseId, [labelId]); // `labels.create` defines, `labels.add` applies
-await ws.initiatives.projects.add(initiativeId, [projectId]);
-await ws.wiki.collections.members.add(collectionId, [{ member_id: userId, access: 1 }]);
-await eng.workItemTypes.properties.link(typeId, [propertyId]);
-await eng.workItemTypes.properties.unlink(typeId, propertyId);
-```
-
-**Lookups by human key** resolve exactly one row server-side (`NoMatchFoundError` /
-`MultipleMatchesFoundError` otherwise): `findByName` wherever the API filters on
-`name`, plus `ws.roles.findBySlug("admin", { namespace })`,
-`eng.estimates.points.findByKey(estimateId, 3)`, and `findByName(propertyId, name)` on
-property options and contexts. On custom properties `name` is the machine key (e.g.
-`story_points`), not the label shown in the app.
-
-A field list built at runtime (not a literal) must be typed `StateField[]` /
-`LabelField[]` — plain `string[]` is **not** assignable to `readonly StateField[]` and
-fails with a long overload-mismatch error:
+A field list built at runtime (not a literal) must still be typed as field names — plain
+`string[]` is **not** assignable to `readonly StateField[]` and fails with a long
+overload-mismatch error. The row is narrowed to the list's **element type**, so type the
+variable as narrowly as you actually use it:
 
 ```ts
 import { PlaneClient, v2 } from "@makeplane/plane-node-sdk";
 
 const client = new PlaneClient({ baseUrl: "https://api.plane.so", apiKey: "..." });
-const eng = client.v2.workspace("acme").project("ENG");
 
-const wanted: v2.StateField[] = includeColor ? ["id", "name", "color"] : ["id", "name"];
-const page = await eng.states.list({ fields: wanted }); // still narrows
+// Narrowed to these two names, even though the value is chosen at run time.
+const wanted: ("id" | "name")[] = includeColor ? ["id", "name"] : ["id"];
+const page = await client.v2.projects.states.list("acme", "ENG", { fields: wanted });
+
+// Typed as the whole union instead, this narrows to "every field" — i.e. the full row.
+const anything: v2.StateField[] = includeColor ? ["id", "name", "color"] : ["id", "name"];
+const unnarrowed = await client.v2.projects.states.list("acme", "ENG", { fields: anything });
 ```
 
 `"all"` is a legal field value meaning "every field" and correctly yields the full row
 type. Sparse responses mean every read field except `id` is optional — check for
-`undefined` rather than assuming a field is present.
+`undefined` rather than assuming presence, and `row.$loaded.present` answers what
+actually came back when the list was built dynamically.
 
-**Pagination**: `Page<T>` is a union of the offset envelope (`total_count`, `next`) and
-the cursor envelope (`has_more`, `next_cursor`) — which one a given `list()` returns
-depends on the request's `paginate` param. Narrow it with `v2.isCursorPage` /
-`v2.isOffsetPage` before reading an envelope-specific field; reading one without
-narrowing first is a compile error, since it may not exist on the other half of the
-union:
+**One limitation, and it is the reason the flat form stays public.** A navigated call
+resolves against the general signature, so it accepts `fields` but does **not** narrow:
 
 ```ts
-import { PlaneClient, v2 } from "@makeplane/plane-node-sdk";
+const eng = await client.v2.projects.retrieve("acme", "ENG");
+const listed = await eng.states.list({ fields: ["id", "name"] }); // Page<State>, not narrowed
+```
 
-const client = new PlaneClient({ baseUrl: "https://api.plane.so", apiKey: "..." });
-const eng = client.v2.workspace("acme").project("ENG");
+TypeScript erases a type parameter when it infers through the conditional type behind a
+navigation property, so the narrowing overload cannot be carried across. Matching the
+overload set instead would be worse, not better: the inference would erase `F` to its
+constraint and claim _every_ field is present. When you want the narrowed row, call the
+resource flat — `client.v2.projects.states.list("acme", "ENG", { fields: [...] })`.
 
-const page = await eng.states.list();
+### Memberships
+
+Memberships are `add`/`remove` on a sub-resource named for the thing being added — path
+ids first, then 1..100 ids (an empty or oversized list throws before any request). Each
+call sends only its own verb and resolves to the ids the server actually changed.
+Properties on a work item type use `link`/`unlink` instead, matching the web app;
+`unlink` deletes that property's values on every work item of the type.
+
+```ts
+const v2ns = client.v2;
+
+await v2ns.projects.cycles.workItems.add("acme", "ENG", cycleId, [itemId]); // -> ["<item id>"]
+await v2ns.projects.modules.workItems.remove("acme", "ENG", moduleId, [itemId]);
+await v2ns.workspaces.releases.labels.add("acme", releaseId, [labelId]);
+await v2ns.workspaces.initiatives.projects.add("acme", initiativeId, [projectId]);
+await v2ns.workspaces.wiki.collections.members.add("acme", collectionId, [{ member_id: userId, access: 1 }]);
+await v2ns.projects.workItemTypes.properties.link("acme", "ENG", typeId, [propertyId]);
+await v2ns.projects.workItemTypes.properties.unlink("acme", "ENG", typeId, propertyId);
+```
+
+`releases.labels` is the one place where a fetched row and the flat path differ: the
+class holds both the workspace-level label catalog (`list`/`create`, slug only) and the
+per-release bridge. A fetched release binds the bridge, so `release.labels.add(...)`
+works and `release.labels.list()` does not type-check — reach the catalog flat.
+
+### Lookups by human key
+
+These resolve exactly one row server-side, throwing `NoMatchFoundError` or
+`MultipleMatchesFoundError` otherwise: `findByName` wherever the API filters on `name`,
+plus `roles.findBySlug`, `estimates.points.findByKey`, and `findByName` on property
+options and contexts. Both errors extend `PlaneError`, not `PlaneApiError`. On custom properties `name` is the machine key (e.g.
+`story_points`), not the label shown in the app.
+
+```ts
+await client.v2.projects.states.findByName("acme", "ENG", "Todo");
+await client.v2.workspaces.roles.findBySlug("acme", "admin", { namespace: "workspace" });
+await client.v2.projects.estimates.points.findByKey("acme", "ENG", estimateId, 3);
+```
+
+### Pagination
+
+`Page<T>` is a union of the offset envelope (`total_count`, `next`) and the cursor
+envelope (`has_more`, `next_cursor`) — which one a `list()` returns depends on the
+request's `paginate` param. Narrow it with `v2.isCursorPage` / `v2.isOffsetPage` before
+reading an envelope-specific field; reading one without narrowing is a compile error,
+since it may not exist on the other half of the union:
+
+```ts
+const page = await client.v2.projects.states.list("acme", "ENG");
 if (v2.isOffsetPage(page)) {
   console.log(page.total_count); // only reachable once narrowed
 } else if (v2.isCursorPage(page)) {
@@ -187,50 +250,101 @@ if (v2.isOffsetPage(page)) {
 }
 ```
 
-`order_by` is validated the same way `fields` is, against a generated
-`StateOrderBy`/`LabelOrderBy` union — an unsupported value throws client-side rather
-than reaching the server.
+`iterate` follows pages for you and yields rows.
 
-**Wiki**: `ws.wiki.pages` is every global page in the workspace (not one project —
-that's `eng.pages`); `ws.wiki.collections` is wiki collections. A page write's
-`collection_id` can be omitted for a public page (it lands in the workspace's default
-"General" collection); a private page needs an explicit `collection_id` of a
-collection the caller owns.
+`order_by` is validated the same way `fields` is, against a generated
+`StateOrderBy`/`LabelOrderBy` union: a literal outside that union is a compile error, and a
+value built at run time is rejected by `encodeOrderBy` client-side rather than reaching
+the server as a 400.
+
+### Wiki
+
+`v2.workspaces.wiki.pages` is every global page in the workspace (not one project —
+that is `v2.projects.pages`); `v2.workspaces.wiki.collections` is wiki collections. A
+page write's `collection_id` can be omitted for a public page (it lands in the
+workspace's default "General" collection); a private page needs an explicit
+`collection_id` of a collection the caller owns.
 
 ```ts
-const ws = client.v2.workspace("acme");
-await ws.wiki.pages.create({ name: "Handbook" }); // public page -> default collection
-const handbook = await ws.wiki.collections.findByName("Engineering handbook");
-await ws.wiki.pages.create({ name: "Runbook", collection_id: handbook.id });
-await ws.wiki.collections.default(); // the default collection, resolved via `is_default`
+const wiki = client.v2.workspaces.wiki;
+
+await wiki.pages.create("acme", { name: "Handbook" }); // public page -> default collection
+const handbook = await wiki.collections.findByName("acme", "Engineering handbook");
+await wiki.pages.create("acme", { name: "Runbook", collection_id: handbook.id });
+await wiki.collections.default("acme"); // the default collection, resolved via `is_default`
 ```
 
-**Errors**: `PlaneApiError` — an RFC 9457 problem detail with `.status`, `.type`,
-`.code`, `.detail`, `.errors` — plus `NoMatchFoundError` and
-`MultipleMatchesFoundError` from `findByName`. A request that never reaches a server
-at all (connection refused, DNS failure, timeout, ...) raises `PlaneNetworkError`
-instead, carrying the underlying error's message and `.cause`.
+`wiki` and `groupSync` are grouping nodes, not resources: they consume no path id of
+their own, so they are not navigation properties on a fetched workspace row. Reach them
+flat.
 
-**Bulk writes** (`bulkCreate` / `bulkUpdate` / `bulkDelete`) always answer HTTP 200,
-even when some rows fail — partial success is the default. Call
-`v2.raiseForFailures(result)` to throw, carrying the first failure's `errors`. The cap
-is 50 items per call (`v2.BULK_MAX_ITEMS`); an empty batch is rejected client-side (not
-a silent no-op).
+### Errors
 
-**Types**: v2 types are reachable through the `v2` and `v2models` namespaces (e.g.
-`v2models.State`, `v2.StateField`), and the most common ones are also aliased at the
-package root: `V2Label`, `V2State`, `V2Page`, `V2Cycle`, `V2Module`, `V2Milestone`,
-`V2ListStatesParams`, `V2ListLabelsParams`. Use those — v2's bare `Label`/`State`/
-`Page`/`Cycle`/`Module`/`Milestone` names collide with v1's in the bundled type
-definitions, so `import { Label } from "@makeplane/plane-node-sdk"` resolves to
+`PlaneApiError` — an RFC 9457 problem detail with `.status`, `.type`, `.code`, `.detail`,
+`.errors` — plus `NoMatchFoundError` and `MultipleMatchesFoundError` from the `findBy*`
+lookups. A request that never reaches a server at all (connection refused, DNS failure,
+timeout, …) raises `PlaneNetworkError`, carrying the underlying error's message and
+`.cause`. A call that cannot build a URL because a path id is missing raises
+`MissingPathIdError`.
+
+### Bulk writes
+
+`bulkCreate` / `bulkUpdate` / `bulkDelete` always answer HTTP 200, even when some rows
+fail — partial success is the default. Call `v2.raiseForFailures(result)` to throw,
+carrying the first failure's `errors`. The cap is 50 items per call
+(`v2.BULK_MAX_ITEMS`); an empty batch is rejected client-side rather than being a silent
+no-op.
+
+```ts
+const result = await client.v2.projects.states.bulkCreate("acme", "ENG", [{ name: "QA", color: "#ffffff" }]);
+v2.raiseForFailures(result);
+```
+
+### Types
+
+v2 types are reachable through the `v2` and `v2models` namespaces (e.g. `v2models.State`,
+`v2.StateField`), and the most common ones are also aliased at the package root:
+`V2Label`, `V2State`, `V2Project`, `V2Workspace`, `V2WorkItem`, `V2Cycle`, `V2Module`,
+`V2Milestone`, `V2ListStatesParams`, `V2ListLabelsParams`. Use those — v2's bare
+`Label`/`State`/`Project`/`Workspace`/`Page` names collide with v1's in the bundled type
+definitions, so `import { Workspace } from "@makeplane/plane-node-sdk"` resolves to
 **v1's** shape, not v2's. (`V2Page` is the wiki page model; the pagination envelope
 `Page<T>` is aliased separately as `V2PageEnvelope`.)
 
-**Generated data**: `v2.FIELDS` and `v2.ORDER_BY` are the full operation-id -> allowed-
-values maps `encodeFields`/`encodeOrderBy` validate against (e.g. `v2.FIELDS["states_list"]`
-lists every field `states.list` accepts); `v2.OPENAPI_VERSION` is the api_v2 golden
-version the SDK was generated from. All three, plus `v2.BULK_MAX_ITEMS`, are exported
-from the `v2` namespace so a caller can enumerate valid values rather than guessing.
+The types a navigable row resolves to are exported too: `LoadedProject`,
+`ProjectNavigation`, `ProjectIds`, `PROJECT_ID_NAMES`, and the same set per family, plus
+the `Loaded`, `Owned` and `LoadedMeta` kernel types.
+
+### Generated data
+
+`v2.FIELDS`, `v2.EXPAND` and `v2.ORDER_BY` are the full operation-id → allowed-values
+maps the encoders validate against (e.g. `v2.FIELDS["states_list"]` lists every field
+`states.list` accepts); `v2.OPENAPI_VERSION` is the api_v2 golden version the SDK was
+generated from. All of them, plus `v2.BULK_MAX_ITEMS`, are exported so a caller can
+enumerate valid values rather than guessing.
+
+### How this surface is kept honest
+
+The v2 surface is 90 resource classes, and none of it is spot-checked. Six rule sweeps
+run over **every** class — enumerated from the TypeScript source, not selected by some
+property a class might not have yet — and each is proved by introducing the violation and
+watching the sweep name it:
+
+| Sweep                    | What it refuses                                                     |
+| ------------------------ | ------------------------------------------------------------------- |
+| Call shape               | a method that does not open with its URL's path ids, in path order  |
+| `fields` / `expand`      | an operation that offers a projection the SDK does not expose       |
+| Query filters            | a `?filter=` the API accepts and no params type declares            |
+| `order_by`               | a missing sort order, or a params type pointed at a sibling's enum  |
+| Operation correspondence | a method with no `operations` entry, silently exempt from the above |
+| Projection soundness     | a method that accepts `fields` and answers the full row anyway      |
+
+Two more sweeps cover the tree rather than the classes: **band completeness** derives, from
+each resource's own URL template, which of the two roots it belongs to and requires it to
+be attached there (and nothing foreign to be); **navigation completeness** requires a
+resource that attaches a migrated child to answer navigable rows, with one property per
+child and no property shadowing a real field. Every method also asserts its exact request
+URL against a mock server — the one class of error no source-level sweep can catch.
 
 ## Features
 
