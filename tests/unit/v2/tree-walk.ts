@@ -454,6 +454,24 @@ export function publicMethods(entry: ResourceEntry): MethodInfo[] {
 export const ACTION_ALIASES: Readonly<Record<string, string>> = { iterate: "list" };
 
 /**
+ * The `operations` key a method's request is actually made under — the correspondence the
+ * method→operations sweep in `operations-coverage.test.ts` enforces.
+ *
+ * Wider than {@link ACTION_ALIASES} by one rule: every `findBy*` lookup is a filtered
+ * `list` under the hood (`doFindOne`), so `list`'s key is the one it spends. The two maps
+ * are kept apart deliberately. The option sweeps ask "does *this method's own* operation
+ * offer `fields`/`expand`", and a `findBy*` is a convenience wrapper that takes the value
+ * to match and nothing else — folding it into `ACTION_ALIASES` would make those sweeps
+ * demand a params object the wrapper deliberately does not have. This resolver asks the
+ * different question "is this method's operation written down anywhere at all", where the
+ * `list` key is the right answer.
+ */
+export function operationActionFor(methodName: string): string {
+  if (/^findBy[A-Z]/.test(methodName)) return "list";
+  return ACTION_ALIASES[methodName] ?? methodName;
+}
+
+/**
  * `delete` answers 204 with no body, so a query parameter that shapes the response has
  * nothing to shape — even though the golden happily declares `fields` and `expand` on
  * every `*_destroy` operation. Excluded deliberately, not overlooked.

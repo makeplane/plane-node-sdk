@@ -4,9 +4,27 @@ import { Configuration } from "../../../src/Configuration";
 import { AnyOperationId, V2Resource } from "../../../src/api/v2/kernel/resource";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
 import { OPERATION_IDS } from "../../../src/api/v2/generated/constants";
+import { instantiate, migratedEntries, operationActionFor, operationsOf, publicMethods } from "./tree-walk";
 
 /**
- * Coverage net: every operationId under `src/api/v2/**` must be declared in some resource's `operations` map.
+ * Coverage net, in two directions.
+ *
+ * **golden -> declared**: every operationId under `src/api/v2/**` must be declared in some
+ * resource's `operations` map, exactly once.
+ *
+ * **method -> declared**: every public method of a migrated resource must resolve to a key
+ * in its own class's `operations` map. This is the direction that was missing, and its
+ * absence quietly exempted methods from the two option sweeps: `methodsOffering` in
+ * `tree-walk.ts` looks the method's action up in `operations` and `continue`s when it finds
+ * nothing, so a method with no entry is checked for neither `fields` nor `expand` and
+ * nothing anywhere says so. The first direction cannot see it either — it only asks whether
+ * each golden id is declared *somewhere*, never whether a given method name has a key.
+ *
+ * The gap is worst exactly where the migration is least regular. A CRUD five-pack is spelt
+ * the same way in every class, so its keys are hard to forget; the odd-shaped methods —
+ * `retrieveByIdentifier`, `summary`, `roleDistribution`, the membership bridges — are
+ * one-offs whose key has to be written by hand, and those are the ones that would have
+ * escaped both sweeps.
  */
 
 const V2_ROOT = path.join(__dirname, "../../../src/api/v2");
@@ -122,5 +140,28 @@ describe("api_v2 operations coverage", () => {
 
     expect(missing).toEqual([]);
     expect(extra).toEqual([]);
+  });
+
+  it("gives every public method of a migrated resource an `operations` key of its own", () => {
+    // A floor first: if the enumeration breaks, the assertion below passes by checking
+    // nothing — the same failure mode the sweep exists to prevent.
+    const swept = migratedEntries();
+    expect(swept.length).toBeGreaterThanOrEqual(30);
+
+    const orphans: string[] = [];
+    for (const entry of swept) {
+      const operations = operationsOf(instantiate(entry));
+      for (const method of publicMethods(entry)) {
+        const action = operationActionFor(method.name);
+        if (operations[action] === undefined) {
+          orphans.push(
+            `${entry.key}.${method.name}() has no \`operations\` entry (looked for "${action}"), so it is ` +
+              `silently exempt from the \`fields\` and \`expand\` sweeps`
+          );
+        }
+      }
+    }
+
+    expect(orphans.sort()).toEqual([]);
   });
 });
