@@ -1,8 +1,15 @@
 import { Page } from "../../../models/v2/common";
 import { WorkItemProperty, UpdateWorkItemProperty, CreateWorkItemProperty } from "../../../models/v2/WorkItemProperty";
 import { FIELDS, ORDER_BY } from "../generated/constants";
-import { OperationId, V2Resource } from "../kernel/resource";
+import { LoadedMeta, LoadsNavigableRows, NavigationFactories, owned } from "../kernel/loaded";
+import { OperationId } from "../kernel/resource";
 import { V2Transport } from "../kernel/transport";
+import {
+  LoadedWorkItemProperty,
+  LoadedWorkItemPropertyRow,
+  WORK_ITEM_PROPERTY_ID_NAMES,
+  WorkItemPropertyNavigation,
+} from "../loaded/WorkItemProperty";
 import { WorkItemPropertyOptions } from "./Options";
 
 export type WorkItemPropertyField = (typeof FIELDS)["work_item_properties_list"][number];
@@ -24,8 +31,27 @@ export interface ListWorkItemPropertiesParams {
   count?: boolean;
 }
 
-/** Custom work item property definitions scoped to a project; see `WorkspaceWorkItemProperties` for the sibling. */
-export class WorkItemProperties extends V2Resource<WorkItemProperty, CreateWorkItemProperty, UpdateWorkItemProperty> {
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` on this family. */
+export interface WorkItemPropertyShapeParams {
+  fields?: readonly WorkItemPropertyField[];
+}
+
+/**
+ * Custom work item property definitions scoped to a project; see
+ * `WorkspaceWorkItemProperties` for the sibling.
+ *
+ * Reached flat — `v2.projects.workItemProperties.list(slug, project)` — or from a fetched
+ * project: `project.workItemProperties.list()`. Every row-returning method answers a
+ * {@link LoadedWorkItemProperty}, whose choices are reached as
+ * `property.propertyOptions.list()` — **not** `options`, which is a real field on the row
+ * (see `WorkItemPropertyNavigation`).
+ */
+export class WorkItemProperties extends LoadsNavigableRows<
+  WorkItemProperty,
+  CreateWorkItemProperty,
+  UpdateWorkItemProperty,
+  WorkItemPropertyNavigation
+> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-item-properties/";
   protected operations: Record<string, OperationId> = {
     list: "work_item_properties_list",
@@ -34,41 +60,82 @@ export class WorkItemProperties extends V2Resource<WorkItemProperty, CreateWorkI
     update: "work_item_properties_partial_update",
     delete: "work_item_properties_destroy",
   };
+  protected loadedIdNames = WORK_ITEM_PROPERTY_ID_NAMES;
 
-  /** Options of an OPTION-typed property under this project. */
+  /** Options of an OPTION-typed property under this project; reached from a row as `propertyOptions`. */
   public options: WorkItemPropertyOptions;
 
-  constructor(transport: V2Transport, scope: Record<string, string> = {}) {
-    super(transport, scope);
-    this.options = new WorkItemPropertyOptions(transport, scope);
+  constructor(transport: V2Transport) {
+    super(transport);
+    this.options = new WorkItemPropertyOptions(transport);
+  }
+
+  protected navigationOf(meta: LoadedMeta): NavigationFactories<WorkItemPropertyNavigation> {
+    const ids = meta.ids as [string, string, string];
+    return { propertyOptions: () => owned(this.options, ids, meta.idNames) };
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemPropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    project: string,
     params: ListWorkItemPropertiesParams & { fields: readonly F[] }
-  ): Promise<Page<Pick<WorkItemProperty, F | "id">>>;
-  list(params?: ListWorkItemPropertiesParams): Promise<Page<WorkItemProperty>>;
-  list(params?: ListWorkItemPropertiesParams): Promise<Page<WorkItemProperty>> {
-    return this.doList({}, params as Record<string, unknown>);
+  ): Promise<Page<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>>;
+  list(slug: string, project: string, params?: ListWorkItemPropertiesParams): Promise<Page<LoadedWorkItemProperty>>;
+  async list(
+    slug: string,
+    project: string,
+    params?: ListWorkItemPropertiesParams
+  ): Promise<Page<LoadedWorkItemProperty>> {
+    const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
+    return this.loadPage(page, [slug, project], params?.fields);
   }
 
-  /** Every property, following pages automatically. */
-  iterate(params?: ListWorkItemPropertiesParams): AsyncGenerator<WorkItemProperty> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  /** Every property in the project, following pages automatically — navigable rows included. */
+  iterate<F extends Exclude<WorkItemPropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    project: string,
+    params: ListWorkItemPropertiesParams & { fields: readonly F[] }
+  ): AsyncGenerator<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  iterate(slug: string, project: string, params?: ListWorkItemPropertiesParams): AsyncGenerator<LoadedWorkItemProperty>;
+  iterate(
+    slug: string,
+    project: string,
+    params?: ListWorkItemPropertiesParams
+  ): AsyncGenerator<LoadedWorkItemProperty> {
+    return this.loadIterate(
+      this.doIterate({ slug, project_id: project }, params as Record<string, unknown>),
+      [slug, project],
+      params?.fields
+    );
   }
 
   retrieve<F extends Exclude<WorkItemPropertyField, "all"> & keyof WorkItemProperty>(
-    propertyId: string,
+    slug: string,
+    project: string,
+    property: string,
     params: { fields: readonly F[] }
-  ): Promise<Pick<WorkItemProperty, F | "id">>;
-  retrieve(propertyId: string, params?: { fields?: readonly WorkItemPropertyField[] }): Promise<WorkItemProperty>;
-  retrieve(propertyId: string, params?: { fields?: readonly WorkItemPropertyField[] }): Promise<WorkItemProperty> {
-    return this.doRetrieve({ pk: propertyId }, params as Record<string, unknown>);
+  ): Promise<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  retrieve(
+    slug: string,
+    project: string,
+    property: string,
+    params?: WorkItemPropertyShapeParams
+  ): Promise<LoadedWorkItemProperty>;
+  async retrieve(
+    slug: string,
+    project: string,
+    property: string,
+    params?: WorkItemPropertyShapeParams
+  ): Promise<LoadedWorkItemProperty> {
+    const row = await this.doRetrieve({ slug, project_id: project, pk: property }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
   /** The one property with this `name`, server-side via `?name=`. `name` is the property key (e.g. `story-points`, hyphen-slugified), not the UI label. */
-  findByName(name: string): Promise<WorkItemProperty> {
-    return this.doFindOne({ name }, {});
+  async findByName(slug: string, project: string, name: string): Promise<LoadedWorkItemProperty> {
+    const row = await this.doFindOne({ name }, { slug, project_id: project });
+    return this.load(row, [slug, project]);
   }
 
   /**
@@ -79,20 +146,38 @@ export class WorkItemProperties extends V2Resource<WorkItemProperty, CreateWorkI
    * server derives from it, so this is the lookup a person reaching for a property they
    * can see on screen actually wants. The match is case-insensitive.
    */
-  findByDisplayName(displayName: string): Promise<WorkItemProperty> {
-    return this.doFindOne({ display_name: displayName }, {});
+  async findByDisplayName(slug: string, project: string, displayName: string): Promise<LoadedWorkItemProperty> {
+    const row = await this.doFindOne({ display_name: displayName }, { slug, project_id: project });
+    return this.load(row, [slug, project]);
   }
 
-  create(data: CreateWorkItemProperty): Promise<WorkItemProperty> {
-    return this.doCreate(data, {});
+  async create(
+    slug: string,
+    project: string,
+    data: CreateWorkItemProperty,
+    params?: WorkItemPropertyShapeParams
+  ): Promise<LoadedWorkItemProperty> {
+    const row = await this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  update(propertyId: string, data: UpdateWorkItemProperty): Promise<WorkItemProperty> {
-    return this.doUpdate(data, { pk: propertyId });
+  async update(
+    slug: string,
+    project: string,
+    property: string,
+    data: UpdateWorkItemProperty,
+    params?: WorkItemPropertyShapeParams
+  ): Promise<LoadedWorkItemProperty> {
+    const row = await this.doUpdate(
+      data,
+      { slug, project_id: project, pk: property },
+      params as Record<string, unknown>
+    );
+    return this.load(row, [slug, project], params?.fields);
   }
 
-  delete(propertyId: string): Promise<void> {
-    return this.doDelete({ pk: propertyId });
+  delete(slug: string, project: string, property: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: property });
   }
 }
 

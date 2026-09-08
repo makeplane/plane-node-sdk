@@ -17,58 +17,108 @@ export interface ListWorkItemTypePropertiesParams {
   count?: boolean;
 }
 
-/** Custom properties linked to a work item type — `link`/`unlink` plus reads; definitions live on `WorkItemProperties`. */
+/**
+ * Custom properties linked to a project-scoped work item type — `link`/`unlink` plus
+ * reads; the definitions themselves live on `WorkItemProperties`.
+ *
+ * Reached flat — `v2.projects.workItemTypes.properties.list(slug, project, type)` — or
+ * from a fetched type: `type.properties.list()`. The verbs copy the web app's CTA, which
+ * is why they are `link`/`unlink` rather than `add`/`remove`.
+ */
 export class WorkItemTypeProperties extends V2Resource<WorkItemProperty, never, never> {
   protected path = "/workspaces/{slug}/projects/{project_id}/work-item-types/{type_id}/properties/";
   protected operations: Record<string, AnyOperationId> = {
     list: "work_item_type_properties_list",
     retrieve: "work_item_type_properties_retrieve",
-    attach: "work_item_type_properties_attach",
-    detach: "work_item_type_properties_detach",
+    link: "work_item_type_properties_attach",
+    unlink: "work_item_type_properties_detach",
   };
+
+  private _at(slug: string, project: string, type: string, property?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, project_id: project, type_id: type };
+    if (property !== undefined) params.pk = property;
+    return params;
+  }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemTypePropertyField, "all"> & keyof WorkItemProperty>(
-    typeId: string,
+    slug: string,
+    project: string,
+    type: string,
     params: ListWorkItemTypePropertiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemProperty, F | "id">>>;
-  list(typeId: string, params?: ListWorkItemTypePropertiesParams): Promise<Page<WorkItemProperty>>;
-  list(typeId: string, params?: ListWorkItemTypePropertiesParams): Promise<Page<WorkItemProperty>> {
-    return this.doList({ type_id: typeId }, params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    type: string,
+    params?: ListWorkItemTypePropertiesParams
+  ): Promise<Page<WorkItemProperty>>;
+  list(
+    slug: string,
+    project: string,
+    type: string,
+    params?: ListWorkItemTypePropertiesParams
+  ): Promise<Page<WorkItemProperty>> {
+    return this.doList(this._at(slug, project, type), params as Record<string, unknown>);
   }
 
   /** Every property linked to the type, following pages automatically. */
-  iterate(typeId: string, params?: ListWorkItemTypePropertiesParams): AsyncGenerator<WorkItemProperty> {
-    return this.doIterate({ type_id: typeId }, params as Record<string, unknown>);
+  iterate<F extends Exclude<WorkItemTypePropertyField, "all"> & keyof WorkItemProperty>(
+    slug: string,
+    project: string,
+    type: string,
+    params: ListWorkItemTypePropertiesParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemProperty, F | "id">>;
+  iterate(
+    slug: string,
+    project: string,
+    type: string,
+    params?: ListWorkItemTypePropertiesParams
+  ): AsyncGenerator<WorkItemProperty>;
+  iterate(
+    slug: string,
+    project: string,
+    type: string,
+    params?: ListWorkItemTypePropertiesParams
+  ): AsyncGenerator<WorkItemProperty> {
+    return this.doIterate(this._at(slug, project, type), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemTypePropertyField, "all"> & keyof WorkItemProperty>(
-    typeId: string,
-    propertyId: string,
+    slug: string,
+    project: string,
+    type: string,
+    property: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemProperty, F | "id">>;
   retrieve(
-    typeId: string,
-    propertyId: string,
+    slug: string,
+    project: string,
+    type: string,
+    property: string,
     params?: { fields?: readonly WorkItemTypePropertyField[] }
   ): Promise<WorkItemProperty>;
   retrieve(
-    typeId: string,
-    propertyId: string,
+    slug: string,
+    project: string,
+    type: string,
+    property: string,
     params?: { fields?: readonly WorkItemTypePropertyField[] }
   ): Promise<WorkItemProperty> {
-    return this.doRetrieve({ type_id: typeId, pk: propertyId }, params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, project, type, property), params as Record<string, unknown>);
   }
 
   /** Link already-defined properties to the type; no `fields`/`order_by`/`expand` to validate here. */
-  async link(typeId: string, propertyIds: string[]): Promise<AttachedWorkItemTypeProperties> {
-    return this.transport.request<AttachedWorkItemTypeProperties>("POST", this.collectionUrl({ type_id: typeId }), {
+  link(slug: string, project: string, type: string, propertyIds: string[]): Promise<AttachedWorkItemTypeProperties> {
+    return this.doCustomAction<AttachedWorkItemTypeProperties>("link", {
+      method: "POST",
+      pathParams: this._at(slug, project, type),
       data: { properties: propertyIds },
     });
   }
 
   /** Unlink one property from the type. Deletes that property's values on every work item of the type; the definition itself stays. */
-  unlink(typeId: string, propertyId: string): Promise<void> {
-    return this.doDelete({ type_id: typeId, pk: propertyId });
+  unlink(slug: string, project: string, type: string, property: string): Promise<void> {
+    return this.doDelete(this._at(slug, project, type, property));
   }
 }

@@ -20,7 +20,9 @@ import { ProjectWorklogs } from "./ProjectWorklogs";
 import { States } from "./States";
 import { ProjectViews } from "./Views";
 import { ProjectWorkItemTemplates } from "./WorkItemTemplates/ProjectTemplates";
+import { WorkItemProperties } from "./WorkItemProperties";
 import { WorkItems } from "./WorkItems";
+import { WorkItemTypes } from "./WorkItemTypes";
 
 export type ProjectField = (typeof FIELDS)["projects_list"][number];
 export type ProjectOrderBy = (typeof ORDER_BY)["projects_list"][number];
@@ -117,6 +119,8 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
   public modules: Modules;
   public milestones: Milestones;
   public estimates: Estimates;
+  public workItemTypes: WorkItemTypes;
+  public workItemProperties: WorkItemProperties;
 
   constructor(transport: V2Transport) {
     super(transport);
@@ -135,6 +139,8 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     this.modules = new Modules(transport);
     this.milestones = new Milestones(transport);
     this.estimates = new Estimates(transport);
+    this.workItemTypes = new WorkItemTypes(transport);
+    this.workItemProperties = new WorkItemProperties(transport);
   }
 
   protected navigationOf(meta: LoadedMeta): NavigationFactories<ProjectNavigation> {
@@ -155,6 +161,8 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
       modules: () => owned(this.modules, ids, meta.idNames),
       milestones: () => owned(this.milestones, ids, meta.idNames),
       estimates: () => owned(this.estimates, ids, meta.idNames),
+      workItemTypes: () => owned(this.workItemTypes, ids, meta.idNames),
+      workItemProperties: () => owned(this.workItemProperties, ids, meta.idNames),
     };
   }
 

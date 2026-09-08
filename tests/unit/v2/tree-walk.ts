@@ -95,22 +95,13 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Releases/WorkItems#ReleaseWorkItems",
   "Releases/index#Releases",
   "Webhooks#Webhooks",
-  "WorkItemProperties/Options#WorkItemPropertyOptions",
-  "WorkItemProperties/index#WorkItemProperties",
-  "WorkItemTypes/Properties#WorkItemTypeProperties",
-  "WorkItemTypes/index#WorkItemTypes",
   "Workflows/States#WorkflowStates",
   "Workflows/Transitions#WorkflowTransitions",
   "Workflows/index#Workflows",
-  "WorkspaceWorkItemProperties/Contexts#WorkItemPropertyContexts",
-  "WorkspaceWorkItemProperties/Options#WorkspaceWorkItemPropertyOptions",
-  "WorkspaceWorkItemProperties/index#WorkspaceWorkItemProperties",
-  "WorkspaceWorkItemTypes/Properties#WorkspaceWorkItemTypeProperties",
-  "WorkspaceWorkItemTypes/index#WorkspaceWorkItemTypes",
 ]);
 
 /** How large `UNMIGRATED_RESOURCES` is allowed to be. A ratchet: lower it, never raise it. */
-export const UNMIGRATED_CEILING = 39;
+export const UNMIGRATED_CEILING = 30;
 
 // -- Source scan ---------------------------------------------------------------------
 

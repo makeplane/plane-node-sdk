@@ -14,7 +14,9 @@ import type { ProjectWorklogs } from "../ProjectWorklogs";
 import type { States } from "../States";
 import type { ProjectViews } from "../Views";
 import type { ProjectWorkItemTemplates } from "../WorkItemTemplates/ProjectTemplates";
+import type { WorkItemProperties } from "../WorkItemProperties";
 import type { WorkItems } from "../WorkItems";
+import type { WorkItemTypes } from "../WorkItemTypes";
 
 /**
  * The path ids a child of a project row needs, in URL order, ending with the project's
@@ -57,6 +59,8 @@ export interface ProjectNavigation {
   readonly modules: Owned<Modules, ProjectIds>;
   readonly milestones: Owned<Milestones, ProjectIds>;
   readonly estimates: Owned<Estimates, ProjectIds>;
+  readonly workItemTypes: Owned<WorkItemTypes, ProjectIds>;
+  readonly workItemProperties: Owned<WorkItemProperties, ProjectIds>;
 }
 
 /**

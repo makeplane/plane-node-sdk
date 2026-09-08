@@ -23,7 +23,14 @@ export interface ListWorkspaceWorkItemPropertyOptionsParams {
   count?: boolean;
 }
 
-/** Options of an OPTION-typed workspace property. A `pk` from a different property 404s. */
+/**
+ * Options of an OPTION-typed workspace property. A `pk` from a different property 404s.
+ *
+ * Reached flat — `v2.workspaces.workItemProperties.options.list(slug, property)` — or from
+ * a fetched workspace property, where it is `property.propertyOptions.list()`: the row's
+ * own `options` field is the inlined choice list, so the navigation property is spelled
+ * differently (see `WorkspaceWorkItemPropertyNavigation`).
+ */
 export class WorkspaceWorkItemPropertyOptions extends V2Resource<
   WorkItemPropertyOptionLite,
   CreateWorkItemPropertyOption,
@@ -39,49 +46,52 @@ export class WorkspaceWorkItemPropertyOptions extends V2Resource<
     retrieve: "workspace_work_item_property_options_retrieve",
   };
 
-  private pk(propertyId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { property_id: propertyId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, property: string, option?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, property_id: property };
+    if (option !== undefined) params.pk = option;
     return params;
   }
 
   list(
-    propertyId: string,
+    slug: string,
+    property: string,
     params?: ListWorkspaceWorkItemPropertyOptionsParams
   ): Promise<Page<WorkItemPropertyOptionLite>> {
-    return this.doList(this.pk(propertyId), params as Record<string, unknown>);
+    return this.doList(this._at(slug, property), params as Record<string, unknown>);
   }
 
   /** Every option, following pages automatically. */
   iterate(
-    propertyId: string,
+    slug: string,
+    property: string,
     params?: ListWorkspaceWorkItemPropertyOptionsParams
   ): AsyncGenerator<WorkItemPropertyOptionLite> {
-    return this.doIterate(this.pk(propertyId), params as Record<string, unknown>);
+    return this.doIterate(this._at(slug, property), params as Record<string, unknown>);
   }
 
-  retrieve(propertyId: string, optionId: string): Promise<WorkItemPropertyOptionLite> {
-    return this.doRetrieve(this.pk(propertyId, optionId));
+  retrieve(slug: string, property: string, option: string): Promise<WorkItemPropertyOptionLite> {
+    return this.doRetrieve(this._at(slug, property, option));
   }
 
   /** The one option with this `name` on the workspace property, server-side via `?name=`; throws if none or several match. */
-  findByName(propertyId: string, name: string): Promise<WorkItemPropertyOptionLite> {
-    return this.doFindOne({ name }, this.pk(propertyId));
+  findByName(slug: string, property: string, name: string): Promise<WorkItemPropertyOptionLite> {
+    return this.doFindOne({ name }, this._at(slug, property));
   }
 
-  create(propertyId: string, data: CreateWorkItemPropertyOption): Promise<WorkItemPropertyOptionLite> {
-    return this.doCreate(data, this.pk(propertyId));
+  create(slug: string, property: string, data: CreateWorkItemPropertyOption): Promise<WorkItemPropertyOptionLite> {
+    return this.doCreate(data, this._at(slug, property));
   }
 
   update(
-    propertyId: string,
-    optionId: string,
+    slug: string,
+    property: string,
+    option: string,
     data: UpdateWorkItemPropertyOption
   ): Promise<WorkItemPropertyOptionLite> {
-    return this.doUpdate(data, this.pk(propertyId, optionId));
+    return this.doUpdate(data, this._at(slug, property, option));
   }
 
-  delete(propertyId: string, optionId: string): Promise<void> {
-    return this.doDelete(this.pk(propertyId, optionId));
+  delete(slug: string, property: string, option: string): Promise<void> {
+    return this.doDelete(this._at(slug, property, option));
   }
 }

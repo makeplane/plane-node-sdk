@@ -80,8 +80,8 @@ export class Workspace {
     this.auditLogs = new AuditLogs(transport, scope);
     this.views = new WorkspaceViews(transport, scope);
     this.workItems = new WorkspaceWorkItems(transport, scope);
-    this.workItemTypes = new WorkspaceWorkItemTypes(transport, scope);
-    this.workItemProperties = new WorkspaceWorkItemProperties(transport, scope);
+    this.workItemTypes = new WorkspaceWorkItemTypes(transport);
+    this.workItemProperties = new WorkspaceWorkItemProperties(transport);
     this.workItemRelationDefinitions = new WorkItemRelationDefinitions(transport, scope);
     this.workItemTemplates = new WorkspaceWorkItemTemplates(transport, scope);
     this.groupSync = new GroupSync(transport, scope);

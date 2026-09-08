@@ -56,8 +56,8 @@ export class Project {
     this.permissions = new ProjectPermissions(transport, scope);
     this.intakes = new Intakes(transport, scope);
     this.estimates = new Estimates(transport);
-    this.workItemTypes = new WorkItemTypes(transport, scope);
-    this.workItemProperties = new WorkItemProperties(transport, scope);
+    this.workItemTypes = new WorkItemTypes(transport);
+    this.workItemProperties = new WorkItemProperties(transport);
     this.workItemTemplates = new ProjectWorkItemTemplates(transport, scope);
     this.workflows = new Workflows(transport, scope);
     this.automations = new ProjectAutomations(transport, scope);

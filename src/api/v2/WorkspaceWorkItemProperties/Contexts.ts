@@ -22,7 +22,18 @@ export interface ListWorkItemPropertyContextsParams {
   count?: boolean;
 }
 
-/** Scopes a workspace work item property's applicability/default to projects and/or work item types. */
+/** `?fields=` on a single-row read or write. The golden declares no `?expand=` here. */
+export interface WorkItemPropertyContextShapeParams {
+  fields?: readonly WorkItemPropertyContextField[];
+}
+
+/**
+ * Scopes a workspace work item property's applicability/default to projects and/or work
+ * item types.
+ *
+ * Reached flat — `v2.workspaces.workItemProperties.contexts.list(slug, property)` — or from
+ * a fetched workspace property: `property.contexts.list()`.
+ */
 export class WorkItemPropertyContexts extends V2Resource<
   WorkItemPropertyContext,
   CreateWorkItemPropertyContext,
@@ -37,59 +48,96 @@ export class WorkItemPropertyContexts extends V2Resource<
     delete: "work_item_property_contexts_destroy",
   };
 
-  private pk(propertyId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { property_id: propertyId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, property: string, context?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, property_id: property };
+    if (context !== undefined) params.pk = context;
     return params;
   }
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
-    propertyId: string,
+    slug: string,
+    property: string,
     params: ListWorkItemPropertyContextsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemPropertyContext, F | "id">>>;
-  list(propertyId: string, params?: ListWorkItemPropertyContextsParams): Promise<Page<WorkItemPropertyContext>>;
-  list(propertyId: string, params?: ListWorkItemPropertyContextsParams): Promise<Page<WorkItemPropertyContext>> {
-    return this.doList(this.pk(propertyId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    property: string,
+    params?: ListWorkItemPropertyContextsParams
+  ): Promise<Page<WorkItemPropertyContext>>;
+  list(
+    slug: string,
+    property: string,
+    params?: ListWorkItemPropertyContextsParams
+  ): Promise<Page<WorkItemPropertyContext>> {
+    return this.doList(this._at(slug, property), params as Record<string, unknown>);
   }
 
   /** Every context, following pages automatically. */
-  iterate(propertyId: string, params?: ListWorkItemPropertyContextsParams): AsyncGenerator<WorkItemPropertyContext> {
-    return this.doIterate(this.pk(propertyId), params as Record<string, unknown>);
+  iterate<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
+    slug: string,
+    property: string,
+    params: ListWorkItemPropertyContextsParams & { fields: readonly F[] }
+  ): AsyncGenerator<Pick<WorkItemPropertyContext, F | "id">>;
+  iterate(
+    slug: string,
+    property: string,
+    params?: ListWorkItemPropertyContextsParams
+  ): AsyncGenerator<WorkItemPropertyContext>;
+  iterate(
+    slug: string,
+    property: string,
+    params?: ListWorkItemPropertyContextsParams
+  ): AsyncGenerator<WorkItemPropertyContext> {
+    return this.doIterate(this._at(slug, property), params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
-    propertyId: string,
-    contextId: string,
+    slug: string,
+    property: string,
+    context: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkItemPropertyContext, F | "id">>;
   retrieve(
-    propertyId: string,
-    contextId: string,
+    slug: string,
+    property: string,
+    context: string,
     params?: { fields?: readonly WorkItemPropertyContextField[] }
   ): Promise<WorkItemPropertyContext>;
   retrieve(
-    propertyId: string,
-    contextId: string,
+    slug: string,
+    property: string,
+    context: string,
     params?: { fields?: readonly WorkItemPropertyContextField[] }
   ): Promise<WorkItemPropertyContext> {
-    return this.doRetrieve(this.pk(propertyId, contextId), params as Record<string, unknown>);
+    return this.doRetrieve(this._at(slug, property, context), params as Record<string, unknown>);
   }
 
   /** The one context with this `name` on the property, server-side via `?name=`; throws if none or several match. */
-  findByName(propertyId: string, name: string): Promise<WorkItemPropertyContext> {
-    return this.doFindOne({ name }, this.pk(propertyId));
+  findByName(slug: string, property: string, name: string): Promise<WorkItemPropertyContext> {
+    return this.doFindOne({ name }, this._at(slug, property));
   }
 
-  create(propertyId: string, data: CreateWorkItemPropertyContext): Promise<WorkItemPropertyContext> {
-    return this.doCreate(data, this.pk(propertyId));
+  create(
+    slug: string,
+    property: string,
+    data: CreateWorkItemPropertyContext,
+    params?: WorkItemPropertyContextShapeParams
+  ): Promise<WorkItemPropertyContext> {
+    return this.doCreate(data, this._at(slug, property), params as Record<string, unknown>);
   }
 
-  update(propertyId: string, contextId: string, data: UpdateWorkItemPropertyContext): Promise<WorkItemPropertyContext> {
-    return this.doUpdate(data, this.pk(propertyId, contextId));
+  update(
+    slug: string,
+    property: string,
+    context: string,
+    data: UpdateWorkItemPropertyContext,
+    params?: WorkItemPropertyContextShapeParams
+  ): Promise<WorkItemPropertyContext> {
+    return this.doUpdate(data, this._at(slug, property, context), params as Record<string, unknown>);
   }
 
-  delete(propertyId: string, contextId: string): Promise<void> {
-    return this.doDelete(this.pk(propertyId, contextId));
+  delete(slug: string, property: string, context: string): Promise<void> {
+    return this.doDelete(this._at(slug, property, context));
   }
 }

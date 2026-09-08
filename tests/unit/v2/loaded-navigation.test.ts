@@ -57,11 +57,15 @@ import {
  * so an entry here is never a suppression — it is the record of which spelling was chosen
  * instead. Any other divergence between the two names is a bug.
  *
- * `Estimates.points` is the inline point scale `?expand=points` returns; the Python SDK
- * needed the identical rename on the identical resource.
+ * `Estimates.points` is the inline point scale `?expand=points` returns, and
+ * `options` on both work-item-property classes is the inlined choice list of an
+ * OPTION-typed property. The Python SDK needed the identical three renames on the
+ * identical three resources.
  */
 export const NAVIGATION_ALIASES: Readonly<Record<string, Record<string, string>>> = {
   Estimates: { points: "estimatePoints" },
+  WorkItemProperties: { options: "propertyOptions" },
+  WorkspaceWorkItemProperties: { options: "propertyOptions" },
 };
 
 const NAVIGABLE = navigableEntries();

@@ -22,7 +22,15 @@ export interface ListWorkItemPropertyOptionsParams {
   count?: boolean;
 }
 
-/** Options of an OPTION-typed property, scoped under a project + property; `list`/`retrieve` have no `fields` param. */
+/**
+ * Options of an OPTION-typed property, scoped under a project + property; `list`/`retrieve`
+ * have no `fields` param.
+ *
+ * Reached flat — `v2.projects.workItemProperties.options.list(slug, project, property)` —
+ * or from a fetched property, where it is `property.propertyOptions.list()`: the row's own
+ * `options` field is the inlined choice list, so the navigation property is spelled
+ * differently (see `WorkItemPropertyNavigation`).
+ */
 export class WorkItemPropertyOptions extends V2Resource<
   WorkItemPropertyOptionLite,
   CreateWorkItemPropertyOption,
@@ -39,43 +47,60 @@ export class WorkItemPropertyOptions extends V2Resource<
     retrieve: "work_item_property_options_retrieve",
   };
 
-  private pk(propertyId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { property_id: propertyId };
-    if (id !== undefined) params.pk = id;
+  private _at(slug: string, project: string, property: string, option?: string): Record<string, string> {
+    const params: Record<string, string> = { slug, project_id: project, property_id: property };
+    if (option !== undefined) params.pk = option;
     return params;
   }
 
-  list(propertyId: string, params?: ListWorkItemPropertyOptionsParams): Promise<Page<WorkItemPropertyOptionLite>> {
-    return this.doList(this.pk(propertyId), params as Record<string, unknown>);
+  list(
+    slug: string,
+    project: string,
+    property: string,
+    params?: ListWorkItemPropertyOptionsParams
+  ): Promise<Page<WorkItemPropertyOptionLite>> {
+    return this.doList(this._at(slug, project, property), params as Record<string, unknown>);
   }
 
   /** Every option, following pages automatically. */
-  iterate(propertyId: string, params?: ListWorkItemPropertyOptionsParams): AsyncGenerator<WorkItemPropertyOptionLite> {
-    return this.doIterate(this.pk(propertyId), params as Record<string, unknown>);
+  iterate(
+    slug: string,
+    project: string,
+    property: string,
+    params?: ListWorkItemPropertyOptionsParams
+  ): AsyncGenerator<WorkItemPropertyOptionLite> {
+    return this.doIterate(this._at(slug, project, property), params as Record<string, unknown>);
   }
 
-  retrieve(propertyId: string, optionId: string): Promise<WorkItemPropertyOptionLite> {
-    return this.doRetrieve(this.pk(propertyId, optionId));
+  retrieve(slug: string, project: string, property: string, option: string): Promise<WorkItemPropertyOptionLite> {
+    return this.doRetrieve(this._at(slug, project, property, option));
   }
 
   /** The one option with this `name` on the property, server-side via `?name=`; throws if none or several match. */
-  findByName(propertyId: string, name: string): Promise<WorkItemPropertyOptionLite> {
-    return this.doFindOne({ name }, this.pk(propertyId));
+  findByName(slug: string, project: string, property: string, name: string): Promise<WorkItemPropertyOptionLite> {
+    return this.doFindOne({ name }, this._at(slug, project, property));
   }
 
-  create(propertyId: string, data: CreateWorkItemPropertyOption): Promise<WorkItemPropertyOptionLite> {
-    return this.doCreate(data, this.pk(propertyId));
+  create(
+    slug: string,
+    project: string,
+    property: string,
+    data: CreateWorkItemPropertyOption
+  ): Promise<WorkItemPropertyOptionLite> {
+    return this.doCreate(data, this._at(slug, project, property));
   }
 
   update(
-    propertyId: string,
-    optionId: string,
+    slug: string,
+    project: string,
+    property: string,
+    option: string,
     data: UpdateWorkItemPropertyOption
   ): Promise<WorkItemPropertyOptionLite> {
-    return this.doUpdate(data, this.pk(propertyId, optionId));
+    return this.doUpdate(data, this._at(slug, project, property, option));
   }
 
-  delete(propertyId: string, optionId: string): Promise<void> {
-    return this.doDelete(this.pk(propertyId, optionId));
+  delete(slug: string, project: string, property: string, option: string): Promise<void> {
+    return this.doDelete(this._at(slug, project, property, option));
   }
 }

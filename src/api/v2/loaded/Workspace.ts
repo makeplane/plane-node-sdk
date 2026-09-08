@@ -14,7 +14,9 @@ import type { Teamspaces } from "../Teamspaces";
 import type { Loaded, Owned } from "../kernel/loaded";
 import type { WorkspaceMembers } from "../WorkspaceMembers";
 import type { WorkspaceViews } from "../WorkspaceViews";
+import type { WorkspaceWorkItemProperties } from "../WorkspaceWorkItemProperties";
 import type { WorkspaceWorkItems } from "../WorkspaceWorkItems";
+import type { WorkspaceWorkItemTypes } from "../WorkspaceWorkItemTypes";
 import type { WorkItemRelationDefinitions } from "../WorkItemRelationDefinitions";
 import type { WorkspaceWorkItemTemplates } from "../WorkItemTemplates/WorkspaceTemplates";
 
@@ -72,6 +74,8 @@ export interface WorkspaceNavigation {
   readonly stickies: Owned<Stickies, WorkspaceIds>;
   readonly teamspaces: Owned<Teamspaces, WorkspaceIds>;
   readonly customerProperties: Owned<CustomerProperties, WorkspaceIds>;
+  readonly workItemTypes: Owned<WorkspaceWorkItemTypes, WorkspaceIds>;
+  readonly workItemProperties: Owned<WorkspaceWorkItemProperties, WorkspaceIds>;
 }
 
 /**

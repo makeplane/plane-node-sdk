@@ -22,7 +22,9 @@ import { WorkItemRelationDefinitions } from "./WorkItemRelationDefinitions";
 import { WorkspaceWorkItemTemplates } from "./WorkItemTemplates/WorkspaceTemplates";
 import { WorkspaceMembers } from "./WorkspaceMembers";
 import { WorkspaceViews } from "./WorkspaceViews";
+import { WorkspaceWorkItemProperties } from "./WorkspaceWorkItemProperties";
 import { WorkspaceWorkItems } from "./WorkspaceWorkItems";
+import { WorkspaceWorkItemTypes } from "./WorkspaceWorkItemTypes";
 
 export type WorkspaceField = (typeof FIELDS)["workspaces_retrieve"][number];
 
@@ -74,6 +76,8 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
   public stickies: Stickies;
   public teamspaces: Teamspaces;
   public customerProperties: CustomerProperties;
+  public workItemTypes: WorkspaceWorkItemTypes;
+  public workItemProperties: WorkspaceWorkItemProperties;
   /**
    * IdP group sync. A grouping node, not a resource: it consumes no path id of its own, so
    * it is not a navigation property on a fetched row (its children each take `slug`
@@ -106,6 +110,8 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
     this.stickies = new Stickies(transport);
     this.teamspaces = new Teamspaces(transport);
     this.customerProperties = new CustomerProperties(transport);
+    this.workItemTypes = new WorkspaceWorkItemTypes(transport);
+    this.workItemProperties = new WorkspaceWorkItemProperties(transport);
     this.groupSync = new GroupSync(transport);
     this.wiki = new Wiki(transport);
   }
@@ -130,6 +136,8 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
       stickies: () => owned(this.stickies, ids, meta.idNames),
       teamspaces: () => owned(this.teamspaces, ids, meta.idNames),
       customerProperties: () => owned(this.customerProperties, ids, meta.idNames),
+      workItemTypes: () => owned(this.workItemTypes, ids, meta.idNames),
+      workItemProperties: () => owned(this.workItemProperties, ids, meta.idNames),
     };
   }
 
