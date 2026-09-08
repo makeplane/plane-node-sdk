@@ -37,6 +37,9 @@ export class CollectionPages extends V2Resource<never, never, never> {
     collection: string,
     params: { fields?: readonly CollectionPageSearchField[]; search?: string } & { fields: readonly F[] }
   ): Promise<Pick<CollectionPageSearch, F | "id">[]>;
+  /**
+   * Pages eligible to attach; raw array, no pagination. `search` works live but is absent from the golden's declared params — passed through anyway.
+   */
   search(
     slug: string,
     collection: string,

@@ -15,11 +15,16 @@ export class WikiPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
     delete: "workspace_pages_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WikiPage` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
     slug: string,
     params: ListWikiPagesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WikiPage, F | "id">>>;
+  /** One page of `WikiPage` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWikiPagesParams): Promise<Page<WikiPage>>;
   list(slug: string, params?: ListWikiPagesParams): Promise<Page<WikiPage>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -30,6 +35,7 @@ export class WikiPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
     slug: string,
     params: Omit<ListWikiPagesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WikiPage, F | "id">>;
+  /** Every global page in the workspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListWikiPagesParams, "offset" | "count">): AsyncGenerator<WikiPage>;
   iterate(slug: string, params?: Omit<ListWikiPagesParams, "offset" | "count">): AsyncGenerator<WikiPage> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
@@ -68,6 +74,7 @@ export class WikiPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
     data: CreatePage,
     params: WikiPageShapeParams & { fields: readonly F[] }
   ): Promise<Pick<WikiPage, F | "id">>;
+  /** Omitting `collection_id` lands **public** pages in the default ("General") collection; **private** pages need one explicitly. */
   create(slug: string, data: CreatePage, params?: WikiPageShapeParams): Promise<WikiPage>;
   create(slug: string, data: CreatePage, params?: WikiPageShapeParams): Promise<WikiPage> {
     return this.doCreate(data, { slug }, params as Record<string, unknown>);

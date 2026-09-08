@@ -41,11 +41,16 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
     delete: "teamspaces_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Teamspace` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<TeamspaceField, "all"> & keyof Teamspace>(
     slug: string,
     params: ListTeamspacesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Teamspace, F | "id">>>;
+  /** One page of `Teamspace` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListTeamspacesParams): Promise<Page<Teamspace>>;
   list(slug: string, params?: ListTeamspacesParams): Promise<Page<Teamspace>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -56,6 +61,7 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
     slug: string,
     params: Omit<ListTeamspacesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Teamspace, F | "id">>;
+  /** Every teamspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListTeamspacesParams, "offset" | "count">): AsyncGenerator<Teamspace>;
   iterate(slug: string, params?: Omit<ListTeamspacesParams, "offset" | "count">): AsyncGenerator<Teamspace> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

@@ -17,6 +17,13 @@ export const WORK_ITEM_TYPE_ID_NAMES = ["slug", "project", "type"] as const;
 
 /** Everything a fetched project-scoped work item type can reach: the properties linked to it. */
 export interface WorkItemTypeNavigation {
+  /**
+   * WorkItemTypeProperties with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly properties: Owned<WorkItemTypeProperties, WorkItemTypeIds>;
 }
 
@@ -33,6 +40,13 @@ export const WORKSPACE_WORK_ITEM_TYPE_ID_NAMES = ["slug", "type"] as const;
 
 /** Everything a fetched workspace-scoped work item type can reach. */
 export interface WorkspaceWorkItemTypeNavigation {
+  /**
+   * WorkspaceWorkItemTypeProperties with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly properties: Owned<WorkspaceWorkItemTypeProperties, WorkspaceWorkItemTypeIds>;
 }
 

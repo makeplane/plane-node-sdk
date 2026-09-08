@@ -47,12 +47,17 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
     bulkDelete: "labels_bulk_delete",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Label` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<LabelField, "all"> & keyof Label>(
     slug: string,
     project: string,
     params: ListLabelsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Label, F | "id">>>;
+  /** One page of `Label` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListLabelsParams): Promise<Page<Label>>;
   list(slug: string, project: string, params?: ListLabelsParams): Promise<Page<Label>> {
     return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -64,6 +69,7 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
     project: string,
     params: Omit<ListLabelsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Label, F | "id">>;
+  /** Every label in the project, following pages automatically. */
   iterate(slug: string, project: string, params?: Omit<ListLabelsParams, "offset" | "count">): AsyncGenerator<Label>;
   iterate(slug: string, project: string, params?: Omit<ListLabelsParams, "offset" | "count">): AsyncGenerator<Label> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
@@ -119,6 +125,7 @@ export class Labels extends V2Resource<Label, CreateLabel, UpdateLabel> {
     data: CreateLabel,
     params: LabelFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<Label, F | "id">>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label>;
   upsert(slug: string, project: string, data: CreateLabel, params?: LabelFieldsParams): Promise<Label> {
     return this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);

@@ -11,7 +11,21 @@ export const COLLECTION_ID_NAMES = ["slug", "collection"] as const;
 
 /** Everything a fetched wiki collection can reach: who is on it, and what is in it. */
 export interface CollectionNavigation {
+  /**
+   * CollectionMembers with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly members: Owned<CollectionMembers, CollectionIds>;
+  /**
+   * CollectionPages with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly pages: Owned<CollectionPages, CollectionIds>;
 }
 

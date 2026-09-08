@@ -43,12 +43,17 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
     delete: "project_members_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `ProjectMember` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ProjectMemberField, "all"> & keyof ProjectMember>(
     slug: string,
     project: string,
     params: ListMembersParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ProjectMember, F | "id">>>;
+  /** One page of `ProjectMember` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListMembersParams): Promise<Page<ProjectMember>>;
   list(slug: string, project: string, params?: ListMembersParams): Promise<Page<ProjectMember>> {
     return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -60,6 +65,7 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
     project: string,
     params: Omit<ListMembersParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ProjectMember, F | "id">>;
+  /** Every project member, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -91,6 +97,7 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
     data: CreateProjectMember,
     params: ProjectMemberShapeParams & { fields: readonly F[] }
   ): Promise<Pick<ProjectMember, F | "id">>;
+  /** `member_id` is required; `role` defaults to `"member"` server-side when omitted. */
   create(
     slug: string,
     project: string,
@@ -114,6 +121,7 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
     data: UpdateProjectMember,
     params: ProjectMemberShapeParams & { fields: readonly F[] }
   ): Promise<Pick<ProjectMember, F | "id">>;
+  /** `role` only — `member_id` is immutable on update, see {@link UpdateProjectMember}. */
   update(
     slug: string,
     project: string,

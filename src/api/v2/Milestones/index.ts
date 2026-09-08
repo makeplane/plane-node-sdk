@@ -68,12 +68,17 @@ export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, U
     return { workItems: () => owned(this.workItems, ids, meta.idNames) };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Milestone` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<MilestoneField, "all"> & keyof Milestone>(
     slug: string,
     project: string,
     params: ListMilestonesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedMilestoneRow<Pick<Milestone, F | "id">>>>;
+  /** One page of `Milestone` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListMilestonesParams): Promise<Page<LoadedMilestone>>;
   async list(slug: string, project: string, params?: ListMilestonesParams): Promise<Page<LoadedMilestone>> {
     const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -86,6 +91,7 @@ export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, U
     project: string,
     params: Omit<ListMilestonesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  /** Every milestone in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,
@@ -183,6 +189,7 @@ export class Milestones extends LoadsNavigableRows<Milestone, CreateMilestone, U
     data: CreateMilestone,
     params: MilestoneShapeParams & { fields: readonly F[] }
   ): Promise<LoadedMilestoneRow<Pick<Milestone, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateMilestone, params?: MilestoneShapeParams): Promise<LoadedMilestone>;
   async upsert(
     slug: string,

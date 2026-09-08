@@ -72,6 +72,18 @@ type AnyFunction = (...args: never[]) => unknown;
  * overload set instead makes this strictly worse, not better: the inference erases `F`
  * to its constraint and answers `Pick<State, every field>`, which claims presence for
  * fields the projection dropped.)
+ *
+ * **Where that limitation is visible, and where it cannot be.** A mapped type produces a
+ * *synthesized* property whose type is computed, and TypeScript attaches no documentation
+ * to a synthesized symbol — there is no declaration for a doc comment to sit on. So
+ * hovering `project.states.list` shows the resolved signature and nothing else, and no
+ * amount of commenting in this file changes that; the only construct that would carry
+ * documentation to that hover is an explicit interface per navigated method, which is the
+ * same 520 signatures the mapped type exists to avoid restating. The nearest place
+ * TypeScript *does* carry a comment is the navigation property itself
+ * (`readonly states: Owned<States, ProjectIds>` in each `*Navigation` interface), so the
+ * note lives on all 82 of those and a reader meets it one hop before the call.
+ * `tests/unit/v2/loaded-navigation.test.ts` enumerates that.
  */
 export type Owned<TResource, TIds extends readonly unknown[]> = {
   [K in keyof TResource as TResource[K] extends AnyFunction ? K : never]: TResource[K] extends (

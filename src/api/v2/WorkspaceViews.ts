@@ -19,11 +19,16 @@ export class WorkspaceViews extends V2Resource<View, CreateView, UpdateView> {
     delete: "workspace_views_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `View` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ViewField, "all"> & keyof View>(
     slug: string,
     params: ListWorkspaceViewsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<View, F | "id">>>;
+  /** One page of `View` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkspaceViewsParams): Promise<Page<View>>;
   list(slug: string, params?: ListWorkspaceViewsParams): Promise<Page<View>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -34,6 +39,7 @@ export class WorkspaceViews extends V2Resource<View, CreateView, UpdateView> {
     slug: string,
     params: Omit<ListWorkspaceViewsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<View, F | "id">>;
+  /** Every workspace view, following pages automatically. */
   iterate(slug: string, params?: Omit<ListWorkspaceViewsParams, "offset" | "count">): AsyncGenerator<View>;
   iterate(slug: string, params?: Omit<ListWorkspaceViewsParams, "offset" | "count">): AsyncGenerator<View> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

@@ -44,24 +44,157 @@ export const PROJECT_ID_NAMES = ["slug", "project"] as const;
  * to `Projects`, and nothing foreign to be.
  */
 export interface ProjectNavigation {
+  /**
+   * States with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly states: Owned<States, ProjectIds>;
+  /**
+   * Labels with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly labels: Owned<Labels, ProjectIds>;
+  /**
+   * WorkItems with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItems: Owned<WorkItems, ProjectIds>;
+  /**
+   * ProjectMembers with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly members: Owned<ProjectMembers, ProjectIds>;
+  /**
+   * ProjectPages with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly pages: Owned<ProjectPages, ProjectIds>;
+  /**
+   * ProjectViews with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly views: Owned<ProjectViews, ProjectIds>;
+  /**
+   * ProjectFeatures with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly features: Owned<ProjectFeatures, ProjectIds>;
+  /**
+   * ProjectPermissions with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly permissions: Owned<ProjectPermissions, ProjectIds>;
+  /**
+   * Intakes with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly intakes: Owned<Intakes, ProjectIds>;
+  /**
+   * ProjectWorkItemTemplates with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemTemplates: Owned<ProjectWorkItemTemplates, ProjectIds>;
+  /**
+   * ProjectWorklogs with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly worklogs: Owned<ProjectWorklogs, ProjectIds>;
+  /**
+   * Cycles with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly cycles: Owned<Cycles, ProjectIds>;
+  /**
+   * Modules with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly modules: Owned<Modules, ProjectIds>;
+  /**
+   * Milestones with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly milestones: Owned<Milestones, ProjectIds>;
+  /**
+   * Estimates with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly estimates: Owned<Estimates, ProjectIds>;
+  /**
+   * WorkItemTypes with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemTypes: Owned<WorkItemTypes, ProjectIds>;
+  /**
+   * WorkItemProperties with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemProperties: Owned<WorkItemProperties, ProjectIds>;
+  /**
+   * Workflows with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workflows: Owned<Workflows, ProjectIds>;
+  /**
+   * ProjectAutomations with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly automations: Owned<ProjectAutomations, ProjectIds>;
 }
 

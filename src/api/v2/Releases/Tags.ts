@@ -35,11 +35,16 @@ export class ReleaseTags extends V2Resource<ReleaseTag, CreateReleaseTag, Update
     delete: "release_tags_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `ReleaseTag` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ReleaseTagField, "all"> & keyof ReleaseTag>(
     slug: string,
     params: ListReleaseTagsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseTag, F | "id">>>;
+  /** One page of `ReleaseTag` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListReleaseTagsParams): Promise<Page<ReleaseTag>>;
   list(slug: string, params?: ListReleaseTagsParams): Promise<Page<ReleaseTag>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -50,6 +55,7 @@ export class ReleaseTags extends V2Resource<ReleaseTag, CreateReleaseTag, Update
     slug: string,
     params: Omit<ListReleaseTagsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseTag, F | "id">>;
+  /** Every release tag definition, following pages automatically. */
   iterate(slug: string, params?: Omit<ListReleaseTagsParams, "offset" | "count">): AsyncGenerator<ReleaseTag>;
   iterate(slug: string, params?: Omit<ListReleaseTagsParams, "offset" | "count">): AsyncGenerator<ReleaseTag> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

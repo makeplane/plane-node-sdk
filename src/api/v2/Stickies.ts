@@ -37,11 +37,16 @@ export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
     delete: "stickies_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Sticky` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<StickyField, "all"> & keyof Sticky>(
     slug: string,
     params: ListStickiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Sticky, F | "id">>>;
+  /** One page of `Sticky` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListStickiesParams): Promise<Page<Sticky>>;
   list(slug: string, params?: ListStickiesParams): Promise<Page<Sticky>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -52,6 +57,7 @@ export class Stickies extends V2Resource<Sticky, CreateSticky, UpdateSticky> {
     slug: string,
     params: Omit<ListStickiesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Sticky, F | "id">>;
+  /** Every sticky, following pages automatically. */
   iterate(slug: string, params?: Omit<ListStickiesParams, "offset" | "count">): AsyncGenerator<Sticky>;
   iterate(slug: string, params?: Omit<ListStickiesParams, "offset" | "count">): AsyncGenerator<Sticky> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

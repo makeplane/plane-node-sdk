@@ -130,12 +130,17 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItem` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
     slug: string,
     project: string,
     params: ListWorkItemsParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>>;
+  /** One page of `WorkItem` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListWorkItemsParams): Promise<Page<LoadedWorkItem>>;
   async list(slug: string, project: string, params?: ListWorkItemsParams): Promise<Page<LoadedWorkItem>> {
     const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -148,6 +153,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     project: string,
     params: Omit<ListWorkItemsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  /** Every work item in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,
@@ -239,6 +245,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     data: CreateWorkItem,
     params: WorkItemShapeParams & { fields: readonly F[] }
   ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateWorkItem, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async upsert(
     slug: string,
@@ -275,6 +282,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     workItem: string,
     params: WorkItemShapeParams & { fields: readonly F[] }
   ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  /** Archive a work item. Returns the archived row. */
   archive(slug: string, project: string, workItem: string, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async archive(
     slug: string,
@@ -297,6 +305,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     workItem: string,
     params: WorkItemShapeParams & { fields: readonly F[] }
   ): Promise<LoadedWorkItemRow<Pick<WorkItem, F | "id">>>;
+  /** Unarchive a work item. Returns the restored row. */
   unarchive(slug: string, project: string, workItem: string, params?: WorkItemShapeParams): Promise<LoadedWorkItem>;
   async unarchive(
     slug: string,

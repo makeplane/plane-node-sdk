@@ -42,11 +42,16 @@ export class AuditLogs extends V2Resource<AuditLog, never, never> {
     retrieve: "audit_logs_retrieve",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `AuditLog` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<AuditLogField, "all"> & keyof AuditLog>(
     slug: string,
     params: ListAuditLogsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<AuditLog, F | "id">>>;
+  /** One page of `AuditLog` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListAuditLogsParams): Promise<Page<AuditLog>>;
   list(slug: string, params?: ListAuditLogsParams): Promise<Page<AuditLog>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -57,6 +62,7 @@ export class AuditLogs extends V2Resource<AuditLog, never, never> {
     slug: string,
     params: Omit<ListAuditLogsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<AuditLog, F | "id">>;
+  /** Every audit log entry, following pages automatically. */
   iterate(slug: string, params?: Omit<ListAuditLogsParams, "offset" | "count">): AsyncGenerator<AuditLog>;
   iterate(slug: string, params?: Omit<ListAuditLogsParams, "offset" | "count">): AsyncGenerator<AuditLog> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

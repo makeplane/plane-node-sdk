@@ -55,11 +55,16 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Webhook` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WebhookField, "all"> & keyof Webhook>(
     slug: string,
     params: ListWebhooksParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWebhookRow<Pick<Webhook, F | "id">>>>;
+  /** One page of `Webhook` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWebhooksParams): Promise<Page<LoadedWebhook>>;
   async list(slug: string, params?: ListWebhooksParams): Promise<Page<LoadedWebhook>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -71,6 +76,7 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     slug: string,
     params: Omit<ListWebhooksParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWebhookRow<Pick<Webhook, F | "id">>>;
+  /** Every webhook in the workspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListWebhooksParams, "offset" | "count">): AsyncGenerator<LoadedWebhook>;
   iterate(slug: string, params?: Omit<ListWebhooksParams, "offset" | "count">): AsyncGenerator<LoadedWebhook> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
@@ -110,6 +116,18 @@ export class Webhooks extends LoadsNavigableRows<Webhook, CreateWebhook, UpdateW
     data: CreateWebhook,
     params: { fields: readonly F[] }
   ): Promise<LoadedWebhookRow<Pick<WebhookCreateResponse, F | "id" | "secret_key">>>;
+  /**
+   * Returns `secret_key` once — store it now, it is never shown again outside of
+   * `regenerate`.
+   *
+   * `secret_key` survives a `fields` projection, and that is not a courtesy: it is not in
+   * `FIELDS.webhooks_create` at all, so it is not a name the server will accept in
+   * `?fields=` and not a field it can be asked to drop. (Contrast `webhooks_regenerate`,
+   * whose field list *does* include it — which is why `regenerate` takes no `fields` at
+   * all rather than letting a caller project away the only copy of a secret.) So the
+   * narrowed row keeps it, and a caller who projects a create still gets the one thing
+   * this call exists to hand back.
+   */
   create(
     slug: string,
     data: CreateWebhook,

@@ -56,12 +56,17 @@ export class WorkItemPropertyContexts extends V2Resource<
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemPropertyContext` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemPropertyContextField, "all"> & keyof WorkItemPropertyContext>(
     slug: string,
     property: string,
     params: ListWorkItemPropertyContextsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemPropertyContext, F | "id">>>;
+  /** One page of `WorkItemPropertyContext` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     property: string,
@@ -83,6 +88,7 @@ export class WorkItemPropertyContexts extends V2Resource<
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<WorkItemPropertyContext, F | "id">>;
+  /** Every context, following pages automatically. */
   iterate(
     slug: string,
     property: string,

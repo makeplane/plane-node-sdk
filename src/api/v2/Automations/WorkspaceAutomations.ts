@@ -94,11 +94,16 @@ export class WorkspaceAutomations extends LoadsNavigableRows<
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Automation` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkspaceAutomationField, "all"> & keyof Automation>(
     slug: string,
     params: ListWorkspaceAutomationsParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>>;
+  /** One page of `Automation` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkspaceAutomationsParams): Promise<Page<LoadedWorkspaceAutomation>>;
   async list(slug: string, params?: ListWorkspaceAutomationsParams): Promise<Page<LoadedWorkspaceAutomation>> {
     const page = await this.doList(this._at(slug), params as Record<string, unknown>);
@@ -112,6 +117,7 @@ export class WorkspaceAutomations extends LoadsNavigableRows<
       fields: readonly F[];
     }
   ): AsyncGenerator<LoadedWorkspaceAutomationRow<Pick<Automation, F | "id">>>;
+  /** Every workspace-scoped automation, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     params?: Omit<ListWorkspaceAutomationsParams, "offset" | "count">

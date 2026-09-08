@@ -58,13 +58,18 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     bulkDelete: "work_item_comments_bulk_delete",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemComment` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemCommentField, "all"> & keyof WorkItemComment>(
     slug: string,
     project: string,
     workItem: string,
     params: ListWorkItemCommentsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemComment, F | "id">>>;
+  /** One page of `WorkItemComment` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -87,6 +92,7 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     workItem: string,
     params: Omit<ListWorkItemCommentsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemComment, F | "id">>;
+  /** Every comment on the work item, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -200,6 +206,7 @@ export class Comments extends V2Resource<WorkItemComment, CreateWorkItemComment,
     data: CreateWorkItemComment,
     params: WorkItemCommentShapeParams & { fields: readonly F[] }
   ): Promise<Pick<WorkItemComment, F | "id">>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(
     slug: string,
     project: string,

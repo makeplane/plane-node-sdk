@@ -46,13 +46,18 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkflowState` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkflowStateField, "all"> & keyof WorkflowState>(
     slug: string,
     project: string,
     workflow: string,
     params: ListWorkflowStatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkflowState, F | "id">>>;
+  /** One page of `WorkflowState` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -75,6 +80,7 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     workflow: string,
     params: Omit<ListWorkflowStatesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkflowState, F | "id">>;
+  /** Every workflow state, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -125,6 +131,10 @@ export class WorkflowStates extends V2Resource<WorkflowState, WorkflowStateAttac
     data: WorkflowStateAttachRequest,
     params: WorkflowStateShapeParams & { fields: readonly F[] }
   ): Promise<Pick<WorkflowState, F | "id">[]>;
+  /**
+   * Attach project states to this workflow; already-attached ids are accepted
+   * idempotently. Answers an array, not the single object the golden's `201` implies.
+   */
   attach(
     slug: string,
     project: string,

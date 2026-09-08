@@ -46,13 +46,18 @@ export class ProjectAutomationEdges extends V2Resource<AutomationEdge, CreateAut
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `AutomationEdge` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ProjectAutomationEdgeField, "all"> & keyof AutomationEdge>(
     slug: string,
     project: string,
     automation: string,
     params: ListProjectAutomationEdgesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<AutomationEdge, F | "id">>>;
+  /** One page of `AutomationEdge` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -77,6 +82,7 @@ export class ProjectAutomationEdges extends V2Resource<AutomationEdge, CreateAut
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<AutomationEdge, F | "id">>;
+  /** Every edge, following pages automatically. */
   iterate(
     slug: string,
     project: string,

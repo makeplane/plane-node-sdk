@@ -23,27 +23,28 @@ npm install @makeplane/plane-node-sdk
 
 ## Quick Start
 
-```typescript
-import { PlaneClient } from "@plane/node-sdk";
+```ts
+import { PlaneClient } from "@makeplane/plane-node-sdk";
 
-const client = new PlaneClient({
-  apiKey: "your-api-key",
-});
+const client = new PlaneClient({ apiKey: "your-api-key" });
 
-// Or with custom base URL
-const client = new PlaneClient({
-  baseUrl: "https://your-custom-api.plane.so",
+// Or against a self-hosted instance, with an OAuth access token:
+const selfHosted = new PlaneClient({
+  baseUrl: "https://plane.example.com",
   accessToken: "your-access-token",
 });
 
-// List projects
-const projects = await client.projects.list();
+// Every workspace-scoped call takes the workspace slug first.
+const projects = await client.projects.list("workspace-slug");
 
-// Create a project
 const project = await client.projects.create("workspace-slug", {
   name: "My Project",
   description: "A new project",
 });
+
+void selfHosted;
+void projects;
+void project;
 ```
 
 ## API v2
@@ -198,8 +199,15 @@ resource flat — `client.v2.workspaces.projects.states.list("acme", "ENG", { fi
 ### Memberships
 
 Memberships are `add`/`remove` on a sub-resource named for the thing being added — path
-ids first, then 1..100 ids (an empty or oversized list throws before any request). Each
-call sends only its own verb and resolves to the ids the server actually changed.
+ids first, then 1..100 ids (`v2.BRIDGE_MAX_IDS`; an empty or oversized list throws before
+any request). Each call sends only its own verb and resolves to the ids the server
+actually changed.
+
+**There are two caps, and they are different numbers.** A membership bridge takes up to
+**100** ids per call (`v2.BRIDGE_MAX_IDS`, the golden's `maxItems` on the 24 `add`/`remove`
+schemas); a bulk write takes up to **50** items per call (`v2.BULK_MAX_ITEMS`, the golden's
+`maxItems` on the 21 bulk create/update/delete schemas). Sizing a bridge call at 50 works
+but wastes half of each round trip; sizing a bulk call at 100 throws client-side.
 Properties on a work item type use `link`/`unlink` instead, matching the web app;
 `unlink` deletes that property's values on every work item of the type.
 
@@ -293,8 +301,8 @@ timeout, …) raises `PlaneNetworkError`, carrying the underlying error's messag
 `bulkCreate` / `bulkUpdate` / `bulkDelete` always answer HTTP 200, even when some rows
 fail — partial success is the default. Call `v2.raiseForFailures(result)` to throw,
 carrying the first failure's `errors`. The cap is 50 items per call
-(`v2.BULK_MAX_ITEMS`); an empty batch is rejected client-side rather than being a silent
-no-op.
+(`v2.BULK_MAX_ITEMS`) — not the 100 a membership bridge takes; an empty batch is rejected
+client-side rather than being a silent no-op.
 
 ```ts
 const result = await client.v2.workspaces.projects.states.bulkCreate("acme", "ENG", [{ name: "QA", color: "#ffffff" }]);
@@ -326,19 +334,23 @@ enumerate valid values rather than guessing.
 
 ### How this surface is kept honest
 
-The v2 surface is 90 resource classes, and none of it is spot-checked. Six rule sweeps
-run over **every** class — enumerated from the TypeScript source, not selected by some
+The v2 surface is 90 resource classes, and none of it is spot-checked. Rule sweeps run
+over **every** class — enumerated from the TypeScript source, not selected by some
 property a class might not have yet — and each is proved by introducing the violation and
 watching the sweep name it:
 
-| Sweep                    | What it refuses                                                     |
-| ------------------------ | ------------------------------------------------------------------- |
-| Call shape               | a method that does not open with its URL's path ids, in path order  |
-| `fields` / `expand`      | an operation that offers a projection the SDK does not expose       |
-| Query filters            | a `?filter=` the API accepts and no params type declares            |
-| `order_by`               | a missing sort order, or a params type pointed at a sibling's enum  |
-| Operation correspondence | a method with no `operations` entry, silently exempt from the above |
-| Projection soundness     | a method that accepts `fields` and answers the full row anyway      |
+| Sweep                    | What it refuses                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| Call shape               | a method that does not open with its URL's path ids, in path order                               |
+| `fields` / `expand`      | an operation that offers a projection the SDK does not expose                                    |
+| Query filters            | a `?filter=` the API accepts and no params type declares                                         |
+| `order_by`               | a missing sort order, or a params type pointed at a sibling's enum                               |
+| Pagination               | an unreachable half of the paging envelope — including a `paginate` with no `cursor` to spend it |
+| Operation correspondence | a method with no `operations` entry, silently exempt from the above                              |
+| Projection soundness     | a method that accepts `fields` and answers the full row anyway                                   |
+| Loader routing           | a row-returning method on a navigable class that skips `load()`                                  |
+| Alternate paths          | a method that declares an `extraPaths` override and ignores it                                   |
+| Lookups                  | a `findBy*` filtering on something the API does not filter on                                    |
 
 Two more sweeps cover the tree rather than the classes: **band completeness** derives, from
 each resource's own URL template, which of the two roots it belongs to and requires it to
@@ -406,11 +418,11 @@ pnpm build
 # Run tests
 pnpm test
 
-# Lint code
-pnpm lint
+# Lint (oxlint) — `pnpm fix:lint` to auto-fix
+pnpm check:lint
 
-# Format code
-pnpm format
+# Format (oxfmt, 120 columns) — `pnpm fix:format` to rewrite
+pnpm check:format
 ```
 
 ## Testing
@@ -448,10 +460,9 @@ npm test
 # or
 pnpm test
 
-# Run specific test files
-pnpx ts-node tests/page.test.ts
-# or
-pnpm test page.test.ts
+# Run one suite, or one file
+pnpm test:unit
+pnpm test -- tests/unit/page.test.ts
 ```
 
 ## License

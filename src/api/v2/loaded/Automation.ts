@@ -21,8 +21,29 @@ export const PROJECT_AUTOMATION_ID_NAMES = ["slug", "project", "automation"] as 
 
 /** Everything a fetched project-scoped automation can reach: its graph and its audit log. */
 export interface ProjectAutomationNavigation {
+  /**
+   * ProjectAutomationNodes with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly nodes: Owned<ProjectAutomationNodes, ProjectAutomationIds>;
+  /**
+   * ProjectAutomationEdges with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly edges: Owned<ProjectAutomationEdges, ProjectAutomationIds>;
+  /**
+   * ProjectAutomationActivities with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly activities: Owned<ProjectAutomationActivities, ProjectAutomationIds>;
 }
 
@@ -39,8 +60,29 @@ export const WORKSPACE_AUTOMATION_ID_NAMES = ["slug", "automation"] as const;
 
 /** Everything a fetched workspace-scoped automation can reach. */
 export interface WorkspaceAutomationNavigation {
+  /**
+   * WorkspaceAutomationNodes with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly nodes: Owned<WorkspaceAutomationNodes, WorkspaceAutomationIds>;
+  /**
+   * WorkspaceAutomationEdges with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly edges: Owned<WorkspaceAutomationEdges, WorkspaceAutomationIds>;
+  /**
+   * WorkspaceAutomationActivities with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly activities: Owned<WorkspaceAutomationActivities, WorkspaceAutomationIds>;
 }
 

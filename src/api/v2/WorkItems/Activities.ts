@@ -41,13 +41,18 @@ export class Activities extends V2Resource<WorkItemActivity, never, never> {
     retrieve: "activities_retrieve",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemActivity` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemActivityField, "all"> & keyof WorkItemActivity>(
     slug: string,
     project: string,
     workItem: string,
     params: ListWorkItemActivitiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemActivity, F | "id">>>;
+  /** One page of `WorkItemActivity` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -70,6 +75,7 @@ export class Activities extends V2Resource<WorkItemActivity, never, never> {
     workItem: string,
     params: Omit<ListWorkItemActivitiesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemActivity, F | "id">>;
+  /** Every activity, following pages automatically. */
   iterate(
     slug: string,
     project: string,

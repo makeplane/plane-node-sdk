@@ -50,11 +50,16 @@ export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiati
     remove: "initiatives_labels",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `InitiativeLabel` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<InitiativeLabelField, "all"> & keyof InitiativeLabel>(
     slug: string,
     params: ListInitiativeLabelsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<InitiativeLabel, F | "id">>>;
+  /** One page of `InitiativeLabel` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListInitiativeLabelsParams): Promise<Page<InitiativeLabel>>;
   list(slug: string, params?: ListInitiativeLabelsParams): Promise<Page<InitiativeLabel>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -65,6 +70,7 @@ export class InitiativeLabels extends V2Resource<InitiativeLabel, CreateInitiati
     slug: string,
     params: Omit<ListInitiativeLabelsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<InitiativeLabel, F | "id">>;
+  /** Every initiative label, following pages automatically. */
   iterate(slug: string, params?: Omit<ListInitiativeLabelsParams, "offset" | "count">): AsyncGenerator<InitiativeLabel>;
   iterate(
     slug: string,

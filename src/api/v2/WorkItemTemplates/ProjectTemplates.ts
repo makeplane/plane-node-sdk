@@ -57,12 +57,17 @@ export class ProjectWorkItemTemplates extends V2Resource<
     delete: "project_work_item_templates_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemTemplate` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
     slug: string,
     project: string,
     params: ListProjectWorkItemTemplatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemTemplate, F | "id">>>;
+  /** One page of `WorkItemTemplate` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListProjectWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>>;
   list(slug: string, project: string, params?: ListProjectWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>> {
     return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -76,6 +81,7 @@ export class ProjectWorkItemTemplates extends V2Resource<
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<WorkItemTemplate, F | "id">>;
+  /** Every template in the project, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -173,6 +179,13 @@ export class ProjectWorkItemTemplates extends V2Resource<
     data: WorkItemTemplateUseRequest | undefined,
     params: WorkItemTemplateUseParams & { fields: readonly F[] }
   ): Promise<Pick<WorkItem, F | "id">>;
+  /**
+   * Instantiate a work item from this template; omit `data` to use its seed data as-is,
+   * or override with `name`/`project_id`.
+   *
+   * The response is a {@link WorkItem}, not a template row, so this goes through the
+   * kernel's custom-action helper rather than `doAction`.
+   */
   use(
     slug: string,
     project: string,

@@ -66,11 +66,16 @@ export class Collections extends LoadsNavigableRows<
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Collection` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<CollectionField, "all"> & keyof Collection>(
     slug: string,
     params: ListCollectionsParams & { fields: readonly F[] }
   ): Promise<Page<LoadedCollectionRow<Pick<Collection, F | "id">>>>;
+  /** One page of `Collection` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListCollectionsParams): Promise<Page<LoadedCollection>>;
   async list(slug: string, params?: ListCollectionsParams): Promise<Page<LoadedCollection>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -82,6 +87,7 @@ export class Collections extends LoadsNavigableRows<
     slug: string,
     params: Omit<ListCollectionsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedCollectionRow<Pick<Collection, F | "id">>>;
+  /** Every collection in the workspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListCollectionsParams, "offset" | "count">): AsyncGenerator<LoadedCollection>;
   iterate(slug: string, params?: Omit<ListCollectionsParams, "offset" | "count">): AsyncGenerator<LoadedCollection> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);

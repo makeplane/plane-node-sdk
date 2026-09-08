@@ -50,11 +50,16 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
     remove: "releases_labels",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `ReleaseLabel` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ReleaseLabelField, "all"> & keyof ReleaseLabel>(
     slug: string,
     params: ListReleaseLabelsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseLabel, F | "id">>>;
+  /** One page of `ReleaseLabel` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListReleaseLabelsParams): Promise<Page<ReleaseLabel>>;
   list(slug: string, params?: ListReleaseLabelsParams): Promise<Page<ReleaseLabel>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -65,6 +70,7 @@ export class ReleaseLabels extends V2Resource<ReleaseLabel, CreateReleaseLabel, 
     slug: string,
     params: Omit<ListReleaseLabelsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseLabel, F | "id">>;
+  /** Every release label definition, following pages automatically. */
   iterate(slug: string, params?: Omit<ListReleaseLabelsParams, "offset" | "count">): AsyncGenerator<ReleaseLabel>;
   iterate(slug: string, params?: Omit<ListReleaseLabelsParams, "offset" | "count">): AsyncGenerator<ReleaseLabel> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

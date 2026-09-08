@@ -75,12 +75,17 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
     return { estimatePoints: () => owned(this.points, ids, meta.idNames) };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Estimate` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<EstimateField, "all"> & keyof Estimate>(
     slug: string,
     project: string,
     params: ListEstimatesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedEstimateRow<Pick<Estimate, F | "id">>>>;
+  /** One page of `Estimate` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListEstimatesParams): Promise<Page<LoadedEstimate>>;
   async list(slug: string, project: string, params?: ListEstimatesParams): Promise<Page<LoadedEstimate>> {
     const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -93,6 +98,7 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
     project: string,
     params: Omit<ListEstimatesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedEstimateRow<Pick<Estimate, F | "id">>>;
+  /** Every estimate in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,
@@ -190,6 +196,7 @@ export class Estimates extends LoadsNavigableRows<Estimate, CreateEstimate, Upda
     data: CreateEstimate,
     params: EstimateShapeParams & { fields: readonly F[] }
   ): Promise<LoadedEstimateRow<Pick<Estimate, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateEstimate, params?: EstimateShapeParams): Promise<LoadedEstimate>;
   async upsert(
     slug: string,

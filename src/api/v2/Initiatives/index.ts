@@ -78,11 +78,16 @@ export class Initiatives extends LoadsNavigableRows<
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Initiative` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<InitiativeField, "all"> & keyof Initiative>(
     slug: string,
     params: ListInitiativesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedInitiativeRow<Pick<Initiative, F | "id">>>>;
+  /** One page of `Initiative` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListInitiativesParams): Promise<Page<LoadedInitiative>>;
   async list(slug: string, params?: ListInitiativesParams): Promise<Page<LoadedInitiative>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -94,6 +99,7 @@ export class Initiatives extends LoadsNavigableRows<
     slug: string,
     params: Omit<ListInitiativesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedInitiativeRow<Pick<Initiative, F | "id">>>;
+  /** Every initiative, following pages automatically. */
   iterate(slug: string, params?: Omit<ListInitiativesParams, "offset" | "count">): AsyncGenerator<LoadedInitiative>;
   iterate(slug: string, params?: Omit<ListInitiativesParams, "offset" | "count">): AsyncGenerator<LoadedInitiative> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);

@@ -94,12 +94,17 @@ export class ProjectAutomations extends LoadsNavigableRows<
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Automation` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ProjectAutomationField, "all"> & keyof Automation>(
     slug: string,
     project: string,
     params: ListProjectAutomationsParams & { fields: readonly F[] }
   ): Promise<Page<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>>;
+  /** One page of `Automation` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListProjectAutomationsParams): Promise<Page<LoadedProjectAutomation>>;
   async list(
     slug: string,
@@ -116,6 +121,7 @@ export class ProjectAutomations extends LoadsNavigableRows<
     project: string,
     params: Omit<ListProjectAutomationsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedProjectAutomationRow<Pick<Automation, F | "id">>>;
+  /** Every automation in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,

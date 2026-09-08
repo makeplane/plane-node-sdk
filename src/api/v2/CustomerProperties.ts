@@ -46,11 +46,16 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
     delete: "customer_properties_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `CustomerProperty` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<CustomerPropertyField, "all"> & keyof CustomerProperty>(
     slug: string,
     params: ListCustomerPropertiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<CustomerProperty, F | "id">>>;
+  /** One page of `CustomerProperty` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListCustomerPropertiesParams): Promise<Page<CustomerProperty>>;
   list(slug: string, params?: ListCustomerPropertiesParams): Promise<Page<CustomerProperty>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -61,6 +66,7 @@ export class CustomerProperties extends V2Resource<CustomerProperty, CreateCusto
     slug: string,
     params: Omit<ListCustomerPropertiesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<CustomerProperty, F | "id">>;
+  /** Every customer property, following pages automatically. */
   iterate(
     slug: string,
     params?: Omit<ListCustomerPropertiesParams, "offset" | "count">

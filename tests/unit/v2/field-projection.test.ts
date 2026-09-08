@@ -2,6 +2,7 @@ import nock from "nock";
 import { Configuration } from "../../../src/Configuration";
 import { States } from "../../../src/api/v2/States";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
+import * as ts from "typescript";
 import { classMethods, migratedEntries, narrowsToRequestedFields } from "./tree-walk";
 
 const BASE = "https://api.example.com";
@@ -151,6 +152,95 @@ describe("projection soundness across every method that takes `fields`", () => {
         ({ entry, method }) =>
           `${entry.key}.${method.name}() accepts \`fields\` and answers the full row — it claims ` +
           `presence for every field the server was just told to drop`
+      )
+      .sort();
+
+    expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * Where the documentation on an overload set has to sit for a caller to see it.
+ *
+ * TypeScript resolves a plain call — `states.iterate(slug, project)` — to the **general**
+ * overload, and shows that declaration's doc comment in the tooltip; in a completion list
+ * it shows the **first** declaration's. Every overload set in this SDK is written
+ * narrowing-first, so a doc on the narrowing overload alone gets the completion list right
+ * and the tooltip empty, and a doc on the general one alone gets the reverse.
+ *
+ * Both were wrong here at once. 166 overload sets carried a comment on the narrowing
+ * overload and none on the general one, so no plain call hovered with a description at
+ * all; and for all 66 `list` methods the comment was not a description but a note about
+ * the overload ("The row shape returned when `fields` is a literal tuple"), which is what
+ * every completion list showed as the meaning of `list`. The note is `@remarks` now, and
+ * the description is on both declarations.
+ */
+describe("overload documentation", () => {
+  interface OverloadSet {
+    readonly key: string;
+    readonly method: string;
+    readonly narrowingDocumented: boolean;
+    readonly generalDocumented: boolean;
+    readonly firstDoc: string;
+  }
+
+  const SETS: OverloadSet[] = migratedEntries().flatMap((entry) => {
+    const source = entry.declaration.getSourceFile();
+    const text = source.text;
+    const byName = new Map<string, ts.MethodDeclaration[]>();
+    for (const member of entry.declaration.members) {
+      if (!ts.isMethodDeclaration(member) || !ts.isIdentifier(member.name)) continue;
+      byName.set(member.name.text, [...(byName.get(member.name.text) ?? []), member]);
+    }
+    const documented = (member: ts.MethodDeclaration): string => text.slice(member.pos, member.getStart(source));
+    return [...byName.entries()]
+      .filter(([, declarations]) => declarations.length >= 2)
+      .map(([method, declarations]) => {
+        const general = declarations[declarations.length - 2];
+        return {
+          key: entry.key,
+          method,
+          narrowingDocumented: documented(declarations[0]).includes("/**"),
+          generalDocumented: documented(general).includes("/**"),
+          firstDoc: documented(declarations[0]),
+        };
+      });
+  });
+
+  it("finds overload sets to check at all", () => {
+    // A floor, not a pin. 324 overload sets today, 166 of them documented.
+    expect(SETS.length).toBeGreaterThanOrEqual(300);
+    expect(SETS.filter((set) => set.narrowingDocumented).length).toBeGreaterThanOrEqual(160);
+  });
+
+  it("documents the general overload wherever it documents the narrowing one", () => {
+    const offenders = SETS.filter((set) => set.narrowingDocumented && !set.generalDocumented)
+      .map(
+        (set) =>
+          `${set.key}.${set.method}() documents only its narrowing overload, so a plain call — the one ` +
+          `a caller who passes no \`fields\` makes — hovers with no description at all`
+      )
+      .sort();
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("never lets the row-shape note stand as a method's description", () => {
+    // The note describes the *overload*, not the method. As the leading sentence of the
+    // first declaration it becomes what every completion list says `list` means.
+    const offenders = SETS.filter((set) => {
+      const leading = set.firstDoc.slice(set.firstDoc.indexOf("/**")).replace(/\/\*\*|\*\//g, "");
+      const firstSentence =
+        leading
+          .split("\n")
+          .map((line) => line.replace(/^\s*\*/, "").trim())
+          .filter((line) => line.length > 0)[0] ?? "";
+      return firstSentence.startsWith("The row shape returned when");
+    })
+      .map(
+        (set) =>
+          `${set.key}.${set.method}() leads its doc comment with the row-shape note, so completions ` +
+          `describe the method as "the row shape returned when \`fields\` is a literal tuple"`
       )
       .sort();
 

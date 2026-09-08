@@ -46,12 +46,17 @@ export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomer
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `CustomerRequest` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<CustomerRequestField, "all"> & keyof CustomerRequest>(
     slug: string,
     customer: string,
     params: ListCustomerRequestsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<CustomerRequest, F | "id">>>;
+  /** One page of `CustomerRequest` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, customer: string, params?: ListCustomerRequestsParams): Promise<Page<CustomerRequest>>;
   list(slug: string, customer: string, params?: ListCustomerRequestsParams): Promise<Page<CustomerRequest>> {
     return this.doList(this._at(slug, customer), params as Record<string, unknown>);
@@ -63,6 +68,7 @@ export class CustomerRequests extends V2Resource<CustomerRequest, CreateCustomer
     customer: string,
     params: Omit<ListCustomerRequestsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<CustomerRequest, F | "id">>;
+  /** Every request, following pages automatically. */
   iterate(
     slug: string,
     customer: string,

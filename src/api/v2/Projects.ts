@@ -184,11 +184,16 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     return row.identifier ?? row.id;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Project` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ProjectField, "all"> & keyof Project>(
     slug: string,
     params: ListProjectsParams & { fields: readonly F[] }
   ): Promise<Page<LoadedProjectRow<Pick<Project, F | "id">>>>;
+  /** One page of `Project` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListProjectsParams): Promise<Page<LoadedProject>>;
   async list(slug: string, params?: ListProjectsParams): Promise<Page<LoadedProject>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -200,6 +205,7 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     slug: string,
     params: Omit<ListProjectsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedProjectRow<Pick<Project, F | "id">>>;
+  /** Every project in the workspace, following pages automatically — navigable rows included. */
   iterate(slug: string, params?: Omit<ListProjectsParams, "offset" | "count">): AsyncGenerator<LoadedProject>;
   iterate(slug: string, params?: Omit<ListProjectsParams, "offset" | "count">): AsyncGenerator<LoadedProject> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
@@ -211,6 +217,7 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     project: string,
     params: { fields: readonly F[]; expand?: readonly ProjectExpand[] }
   ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  /** `project` accepts a project UUID or its bare identifier (e.g. `ENG`) — see this class's own doc comment. */
   retrieve(slug: string, project: string, params?: ProjectShapeParams): Promise<LoadedProject>;
   async retrieve(slug: string, project: string, params?: ProjectShapeParams): Promise<LoadedProject> {
     const row = await this.doRetrieve({ slug, pk: project }, params as Record<string, unknown>);
@@ -245,6 +252,7 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     data: UpdateProject,
     params: ProjectShapeParams & { fields: readonly F[] }
   ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  /** `project` accepts a project UUID or its bare identifier — see this class's own doc comment. */
   update(slug: string, project: string, data: UpdateProject, params?: ProjectShapeParams): Promise<LoadedProject>;
   async update(
     slug: string,
@@ -267,6 +275,7 @@ export class Projects extends LoadsNavigableRows<Project, CreateProject, UpdateP
     data: CreateProject,
     params: ProjectShapeParams & { fields: readonly F[] }
   ): Promise<LoadedProjectRow<Pick<Project, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject>;
   async upsert(slug: string, data: CreateProject, params?: ProjectShapeParams): Promise<LoadedProject> {
     const row = await this.doUpsert(data, { slug }, params as Record<string, unknown>);

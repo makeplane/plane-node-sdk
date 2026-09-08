@@ -46,12 +46,17 @@ export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateRele
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `ReleaseLink` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ReleaseLinkField, "all"> & keyof ReleaseLink>(
     slug: string,
     release: string,
     params: ListReleaseLinksParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseLink, F | "id">>>;
+  /** One page of `ReleaseLink` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, release: string, params?: ListReleaseLinksParams): Promise<Page<ReleaseLink>>;
   list(slug: string, release: string, params?: ListReleaseLinksParams): Promise<Page<ReleaseLink>> {
     return this.doList(this._at(slug, release), params as Record<string, unknown>);
@@ -63,6 +68,7 @@ export class Links extends V2Resource<ReleaseLink, CreateReleaseLink, UpdateRele
     release: string,
     params: Omit<ListReleaseLinksParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseLink, F | "id">>;
+  /** Every link, following pages automatically. */
   iterate(
     slug: string,
     release: string,

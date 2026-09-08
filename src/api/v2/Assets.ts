@@ -38,11 +38,16 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
     delete: "assets_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkspaceAsset` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkspaceAssetField, "all"> & keyof WorkspaceAsset>(
     slug: string,
     params: ListWorkspaceAssetsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceAsset, F | "id">>>;
+  /** One page of `WorkspaceAsset` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkspaceAssetsParams): Promise<Page<WorkspaceAsset>>;
   list(slug: string, params?: ListWorkspaceAssetsParams): Promise<Page<WorkspaceAsset>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -53,6 +58,7 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
     slug: string,
     params: Omit<ListWorkspaceAssetsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkspaceAsset, F | "id">>;
+  /** Every uploaded asset, following pages automatically. */
   iterate(slug: string, params?: Omit<ListWorkspaceAssetsParams, "offset" | "count">): AsyncGenerator<WorkspaceAsset>;
   iterate(slug: string, params?: Omit<ListWorkspaceAssetsParams, "offset" | "count">): AsyncGenerator<WorkspaceAsset> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
@@ -86,6 +92,7 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
     asset: string,
     params: WorkspaceAssetFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<WorkspaceAsset, F | "id">>;
+  /** Step 2: confirm the upload. Takes no body — see {@link WorkspaceAssetConfirmRequest}. */
   update(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset>;
   update(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset> {
     return this.doUpdate({}, { slug, pk: asset }, params as Record<string, unknown>);

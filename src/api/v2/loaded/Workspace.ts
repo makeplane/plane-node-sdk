@@ -62,30 +62,205 @@ export const WORKSPACE_ID_NAMES = ["slug"] as const;
  * `v2.workspaces.wiki.pages.list(slug)`.
  */
 export interface WorkspaceNavigation {
+  /**
+   * Projects with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly projects: Owned<Projects, WorkspaceIds>;
+  /**
+   * WorkspaceMembers with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly members: Owned<WorkspaceMembers, WorkspaceIds>;
+  /**
+   * Invitations with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly invitations: Owned<Invitations, WorkspaceIds>;
+  /**
+   * Roles with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly roles: Owned<Roles, WorkspaceIds>;
+  /**
+   * PermissionSchemes with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly permissionSchemes: Owned<PermissionSchemes, WorkspaceIds>;
+  /**
+   * WorkspacePermissions with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly permissions: Owned<WorkspacePermissions, WorkspaceIds>;
+  /**
+   * WorkspaceFeatures with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly features: Owned<WorkspaceFeatures, WorkspaceIds>;
+  /**
+   * AuditLogs with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly auditLogs: Owned<AuditLogs, WorkspaceIds>;
+  /**
+   * WorkspaceViews with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly views: Owned<WorkspaceViews, WorkspaceIds>;
+  /**
+   * WorkspaceWorkItems with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItems: Owned<WorkspaceWorkItems, WorkspaceIds>;
+  /**
+   * WorkItemRelationDefinitions with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemRelationDefinitions: Owned<WorkItemRelationDefinitions, WorkspaceIds>;
+  /**
+   * WorkspaceWorkItemTemplates with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemTemplates: Owned<WorkspaceWorkItemTemplates, WorkspaceIds>;
+  /**
+   * Assets with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly assets: Owned<Assets, WorkspaceIds>;
+  /**
+   * Artifacts with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly artifacts: Owned<Artifacts, WorkspaceIds>;
+  /**
+   * Stickies with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly stickies: Owned<Stickies, WorkspaceIds>;
+  /**
+   * Teamspaces with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly teamspaces: Owned<Teamspaces, WorkspaceIds>;
+  /**
+   * CustomerProperties with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly customerProperties: Owned<CustomerProperties, WorkspaceIds>;
+  /**
+   * WorkspaceWorkItemTypes with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemTypes: Owned<WorkspaceWorkItemTypes, WorkspaceIds>;
+  /**
+   * WorkspaceWorkItemProperties with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItemProperties: Owned<WorkspaceWorkItemProperties, WorkspaceIds>;
+  /**
+   * WorkspaceAutomations with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly automations: Owned<WorkspaceAutomations, WorkspaceIds>;
+  /**
+   * Customers with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly customers: Owned<Customers, WorkspaceIds>;
+  /**
+   * Initiatives with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly initiatives: Owned<Initiatives, WorkspaceIds>;
+  /**
+   * Releases with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly releases: Owned<Releases, WorkspaceIds>;
+  /**
+   * ReleaseTags with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly releaseTags: Owned<ReleaseTags, WorkspaceIds>;
+  /**
+   * Webhooks with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly webhooks: Owned<Webhooks, WorkspaceIds>;
 }
 

@@ -59,13 +59,18 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `EstimatePoint` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<EstimatePointField, "all"> & keyof EstimatePoint>(
     slug: string,
     project: string,
     estimate: string,
     params: ListEstimatePointsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<EstimatePoint, F | "id">>>;
+  /** One page of `EstimatePoint` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -88,6 +93,7 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     estimate: string,
     params: Omit<ListEstimatePointsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<EstimatePoint, F | "id">>;
+  /** Every point on the estimate's scale, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -195,6 +201,7 @@ export class EstimatePoints extends V2Resource<EstimatePoint, CreateEstimatePoin
     data: CreateEstimatePoint,
     params: EstimatePointShapeParams & { fields: readonly F[] }
   ): Promise<Pick<EstimatePoint, F | "id">>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(
     slug: string,
     project: string,

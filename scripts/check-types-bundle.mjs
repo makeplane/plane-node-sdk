@@ -1,4 +1,5 @@
 /** Guards against a v2/v1 type-name collision swapping which shape a public export resolves to. Usage: node scripts/check-types-bundle.mjs [--write] */
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -166,8 +167,35 @@ const parseLine = (line) => {
 };
 const keyOf = (e) => `${e.scope}\t${e.external}`;
 
-const expectedByKey = new Map(expectedLines.map(parseLine).map((e) => [keyOf(e), e]));
-const actualByKey = new Map(actualLines.map(parseLine).map((e) => [keyOf(e), e]));
+/**
+ * Group by `scope\texternal` into a *list* of backing declarations, not a single one.
+ *
+ * This used to be `new Map(entries.map((e) => [keyOf(e), e]))`, which keeps only the last
+ * entry per key — so where the same external name was backed by two different locals, the
+ * guard silently discarded one of them. That is exactly the defect it exists to catch: the
+ * shipped `dist/types.bundle.d.ts` carried fourteen names exported twice
+ * (`error TS2484`), and both the old and the new snapshot contained the same fourteen
+ * duplicate keys, invisible on both sides of every comparison because the duplicate half
+ * was dropped before anything was compared.
+ */
+const groupByKey = (lines) => {
+  const grouped = new Map();
+  for (const entry of lines.map(parseLine)) {
+    const key = keyOf(entry);
+    const existing = grouped.get(key);
+    if (existing) existing.push(entry);
+    else grouped.set(key, [entry]);
+  }
+  // Deterministic order, so a reordering in the bundle is not read as a change.
+  for (const entries of grouped.values())
+    entries.sort((a, b) => `${a.local}@${a.hash}`.localeCompare(`${b.local}@${b.hash}`));
+  return grouped;
+};
+
+const describeGroup = (entries) => entries.map((e) => `${e.local}@${e.hash}`).join(" + ");
+
+const expectedByKey = groupByKey(expectedLines);
+const actualByKey = groupByKey(actualLines);
 
 const removed = [];
 const added = [];
@@ -175,13 +203,33 @@ const changed = [];
 for (const [key, before] of expectedByKey) {
   const after = actualByKey.get(key);
   if (!after) {
-    removed.push(before);
-  } else if (after.local !== before.local || after.hash !== before.hash) {
-    changed.push({ before, after });
+    removed.push(before[0]);
+  } else if (describeGroup(after) !== describeGroup(before)) {
+    changed.push({
+      before: { ...before[0], local: describeGroup(before), hash: "" },
+      after: { ...after[0], local: describeGroup(after), hash: "" },
+    });
   }
 }
 for (const [key, after] of actualByKey) {
-  if (!expectedByKey.has(key)) added.push(after);
+  if (!expectedByKey.has(key)) added.push(after[0]);
+}
+
+// A name exported twice from one scope is `error TS2484` in the emitted bundle, whether or
+// not the snapshot agrees with itself about it. Reported separately from the diff above,
+// because a snapshot regenerated while the duplicates existed would otherwise bless them.
+const duplicated = [...actualByKey.entries()].filter(([, entries]) => entries.length > 1);
+if (duplicated.length > 0) {
+  console.error(
+    `check-types-bundle: ${duplicated.length} export name(s) in dist/types.bundle.d.ts are backed by more than ` +
+      "one declaration. TypeScript reports each as `error TS2484: Export declaration conflicts with exported " +
+      "declaration of '<name>'`, and a consumer's import resolves to whichever one the bundler happened to " +
+      "give the bare identifier to.\n" +
+      "Fix it in src/index.ts by exporting each side explicitly — the v2 type under a `V2`-prefixed alias and " +
+      "the v1 type under its bare name — following the pattern already there.\n" +
+      duplicated.map(([key, entries]) => `  ! ${key}\t${describeGroup(entries)}`).join("\n")
+  );
+  process.exit(1);
 }
 
 if (removed.length > 0 || added.length > 0 || changed.length > 0) {
@@ -214,6 +262,33 @@ if (removed.length > 0 || added.length > 0 || changed.length > 0) {
   process.exit(1);
 }
 
+// The emitted bundle must be valid TypeScript on its own terms. `pnpm build` runs
+// `dts-bundle-generator --no-check` and `tsconfig.json` sets `skipLibCheck: true`, so
+// nothing in the build ever type-checked the artifact it ships — which is how fourteen
+// TS2484 conflicts survived in it, in a file `plane-ee`'s web app deep-imports and feeds
+// to an in-app editor.
+const typeCheck = spawnSync(
+  process.execPath,
+  [
+    join(repoRoot, "node_modules", "typescript", "lib", "tsc.js"),
+    "--noEmit",
+    "--skipLibCheck",
+    "false",
+    "--target",
+    "ES2020",
+    "--moduleResolution",
+    "node",
+    bundlePath,
+  ],
+  { encoding: "utf8" }
+);
+if (typeCheck.status !== 0) {
+  console.error("check-types-bundle: dist/types.bundle.d.ts is not valid TypeScript.");
+  console.error(`${typeCheck.stdout ?? ""}${typeCheck.stderr ?? ""}`.trim());
+  process.exit(1);
+}
+
 console.log(
-  `check-types-bundle: dist/types.bundle.d.ts's public export surface matches the snapshot (${surface.length} entries).`
+  `check-types-bundle: dist/types.bundle.d.ts's public export surface matches the snapshot (${surface.length} ` +
+    "entries), and the bundle type-checks."
 );

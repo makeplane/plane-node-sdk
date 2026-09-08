@@ -90,11 +90,16 @@ export class Releases extends LoadsNavigableRows<Release, CreateRelease, UpdateR
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Release` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ReleaseField, "all"> & keyof Release>(
     slug: string,
     params: ListReleasesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedReleaseRow<Pick<Release, F | "id">>>>;
+  /** One page of `Release` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListReleasesParams): Promise<Page<LoadedRelease>>;
   async list(slug: string, params?: ListReleasesParams): Promise<Page<LoadedRelease>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -106,6 +111,7 @@ export class Releases extends LoadsNavigableRows<Release, CreateRelease, UpdateR
     slug: string,
     params: Omit<ListReleasesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedReleaseRow<Pick<Release, F | "id">>>;
+  /** Every release in the workspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListReleasesParams, "offset" | "count">): AsyncGenerator<LoadedRelease>;
   iterate(slug: string, params?: Omit<ListReleasesParams, "offset" | "count">): AsyncGenerator<LoadedRelease> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);

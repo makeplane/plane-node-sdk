@@ -14,11 +14,16 @@ export class WorkspaceMembers extends V2Resource<WorkspaceMember, never, never> 
     remove: "workspace_members_remove",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkspaceMember` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ProjectMemberField, "all"> & keyof WorkspaceMember>(
     slug: string,
     params: ListMembersParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceMember, F | "id">>>;
+  /** One page of `WorkspaceMember` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListMembersParams): Promise<Page<WorkspaceMember>>;
   list(slug: string, params?: ListMembersParams): Promise<Page<WorkspaceMember>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -29,6 +34,7 @@ export class WorkspaceMembers extends V2Resource<WorkspaceMember, never, never> 
     slug: string,
     params: Omit<ListMembersParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkspaceMember, F | "id">>;
+  /** Every member of the workspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListMembersParams, "offset" | "count">): AsyncGenerator<WorkspaceMember>;
   iterate(slug: string, params?: Omit<ListMembersParams, "offset" | "count">): AsyncGenerator<WorkspaceMember> {
     return this.doIterate({ slug }, params as Record<string, unknown>);

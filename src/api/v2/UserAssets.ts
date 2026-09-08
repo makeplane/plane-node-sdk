@@ -36,10 +36,15 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
     delete: "user_assets_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `UserAsset` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<UserAssetField, "all"> & keyof UserAsset>(
     params: ListUserAssetsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<UserAsset, F | "id">>>;
+  /** One page of `UserAsset` rows. Use `iterate` to follow pages automatically. */
   list(params?: ListUserAssetsParams): Promise<Page<UserAsset>>;
   list(params?: ListUserAssetsParams): Promise<Page<UserAsset>> {
     return this.doList({}, params as Record<string, unknown>);
@@ -49,6 +54,7 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
   iterate<F extends Exclude<UserAssetField, "all"> & keyof UserAsset>(
     params: Omit<ListUserAssetsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<UserAsset, F | "id">>;
+  /** Every uploaded asset, following pages automatically. */
   iterate(params?: Omit<ListUserAssetsParams, "offset" | "count">): AsyncGenerator<UserAsset>;
   iterate(params?: Omit<ListUserAssetsParams, "offset" | "count">): AsyncGenerator<UserAsset> {
     return this.doIterate({}, params as Record<string, unknown>);
@@ -79,6 +85,7 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
     asset: string,
     params: UserAssetFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<UserAsset, F | "id">>;
+  /** Step 2: confirm the upload. Takes no body — see {@link UserAssetConfirmRequest}. */
   update(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset>;
   update(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset> {
     return this.doUpdate({}, { pk: asset }, params as Record<string, unknown>);

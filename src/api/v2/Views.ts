@@ -46,12 +46,17 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
     delete: "project_views_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `View` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ViewField, "all"> & keyof View>(
     slug: string,
     project: string,
     params: ListProjectViewsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<View, F | "id">>>;
+  /** One page of `View` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListProjectViewsParams): Promise<Page<View>>;
   list(slug: string, project: string, params?: ListProjectViewsParams): Promise<Page<View>> {
     return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -63,6 +68,7 @@ export class ProjectViews extends V2Resource<View, CreateView, UpdateView> {
     project: string,
     params: Omit<ListProjectViewsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<View, F | "id">>;
+  /** Every project view, following pages automatically. */
   iterate(
     slug: string,
     project: string,

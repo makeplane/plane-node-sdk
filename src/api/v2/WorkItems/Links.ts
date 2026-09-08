@@ -37,13 +37,18 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
     delete: "links_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemLink` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemLinkField, "all"> & keyof WorkItemLink>(
     slug: string,
     project: string,
     workItem: string,
     params: ListWorkItemLinksParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemLink, F | "id">>>;
+  /** One page of `WorkItemLink` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, workItem: string, params?: ListWorkItemLinksParams): Promise<Page<WorkItemLink>>;
   list(slug: string, project: string, workItem: string, params?: ListWorkItemLinksParams): Promise<Page<WorkItemLink>> {
     return this.doList({ slug, project_id: project, work_item_id: workItem }, params as Record<string, unknown>);
@@ -56,6 +61,7 @@ export class Links extends V2Resource<WorkItemLink, CreateWorkItemLink, UpdateWo
     workItem: string,
     params: Omit<ListWorkItemLinksParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemLink, F | "id">>;
+  /** Every link, following pages automatically. */
   iterate(
     slug: string,
     project: string,

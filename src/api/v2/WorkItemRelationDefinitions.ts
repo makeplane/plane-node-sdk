@@ -38,11 +38,16 @@ export class WorkItemRelationDefinitions extends V2Resource<
     delete: "work_item_relation_definitions_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemRelationDefinition` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemRelationDefinitionField, "all"> & keyof WorkItemRelationDefinition>(
     slug: string,
     params: ListWorkItemRelationDefinitionsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemRelationDefinition, F | "id">>>;
+  /** One page of `WorkItemRelationDefinition` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkItemRelationDefinitionsParams): Promise<Page<WorkItemRelationDefinition>>;
   list(slug: string, params?: ListWorkItemRelationDefinitionsParams): Promise<Page<WorkItemRelationDefinition>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -55,6 +60,7 @@ export class WorkItemRelationDefinitions extends V2Resource<
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<WorkItemRelationDefinition, F | "id">>;
+  /** Every relation definition, following pages automatically. */
   iterate(
     slug: string,
     params?: Omit<ListWorkItemRelationDefinitionsParams, "offset" | "count">

@@ -49,12 +49,17 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
     bulkDelete: "states_bulk_delete",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `State` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<StateField, "all"> & keyof State>(
     slug: string,
     project: string,
     params: ListStatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<State, F | "id">>>;
+  /** One page of `State` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListStatesParams): Promise<Page<State>>;
   list(slug: string, project: string, params?: ListStatesParams): Promise<Page<State>> {
     return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -66,6 +71,7 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
     project: string,
     params: Omit<ListStatesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<State, F | "id">>;
+  /** Every state in the project, following pages automatically. */
   iterate(slug: string, project: string, params?: Omit<ListStatesParams, "offset" | "count">): AsyncGenerator<State>;
   iterate(slug: string, project: string, params?: Omit<ListStatesParams, "offset" | "count">): AsyncGenerator<State> {
     return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
@@ -121,6 +127,7 @@ export class States extends V2Resource<State, CreateState, UpdateState> {
     data: CreateState,
     params: StateFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<State, F | "id">>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State>;
   upsert(slug: string, project: string, data: CreateState, params?: StateFieldsParams): Promise<State> {
     return this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);

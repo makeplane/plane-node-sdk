@@ -41,11 +41,16 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
     delete: "members_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkspaceInvite` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
     slug: string,
     params: ListInvitationsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceInvite, F | "id">>>;
+  /** One page of `WorkspaceInvite` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListInvitationsParams): Promise<Page<WorkspaceInvite>>;
   list(slug: string, params?: ListInvitationsParams): Promise<Page<WorkspaceInvite>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -56,6 +61,7 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
     slug: string,
     params: Omit<ListInvitationsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkspaceInvite, F | "id">>;
+  /** Every invitation, following pages automatically. */
   iterate(slug: string, params?: Omit<ListInvitationsParams, "offset" | "count">): AsyncGenerator<WorkspaceInvite>;
   iterate(slug: string, params?: Omit<ListInvitationsParams, "offset" | "count">): AsyncGenerator<WorkspaceInvite> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
@@ -98,6 +104,13 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
     data: BulkCreateWorkspaceInvites,
     params: WorkspaceInviteFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<WorkspaceInvite, F | "id">[]>;
+  /**
+   * Invite up to 100 emails in one call; emails already invited are skipped server-side.
+   *
+   * Answers an array rather than one row (the golden's schema shows a single object; the
+   * live view returns a list), so it goes through the kernel's custom-action helper at
+   * its own `extraPaths` template.
+   */
   bulk(
     slug: string,
     data: BulkCreateWorkspaceInvites,

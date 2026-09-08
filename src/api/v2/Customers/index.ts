@@ -76,11 +76,16 @@ export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, Upda
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Customer` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<CustomerField, "all"> & keyof Customer>(
     slug: string,
     params: ListCustomersParams & { fields: readonly F[] }
   ): Promise<Page<LoadedCustomerRow<Pick<Customer, F | "id">>>>;
+  /** One page of `Customer` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListCustomersParams): Promise<Page<LoadedCustomer>>;
   async list(slug: string, params?: ListCustomersParams): Promise<Page<LoadedCustomer>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -92,6 +97,7 @@ export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, Upda
     slug: string,
     params: Omit<ListCustomersParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedCustomerRow<Pick<Customer, F | "id">>>;
+  /** Every customer, following pages automatically. */
   iterate(slug: string, params?: Omit<ListCustomersParams, "offset" | "count">): AsyncGenerator<LoadedCustomer>;
   iterate(slug: string, params?: Omit<ListCustomersParams, "offset" | "count">): AsyncGenerator<LoadedCustomer> {
     return this.loadIterate(this.doIterate({ slug }, params as Record<string, unknown>), [slug], params?.fields);
@@ -156,6 +162,7 @@ export class Customers extends LoadsNavigableRows<Customer, CreateCustomer, Upda
     data: CreateCustomer,
     params: CustomerShapeParams & { fields: readonly F[] }
   ): Promise<LoadedCustomerRow<Pick<Customer, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, data: CreateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer>;
   async upsert(slug: string, data: CreateCustomer, params?: CustomerShapeParams): Promise<LoadedCustomer> {
     const row = await this.doUpsert(data, { slug }, params as Record<string, unknown>);

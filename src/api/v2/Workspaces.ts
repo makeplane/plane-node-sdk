@@ -193,6 +193,12 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
     slug: string,
     params: { fields: readonly F[] }
   ): Promise<LoadedWorkspaceRow<Pick<Workspace, F | "id">>>;
+  /**
+   * Fetch one workspace by slug.
+   *
+   * Answers a navigable row, so `workspace.projects.list()` and every other family work
+   * without repeating the slug.
+   */
   retrieve(slug: string, params?: WorkspaceFieldsParams): Promise<LoadedWorkspace>;
   async retrieve(slug: string, params?: WorkspaceFieldsParams): Promise<LoadedWorkspace> {
     // A singleton read: the slug in the path is the key, so there is no pk to append.

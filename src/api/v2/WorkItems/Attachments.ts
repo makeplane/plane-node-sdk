@@ -47,13 +47,18 @@ export class Attachments extends V2Resource<
     delete: "attachments_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemAttachment` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemAttachmentField, "all"> & keyof WorkItemAttachment>(
     slug: string,
     project: string,
     workItem: string,
     params: ListWorkItemAttachmentsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemAttachment, F | "id">>>;
+  /** One page of `WorkItemAttachment` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -76,6 +81,7 @@ export class Attachments extends V2Resource<
     workItem: string,
     params: Omit<ListWorkItemAttachmentsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemAttachment, F | "id">>;
+  /** Every attachment, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -146,6 +152,7 @@ export class Attachments extends V2Resource<
     data: WorkItemAttachmentConfirmRequest,
     params: WorkItemAttachmentFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<WorkItemAttachment, F | "id">>;
+  /** Step 2: confirm the upload. */
   update(
     slug: string,
     project: string,

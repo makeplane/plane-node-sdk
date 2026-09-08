@@ -51,11 +51,16 @@ export class Roles extends V2Resource<Role, never, never> {
     retrieve: "roles_retrieve",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Role` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<RoleField, "all"> & keyof Role>(
     slug: string,
     params: ListRolesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<Role, F | "id">>>;
+  /** One page of `Role` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListRolesParams): Promise<Page<Role>>;
   list(slug: string, params?: ListRolesParams): Promise<Page<Role>> {
     return this.doList({ slug }, withRoleSlug(params));
@@ -66,6 +71,7 @@ export class Roles extends V2Resource<Role, never, never> {
     slug: string,
     params: Omit<ListRolesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<Role, F | "id">>;
+  /** Every role, following pages automatically. */
   iterate(slug: string, params?: Omit<ListRolesParams, "offset" | "count">): AsyncGenerator<Role>;
   iterate(slug: string, params?: Omit<ListRolesParams, "offset" | "count">): AsyncGenerator<Role> {
     return this.doIterate({ slug }, withRoleSlug(params));

@@ -65,12 +65,17 @@ export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, Upda
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Workflow` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkflowField, "all"> & keyof Workflow>(
     slug: string,
     project: string,
     params: ListWorkflowsParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWorkflowRow<Pick<Workflow, F | "id">>>>;
+  /** One page of `Workflow` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListWorkflowsParams): Promise<Page<LoadedWorkflow>>;
   async list(slug: string, project: string, params?: ListWorkflowsParams): Promise<Page<LoadedWorkflow>> {
     const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -83,6 +88,7 @@ export class Workflows extends LoadsNavigableRows<Workflow, CreateWorkflow, Upda
     project: string,
     params: Omit<ListWorkflowsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkflowRow<Pick<Workflow, F | "id">>>;
+  /** Every workflow in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,

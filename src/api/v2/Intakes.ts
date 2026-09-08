@@ -46,12 +46,17 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
     delete: "intakes_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `IntakeWorkItem` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
     slug: string,
     project: string,
     params: ListIntakeWorkItemsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<IntakeWorkItem, F | "id">>>;
+  /** One page of `IntakeWorkItem` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListIntakeWorkItemsParams): Promise<Page<IntakeWorkItem>>;
   list(slug: string, project: string, params?: ListIntakeWorkItemsParams): Promise<Page<IntakeWorkItem>> {
     return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -63,6 +68,7 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
     project: string,
     params: Omit<ListIntakeWorkItemsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<IntakeWorkItem, F | "id">>;
+  /** Every intake item in the project, following pages automatically. */
   iterate(
     slug: string,
     project: string,
@@ -121,6 +127,7 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
     data: UpdateIntakeWorkItem,
     params: IntakeWorkItemFieldsParams & { fields: readonly F[] }
   ): Promise<Pick<IntakeWorkItem, F | "id">>;
+  /** Ordinary field edits and/or a triage decision (`status`/`snoozed_till`/`duplicate_to_id`) in one call. */
   update(
     slug: string,
     project: string,

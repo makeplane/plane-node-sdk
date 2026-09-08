@@ -55,11 +55,16 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
     return { properties: () => owned(this.properties, ids, meta.idNames) };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemType` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemTypeField, "all"> & keyof WorkItemType>(
     slug: string,
     params: ListWorkItemTypesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>>;
+  /** One page of `WorkItemType` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkItemTypesParams): Promise<Page<LoadedWorkspaceWorkItemType>>;
   async list(slug: string, params?: ListWorkItemTypesParams): Promise<Page<LoadedWorkspaceWorkItemType>> {
     const page = await this.doList({ slug }, params as Record<string, unknown>);
@@ -71,6 +76,7 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
     slug: string,
     params: Omit<ListWorkItemTypesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  /** Every work item type in the workspace, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     params?: Omit<ListWorkItemTypesParams, "offset" | "count">
@@ -150,6 +156,7 @@ export class WorkspaceWorkItemTypes extends LoadsNavigableRows<
     type: string,
     params: WorkItemTypeShapeParams & { fields: readonly F[] }
   ): Promise<LoadedWorkspaceWorkItemTypeRow<Pick<WorkItemType, F | "id">>>;
+  /** Mark this workspace-scoped type as the workspace's default. Answers the updated row, navigable. */
   markDefault(slug: string, type: string, params?: WorkItemTypeShapeParams): Promise<LoadedWorkspaceWorkItemType>;
   async markDefault(
     slug: string,

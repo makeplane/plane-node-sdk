@@ -33,6 +33,9 @@
  *   the type system nor the URL builder can tell a transposed child from a correct one.
  */
 
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as ts from "typescript";
 import { EXPAND, FIELDS } from "../../../src/api/v2/generated/constants";
 import { LoadedMeta, ownedBinding } from "../../../src/api/v2/kernel/loaded";
 import {
@@ -440,5 +443,72 @@ describe("grandchildren, in aggregate", () => {
     // The floor for the per-entry assertion above. `Projects` alone contributes
     // `workItems.comments`, `estimates.points`, `cycles.workItems` and more.
     expect(grandchildTriples.length).toBeGreaterThanOrEqual(20);
+  });
+});
+
+/**
+ * The narrowing limitation has to be readable where a caller meets it.
+ *
+ * `Owned` is a mapped type, so every navigated method is a *synthesized* symbol with no
+ * declaration for a doc comment to attach to: hovering `project.states.list` shows a bare
+ * signature, and the limitation documented on `Owned` itself and in the README is invisible
+ * there. TypeScript offers no way to change that short of restating all 520 signatures by
+ * hand. The nearest declaration it *does* carry documentation for is the navigation
+ * property — `readonly states: Owned<States, ProjectIds>` — which a reader passes through
+ * one hop before the call, so the note goes there, on every one of them.
+ */
+describe("navigation property documentation", () => {
+  const NAVIGATION_DIR = path.join(__dirname, "../../../src/api/v2/loaded");
+
+  interface NavigationProperty {
+    readonly file: string;
+    readonly interfaceName: string;
+    readonly property: string;
+    readonly documentation: string;
+  }
+
+  const PROPERTIES: NavigationProperty[] = fs
+    .readdirSync(NAVIGATION_DIR)
+    .filter((name) => name.endsWith(".ts"))
+    .flatMap((name) => {
+      const file = path.join(NAVIGATION_DIR, name);
+      const text = fs.readFileSync(file, "utf8");
+      const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      const found: NavigationProperty[] = [];
+      for (const statement of source.statements) {
+        if (!ts.isInterfaceDeclaration(statement) || !statement.name.text.endsWith("Navigation")) continue;
+        for (const member of statement.members) {
+          if (!ts.isPropertySignature(member) || !ts.isIdentifier(member.name)) continue;
+          if (member.type === undefined || !ts.isTypeReferenceNode(member.type)) continue;
+          if (!ts.isIdentifier(member.type.typeName) || member.type.typeName.text !== "Owned") continue;
+          found.push({
+            file: name,
+            interfaceName: statement.name.text,
+            property: member.name.text,
+            documentation: text.slice(member.pos, member.getStart(source)),
+          });
+        }
+      }
+      return found;
+    });
+
+  it("finds navigation properties to check at all", () => {
+    // A floor, not a pin: 82 across 19 navigable families today.
+    expect(PROPERTIES.length).toBeGreaterThanOrEqual(80);
+  });
+
+  it("says on every one of them that a navigated call does not narrow", () => {
+    const silent = PROPERTIES.filter(
+      (property) => !property.documentation.includes("does **not** narrow the return type")
+    )
+      .map(
+        (property) =>
+          `${property.file}#${property.interfaceName}.${property.property} carries no note that a navigated ` +
+          `call accepts \`fields\` without narrowing — and the hover on the call itself cannot carry one, ` +
+          `because \`Owned\` is a mapped type`
+      )
+      .sort();
+
+    expect(silent).toEqual([]);
   });
 });

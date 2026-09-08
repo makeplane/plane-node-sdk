@@ -26,12 +26,17 @@ export class WorkspaceWorkItemTypeProperties extends V2Resource<WorkItemProperty
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemProperty` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemTypePropertyField, "all"> & keyof WorkItemProperty>(
     slug: string,
     type: string,
     params: ListWorkItemTypePropertiesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemProperty, F | "id">>>;
+  /** One page of `WorkItemProperty` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, type: string, params?: ListWorkItemTypePropertiesParams): Promise<Page<WorkItemProperty>>;
   list(slug: string, type: string, params?: ListWorkItemTypePropertiesParams): Promise<Page<WorkItemProperty>> {
     return this.doList(this._at(slug, type), params as Record<string, unknown>);
@@ -45,6 +50,7 @@ export class WorkspaceWorkItemTypeProperties extends V2Resource<WorkItemProperty
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<WorkItemProperty, F | "id">>;
+  /** Every property linked to the workspace-scoped type, following pages automatically. */
   iterate(
     slug: string,
     type: string,

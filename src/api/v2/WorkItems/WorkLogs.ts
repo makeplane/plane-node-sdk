@@ -42,13 +42,18 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
     delete: "worklogs_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemWorklog` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemWorklogField, "all"> & keyof WorkItemWorklog>(
     slug: string,
     project: string,
     workItem: string,
     params: ListWorkItemWorklogsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemWorklog, F | "id">>>;
+  /** One page of `WorkItemWorklog` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -71,6 +76,7 @@ export class WorkLogs extends V2Resource<WorkItemWorklog, CreateWorkItemWorklog,
     workItem: string,
     params: Omit<ListWorkItemWorklogsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItemWorklog, F | "id">>;
+  /** Every worklog, following pages automatically. */
   iterate(
     slug: string,
     project: string,

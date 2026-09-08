@@ -26,6 +26,13 @@ export const WORK_ITEM_PROPERTY_ID_NAMES = ["slug", "project", "property"] as co
 
 /** Everything a fetched project-scoped work item property can reach. */
 export interface WorkItemPropertyNavigation {
+  /**
+   * WorkItemPropertyOptions with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly propertyOptions: Owned<WorkItemPropertyOptions, WorkItemPropertyIds>;
 }
 
@@ -42,7 +49,21 @@ export const WORKSPACE_WORK_ITEM_PROPERTY_ID_NAMES = ["slug", "property"] as con
 
 /** Everything a fetched workspace-scoped work item property can reach. */
 export interface WorkspaceWorkItemPropertyNavigation {
+  /**
+   * WorkspaceWorkItemPropertyOptions with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly propertyOptions: Owned<WorkspaceWorkItemPropertyOptions, WorkspaceWorkItemPropertyIds>;
+  /**
+   * WorkItemPropertyContexts with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly contexts: Owned<WorkItemPropertyContexts, WorkspaceWorkItemPropertyIds>;
 }
 

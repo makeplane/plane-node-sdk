@@ -21,11 +21,16 @@ export class WorkspaceWorkItems extends V2Resource<WorkItem, never, never> {
     retrieveByIdentifier: "work_items_retrieve_by_identifier",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItem` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemField, "all"> & keyof WorkItem>(
     slug: string,
     params: ListWorkItemsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItem, F | "id">>>;
+  /** One page of `WorkItem` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkItemsParams): Promise<Page<WorkItem>>;
   list(slug: string, params?: ListWorkItemsParams): Promise<Page<WorkItem>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -36,6 +41,7 @@ export class WorkspaceWorkItems extends V2Resource<WorkItem, never, never> {
     slug: string,
     params: Omit<ListWorkItemsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkItem, F | "id">>;
+  /** Every work item in the workspace, following pages automatically. */
   iterate(slug: string, params?: Omit<ListWorkItemsParams, "offset" | "count">): AsyncGenerator<WorkItem>;
   iterate(slug: string, params?: Omit<ListWorkItemsParams, "offset" | "count">): AsyncGenerator<WorkItem> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
@@ -47,6 +53,7 @@ export class WorkspaceWorkItems extends V2Resource<WorkItem, never, never> {
     identifier: string,
     params: { fields: readonly F[]; expand?: readonly WorkItemExpand[] }
   ): Promise<Pick<WorkItem, F | "id">>;
+  /** Look a work item up by its composite human key (`ENG-12`), not its id. */
   retrieveByIdentifier(slug: string, identifier: string, params?: WorkspaceWorkItemShapeParams): Promise<WorkItem>;
   retrieveByIdentifier(slug: string, identifier: string, params?: WorkspaceWorkItemShapeParams): Promise<WorkItem> {
     return this.doRetrieveAt(

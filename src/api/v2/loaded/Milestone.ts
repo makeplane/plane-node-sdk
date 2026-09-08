@@ -21,6 +21,13 @@ export const MILESTONE_ID_NAMES = ["slug", "project", "milestone"] as const;
  * from a row.
  */
 export interface MilestoneNavigation {
+  /**
+   * MilestoneWorkItems with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItems: Owned<MilestoneWorkItems, MilestoneIds>;
 }
 

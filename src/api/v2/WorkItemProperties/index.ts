@@ -77,12 +77,17 @@ export class WorkItemProperties extends LoadsNavigableRows<
     return { propertyOptions: () => owned(this.options, ids, meta.idNames) };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemProperty` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkItemPropertyField, "all"> & keyof WorkItemProperty>(
     slug: string,
     project: string,
     params: ListWorkItemPropertiesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>>;
+  /** One page of `WorkItemProperty` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListWorkItemPropertiesParams): Promise<Page<LoadedWorkItemProperty>>;
   async list(
     slug: string,
@@ -99,6 +104,7 @@ export class WorkItemProperties extends LoadsNavigableRows<
     project: string,
     params: Omit<ListWorkItemPropertiesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  /** Every property in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,

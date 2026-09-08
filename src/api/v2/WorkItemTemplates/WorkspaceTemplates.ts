@@ -41,11 +41,16 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
     delete: "workspace_work_item_templates_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemTemplate` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkspaceWorkItemTemplateField, "all"> & keyof WorkItemTemplate>(
     slug: string,
     params: ListWorkspaceWorkItemTemplatesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkItemTemplate, F | "id">>>;
+  /** One page of `WorkItemTemplate` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>>;
   list(slug: string, params?: ListWorkspaceWorkItemTemplatesParams): Promise<Page<WorkItemTemplate>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -58,6 +63,7 @@ export class WorkspaceWorkItemTemplates extends V2Resource<
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<WorkItemTemplate, F | "id">>;
+  /** Every workspace template, following pages automatically. */
   iterate(
     slug: string,
     params?: Omit<ListWorkspaceWorkItemTemplatesParams, "offset" | "count">

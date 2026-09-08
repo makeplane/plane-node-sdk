@@ -42,11 +42,16 @@ export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGro
     delete: "group_sync_project_mappings_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `GroupMapping` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
     slug: string,
     params: ListGroupSyncProjectMappingsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<GroupMapping, F | "id">>>;
+  /** One page of `GroupMapping` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListGroupSyncProjectMappingsParams): Promise<Page<GroupMapping>>;
   list(slug: string, params?: ListGroupSyncProjectMappingsParams): Promise<Page<GroupMapping>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -59,6 +64,7 @@ export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGro
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<GroupMapping, F | "id">>;
+  /** Every mapping, following pages automatically. */
   iterate(
     slug: string,
     params?: Omit<ListGroupSyncProjectMappingsParams, "offset" | "count">

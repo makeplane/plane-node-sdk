@@ -290,7 +290,7 @@ export class Configuration {
 ### Client Initialization
 
 ```typescript
-import { PlaneClient } from "@plane/node-sdk";
+import { PlaneClient } from "@makeplane/plane-node-sdk";
 
 const client = new PlaneClient({
   baseUrl: process.env.PLANE_BASE_URL,
@@ -328,7 +328,7 @@ const client = new PlaneClient({
 
 ```json
 {
-  "name": "@plane/node-sdk",
+  "name": "@makeplane/plane-node-sdk",
   "version": "1.0.0",
   "description": "Node.js SDK for Plane API",
   "main": "dist/index.js",
@@ -460,7 +460,7 @@ export { PlaneError, HttpError } from "./errors";
 
 ## Getting Started
 
-1. Install the package: `npm install @plane/node-sdk`
+1. Install the package: `npm install @makeplane/plane-node-sdk`
 2. Import and configure the client
 3. Use specific API resources for operations
 4. Handle errors appropriately

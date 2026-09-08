@@ -38,12 +38,17 @@ export class WebhookLogs extends V2Resource<WebhookLog, never, never> {
     retrieve: "webhook_logs_retrieve",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WebhookLog` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WebhookLogField, "all"> & keyof WebhookLog>(
     slug: string,
     webhook: string,
     params: ListWebhookLogsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WebhookLog, F | "id">>>;
+  /** One page of `WebhookLog` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, webhook: string, params?: ListWebhookLogsParams): Promise<Page<WebhookLog>>;
   list(slug: string, webhook: string, params?: ListWebhookLogsParams): Promise<Page<WebhookLog>> {
     return this.doList({ slug, webhook_id: webhook }, params as Record<string, unknown>);
@@ -55,6 +60,7 @@ export class WebhookLogs extends V2Resource<WebhookLog, never, never> {
     webhook: string,
     params: Omit<ListWebhookLogsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WebhookLog, F | "id">>;
+  /** Every delivery log for this webhook, following pages automatically. */
   iterate(
     slug: string,
     webhook: string,

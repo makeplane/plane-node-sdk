@@ -74,12 +74,17 @@ export class Cycles extends LoadsNavigableRows<Cycle, CreateCycle, UpdateCycle, 
     return { workItems: () => owned(this.workItems, ids, meta.idNames) };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Cycle` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<CycleField, "all"> & keyof Cycle>(
     slug: string,
     project: string,
     params: ListCyclesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedCycleRow<Pick<Cycle, F | "id">>>>;
+  /** One page of `Cycle` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListCyclesParams): Promise<Page<LoadedCycle>>;
   async list(slug: string, project: string, params?: ListCyclesParams): Promise<Page<LoadedCycle>> {
     const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -92,6 +97,7 @@ export class Cycles extends LoadsNavigableRows<Cycle, CreateCycle, UpdateCycle, 
     project: string,
     params: Omit<ListCyclesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedCycleRow<Pick<Cycle, F | "id">>>;
+  /** Every cycle in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,
@@ -175,6 +181,7 @@ export class Cycles extends LoadsNavigableRows<Cycle, CreateCycle, UpdateCycle, 
     data: CreateCycle,
     params: CycleShapeParams & { fields: readonly F[] }
   ): Promise<LoadedCycleRow<Pick<Cycle, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateCycle, params?: CycleShapeParams): Promise<LoadedCycle>;
   async upsert(slug: string, project: string, data: CreateCycle, params?: CycleShapeParams): Promise<LoadedCycle> {
     const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);

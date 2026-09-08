@@ -43,11 +43,16 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
     delete: "group_sync_workspace_mappings_destroy",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkspaceGroupMapping` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
     slug: string,
     params: ListGroupSyncWorkspaceMappingsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceGroupMapping, F | "id">>>;
+  /** One page of `WorkspaceGroupMapping` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): Promise<Page<WorkspaceGroupMapping>>;
   list(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): Promise<Page<WorkspaceGroupMapping>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -60,6 +65,7 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
       fields: readonly F[];
     }
   ): AsyncGenerator<Pick<WorkspaceGroupMapping, F | "id">>;
+  /** Every mapping, following pages automatically. */
   iterate(
     slug: string,
     params?: Omit<ListGroupSyncWorkspaceMappingsParams, "offset" | "count">

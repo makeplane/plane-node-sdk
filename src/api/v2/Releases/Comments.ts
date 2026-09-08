@@ -48,12 +48,17 @@ export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, U
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `ReleaseComment` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ReleaseCommentField, "all"> & keyof ReleaseComment>(
     slug: string,
     release: string,
     params: ListReleaseCommentsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ReleaseComment, F | "id">>>;
+  /** One page of `ReleaseComment` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, release: string, params?: ListReleaseCommentsParams): Promise<Page<ReleaseComment>>;
   list(slug: string, release: string, params?: ListReleaseCommentsParams): Promise<Page<ReleaseComment>> {
     return this.doList(this._at(slug, release), params as Record<string, unknown>);
@@ -65,6 +70,7 @@ export class Comments extends V2Resource<ReleaseComment, CreateReleaseComment, U
     release: string,
     params: Omit<ListReleaseCommentsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<ReleaseComment, F | "id">>;
+  /** Every comment, following pages automatically. */
   iterate(
     slug: string,
     release: string,

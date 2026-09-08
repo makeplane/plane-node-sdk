@@ -71,12 +71,17 @@ export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModu
     return { workItems: () => owned(this.workItems, ids, meta.idNames) };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `Module` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<ModuleField, "all"> & keyof Module>(
     slug: string,
     project: string,
     params: ListModulesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedModuleRow<Pick<Module, F | "id">>>>;
+  /** One page of `Module` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, project: string, params?: ListModulesParams): Promise<Page<LoadedModule>>;
   async list(slug: string, project: string, params?: ListModulesParams): Promise<Page<LoadedModule>> {
     const page = await this.doList({ slug, project_id: project }, params as Record<string, unknown>);
@@ -89,6 +94,7 @@ export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModu
     project: string,
     params: Omit<ListModulesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<LoadedModuleRow<Pick<Module, F | "id">>>;
+  /** Every module in the project, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     project: string,
@@ -172,6 +178,7 @@ export class Modules extends LoadsNavigableRows<Module, CreateModule, UpdateModu
     data: CreateModule,
     params: ModuleShapeParams & { fields: readonly F[] }
   ): Promise<LoadedModuleRow<Pick<Module, F | "id">>>;
+  /** Reconciles on (external_source, external_id) when both are set. */
   upsert(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule>;
   async upsert(slug: string, project: string, data: CreateModule, params?: ModuleShapeParams): Promise<LoadedModule> {
     const row = await this.doUpsert(data, { slug, project_id: project }, params as Record<string, unknown>);

@@ -10,8 +10,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    // No `declarationMap`/`sourceMap`. `files` publishes `dist` only, so every emitted
+    // map referenced a `../src/*.ts` that is not in the tarball: go-to-definition fell
+    // back to the `.d.ts` anyway, and 638 unusable map files were ~2 MB of install size
+    // for nothing. Publishing `src` is the other way to fix it, and is a packaging policy
+    // decision rather than a defect fix.
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true

@@ -32,11 +32,16 @@ export class PermissionSchemes extends V2Resource<PermissionScheme, never, never
     retrieve: "permission_schemes_retrieve",
   };
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `PermissionScheme` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
     slug: string,
     params: ListPermissionSchemesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<PermissionScheme, F | "id">>>;
+  /** One page of `PermissionScheme` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListPermissionSchemesParams): Promise<Page<PermissionScheme>>;
   list(slug: string, params?: ListPermissionSchemesParams): Promise<Page<PermissionScheme>> {
     return this.doList({ slug }, params as Record<string, unknown>);
@@ -47,6 +52,7 @@ export class PermissionSchemes extends V2Resource<PermissionScheme, never, never
     slug: string,
     params: Omit<ListPermissionSchemesParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<PermissionScheme, F | "id">>;
+  /** Every permission scheme, following pages automatically. */
   iterate(
     slug: string,
     params?: Omit<ListPermissionSchemesParams, "offset" | "count">

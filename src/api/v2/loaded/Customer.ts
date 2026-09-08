@@ -12,8 +12,29 @@ export const CUSTOMER_ID_NAMES = ["slug", "customer"] as const;
 
 /** Everything a fetched customer can reach: its requests, its property values, its linked work items. */
 export interface CustomerNavigation {
+  /**
+   * CustomerRequests with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly requests: Owned<CustomerRequests, CustomerIds>;
+  /**
+   * CustomerPropertyValues with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly propertyValues: Owned<CustomerPropertyValues, CustomerIds>;
+  /**
+   * CustomerWorkItems with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItems: Owned<CustomerWorkItems, CustomerIds>;
 }
 

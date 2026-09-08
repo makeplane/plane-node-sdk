@@ -82,8 +82,11 @@ Membership bridges (`{add}`/`{remove}` POSTs answering `{added}`/`{removed}`) ar
 `manage*` methods: they are `add(...pathIds, parentId, ids)` / `remove(...)` on a
 sub-resource named for the noun (`cycles.workItems`, `initiatives.projects`,
 `releases.labels`, `wiki.collections.members`), each built on
-`V2Resource.doBridge`/`doBridgeAt`, which sends one verb per call, enforces 1..100 ids
-client-side and resolves to the plain id array. A bridge verb copies the web app CTA —
+`V2Resource.doBridge`/`doBridgeAt`, which sends one verb per call, enforces
+1..`BRIDGE_MAX_IDS` (100) ids client-side and resolves to the plain id array. That is a
+different cap from `BULK_MAX_ITEMS` (50), which `checkCap` applies to `bulkCreate`/
+`bulkUpdate`/`bulkDelete`: the golden sets `maxItems: 100` on the 24 bridge schemas and
+`maxItems: 50` on the 21 bulk ones. A bridge verb copies the web app CTA —
 properties on a work item type are `link`/`unlink`.
 
 **`fields` narrows the return type.** Any method that accepts `fields` declares a
@@ -106,23 +109,30 @@ in scope.
 
 **The sweeps.** The v2 rules are enforced by enumeration, not by review.
 `tests/unit/v2/tree-walk.ts` derives every resource class from the TypeScript AST under
-`src/api/v2/` (triangulated against the modules and the public barrel), and six rule
+`src/api/v2/` (triangulated against the modules and the public barrel), and the rule
 sweeps run over all 90 of them:
 
-| File                                                  | Refuses                                                                                                                                   |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `path-id-naming.test.ts`                              | a method that does not open with its URL's path ids, in path order; also compares entries against the constructed tree in both directions |
-| `fields-coverage.test.ts` / `expand-coverage.test.ts` | an operation whose golden `FIELDS`/`EXPAND` entry the SDK does not expose                                                                 |
-| `filters-coverage.test.ts`                            | a query filter the API accepts and no params type declares                                                                                |
-| `order-by-coverage.test.ts`                           | a missing sort order, or a params type pointed at a sibling operation's enum                                                              |
-| `operations-coverage.test.ts`                         | a method with no `operations` entry — which would silently exempt it from all of the above                                                |
-| `field-projection.test.ts`                            | a method that accepts `fields` and answers the full row                                                                                   |
+| File                                                  | Refuses                                                                                                                                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path-id-naming.test.ts`                              | a method that does not open with its URL's path ids, in path order; also compares entries against the constructed tree in both directions                                                         |
+| `fields-coverage.test.ts` / `expand-coverage.test.ts` | an operation whose golden `FIELDS`/`EXPAND` entry the SDK does not expose                                                                                                                         |
+| `filters-coverage.test.ts`                            | a query filter the API accepts and no params type declares                                                                                                                                        |
+| `order-by-coverage.test.ts`                           | a missing sort order, or a params type pointed at a sibling operation's enum                                                                                                                      |
+| `pagination-coverage.test.ts`                         | an unreachable half of the paging envelope: a missing `offset`/`per_page`/`paginate`/`count`, a `paginate` with no `cursor` to spend, or an `iterate` still accepting the knobs its own loop sets |
+| `operations-coverage.test.ts`                         | a method with no `operations` entry — which would silently exempt it from all of the above                                                                                                        |
+| `field-projection.test.ts`                            | a method that accepts `fields` and answers the full row; also, JSDoc on the narrowing overload alone                                                                                              |
+| `loader-routing.test.ts`                              | a row-returning method on a navigable class that never reaches `load`/`loadPage`/`loadIterate`, or declares the bare read model as its return type                                                |
+| `extra-paths.test.ts`                                 | a method that declares an `extraPaths` override and then builds its URL from `path` anyway                                                                                                        |
+| `lookup-coverage.test.ts`                             | a `findBy*` that filters on something the golden does not declare, a client-side walk where the server can filter, or a missing lookup where it can                                               |
 
 Two more cover the tree: `bands.test.ts` derives each band from the resources' own URL
 templates and requires every member to be attached to its root (and nothing foreign to
 be), and `loaded-navigation.test.ts` requires a resource that attaches a migrated child
-to be navigable, with one property per child and no property shadowing a field.
-`readme-samples.test.ts` type-checks every fenced `ts` block in `README.md`.
+to be navigable, with one property per child, no property shadowing a field, no grandchild
+reachable through an owned view, and the narrowing caveat documented on every navigation
+property. `readme-samples.test.ts` type-checks every TypeScript fence in `README.md` and
+`CLAUDE.md` and checks the prose claims that are facts about this repo (scripts that
+exist, paths that exist, caps that match the kernel, and the package's real name).
 
 Every exception list in those files is guarded from both ends (an entry naming
 something that does not exist fails; an entry that is no longer needed fails) and

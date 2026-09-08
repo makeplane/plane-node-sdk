@@ -54,13 +54,18 @@ export class WorkflowTransitions extends V2Resource<
     return params;
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkflowTransition` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkflowTransitionField, "all"> & keyof WorkflowTransition>(
     slug: string,
     project: string,
     workflow: string,
     params: ListWorkflowTransitionsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkflowTransition, F | "id">>>;
+  /** One page of `WorkflowTransition` rows. Use `iterate` to follow pages automatically. */
   list(
     slug: string,
     project: string,
@@ -83,6 +88,7 @@ export class WorkflowTransitions extends V2Resource<
     workflow: string,
     params: Omit<ListWorkflowTransitionsParams, "offset" | "count"> & { fields: readonly F[] }
   ): AsyncGenerator<Pick<WorkflowTransition, F | "id">>;
+  /** Every transition, following pages automatically. */
   iterate(
     slug: string,
     project: string,

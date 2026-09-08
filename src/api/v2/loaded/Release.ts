@@ -28,10 +28,45 @@ export const RELEASE_ID_NAMES = ["slug", "release"] as const;
  * catalog stays flat. It is recorded in that file's `CATALOG_SIBLINGS`.
  */
 export interface ReleaseNavigation {
+  /**
+   * ReleaseLabels with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly labels: Owned<ReleaseLabels, ReleaseIds>;
+  /**
+   * Comments with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly comments: Owned<Comments, ReleaseIds>;
+  /**
+   * Links with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly links: Owned<Links, ReleaseIds>;
+  /**
+   * Changelog with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly changelog: Owned<Changelog, ReleaseIds>;
+  /**
+   * ReleaseWorkItems with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
   readonly workItems: Owned<ReleaseWorkItems, ReleaseIds>;
 }
 

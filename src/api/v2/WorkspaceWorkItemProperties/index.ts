@@ -84,11 +84,16 @@ export class WorkspaceWorkItemProperties extends LoadsNavigableRows<
     };
   }
 
-  /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
+  /**
+   * One page of `WorkItemProperty` rows. Use `iterate` to follow pages automatically.
+   *
+   * @remarks The row shape returned when `fields` is a literal tuple. `id` is always present.
+   */
   list<F extends Exclude<WorkspaceWorkItemPropertyField, "all"> & keyof WorkItemProperty>(
     slug: string,
     params: ListWorkspaceWorkItemPropertiesParams & { fields: readonly F[] }
   ): Promise<Page<LoadedWorkspaceWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>>;
+  /** One page of `WorkItemProperty` rows. Use `iterate` to follow pages automatically. */
   list(slug: string, params?: ListWorkspaceWorkItemPropertiesParams): Promise<Page<LoadedWorkspaceWorkItemProperty>>;
   async list(
     slug: string,
@@ -105,6 +110,7 @@ export class WorkspaceWorkItemProperties extends LoadsNavigableRows<
       fields: readonly F[];
     }
   ): AsyncGenerator<LoadedWorkspaceWorkItemPropertyRow<Pick<WorkItemProperty, F | "id">>>;
+  /** Every workspace property, following pages automatically — navigable rows included. */
   iterate(
     slug: string,
     params?: Omit<ListWorkspaceWorkItemPropertiesParams, "offset" | "count">

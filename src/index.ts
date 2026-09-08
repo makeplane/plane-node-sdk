@@ -283,6 +283,47 @@ export type { WorkspaceMember as V2WorkspaceMember } from "./models/v2/Member";
 export type { ListWorkItemTypesParams as V2ListWorkItemTypesParams } from "./api/v2/WorkItemTypes";
 export type { ListWorkItemTypesParams } from "./api/WorkItemTypes";
 
+// The same duplicate-export failure as `ListLabelsParams`/`ListWorkItemTypesParams`
+// above, for the thirteen v1 params types that never got the same protection. Each is a
+// referenced-only v1 type — declared in `src/models/*.ts`, reachable through
+// `export * from "./models"` and nameable only because it had the bare identifier to
+// itself — that lost the identifier the moment a same-named v2 params type became
+// reachable through `export * as v2`. dts-bundle-generator then emitted *both*: an inline
+// `export interface ListProjectsParams` for v2's and `ListProjectsParams$1 as
+// ListProjectsParams` for v1's, which is `error TS2484: Export declaration conflicts with
+// exported declaration of 'ListProjectsParams'` in the shipped `dist/types.bundle.d.ts`.
+// The bundle is deep-imported by plane-ee's web app (`apps/web/components/
+// plane-sdk-editor/editor.tsx`), so those were fourteen red squiggles inside another
+// repository's editor. `pnpm build` now type-checks the bundle, so it cannot come back.
+export type { ListCustomerPropertiesParams as V2ListCustomerPropertiesParams } from "./api/v2/CustomerProperties";
+export type { ListCustomerPropertiesParams } from "./models/Customer";
+export type { ListCustomerRequestsParams as V2ListCustomerRequestsParams } from "./api/v2/Customers/Requests";
+export type { ListCustomerRequestsParams } from "./models/Customer";
+export type { ListCustomersParams as V2ListCustomersParams } from "./api/v2/Customers";
+export type { ListCustomersParams } from "./models/Customer";
+export type { ListInitiativeLabelsParams as V2ListInitiativeLabelsParams } from "./api/v2/Initiatives/Labels";
+export type { ListInitiativeLabelsParams } from "./models/InitiativeLabel";
+export type { ListInitiativesParams as V2ListInitiativesParams } from "./api/v2/Initiatives";
+export type { ListInitiativesParams } from "./models/Initiative";
+export type { ListProjectsParams as V2ListProjectsParams } from "./api/v2/Projects";
+export type { ListProjectsParams } from "./models/Project";
+export type { ListRolesParams as V2ListRolesParams } from "./api/v2/Roles";
+export type { ListRolesParams } from "./models/Role";
+export type { ListStickiesParams as V2ListStickiesParams } from "./api/v2/Stickies";
+export type { ListStickiesParams } from "./models/Sticky";
+export type { ListTeamspacesParams as V2ListTeamspacesParams } from "./api/v2/Teamspaces";
+export type { ListTeamspacesParams } from "./models/Teamspace";
+export type { ListWorkItemPropertiesParams as V2ListWorkItemPropertiesParams } from "./api/v2/WorkItemProperties";
+export type { ListWorkItemPropertiesParams } from "./models/WorkItemProperty";
+export type { ListWorkItemPropertyOptionsParams as V2ListWorkItemPropertyOptionsParams } from "./api/v2/WorkItemProperties/Options";
+export type { ListWorkItemPropertyOptionsParams } from "./models/WorkItemProperty";
+export type { ListWorkItemRelationDefinitionsParams as V2ListWorkItemRelationDefinitionsParams } from "./api/v2/WorkItemRelationDefinitions";
+export type { ListWorkItemRelationDefinitionsParams } from "./models/WorkItemRelationDefinition";
+export type { ListWorkItemsParams as V2ListWorkItemsParams } from "./api/v2/WorkItems";
+export type { ListWorkItemsParams } from "./models/WorkItem";
+
+export type { WorkItemPropertyValues as WorkItemPropertyValueMap } from "./models/WorkItemProperty";
+
 // Models
 export * from "./models";
 
