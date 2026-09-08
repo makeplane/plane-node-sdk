@@ -15,7 +15,7 @@
  * sweeps would be checking the declared template and the code would be using another one,
  * and nothing anywhere compares the two.
  *
- * All 13 `extraPaths` declarations are correct today. This is the assertion that keeps
+ * Every `extraPaths` declaration is correct today. This is the assertion that keeps
  * them so, and it needs no list of its own: which helpers honour an override is read off
  * `kernel/resource.ts` by asking which of them reach `urlFor` — so a helper that gains or
  * loses that behaviour changes this sweep's answer in the same commit.
@@ -151,8 +151,13 @@ describe("extraPaths", () => {
   });
 
   it("finds overrides to check at all", () => {
-    // 13 declarations across 13 classes today. A floor, not a pin.
-    expect(OVERRIDES.length).toBeGreaterThanOrEqual(13);
+    // A floor, not a pin — and deliberately not the population. This line used to say 13
+    // "declarations across 13 classes today", which was already 15 by the time anyone
+    // read it again: a count restated in a comment is a second copy of a fact that
+    // nothing keeps true, and the sweep enumerates precisely so it does not need one.
+    // The floor's only job is to make an empty derivation red instead of vacuously
+    // green, because every assertion below quantifies over OVERRIDES.
+    expect(OVERRIDES.length).toBeGreaterThanOrEqual(8);
   });
 
   it("names a real method in every declaration", () => {

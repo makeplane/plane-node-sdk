@@ -50,6 +50,14 @@ jobs:
       - name: Run format
         run: pnpm run check:format
 
+      # `pnpm build` compiles `tsconfig.json`, which is `src/**/*` only. This is the
+      # config that proves `src`, `tests/e2e` and `examples` type-check *together*, and
+      # until now nothing invoked it: `examples/` was compiled by no gate at all, so
+      # re-breaking it was invisible to CI. It runs before the build so a type error is
+      # reported as a type error rather than as a bundle failure.
+      - name: Type-check sources, e2e tests and examples
+        run: pnpm run check:types
+
       - name: Run build
         run: pnpm run build
 

@@ -24,6 +24,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "clean": "rm -rf dist && rm -rf node_modules",
+    "check:types": "tsc --noEmit -p tsconfig.jest.json",
     "check:lint": "oxlint",
     "fix:lint": "oxlint --fix",
     "check:format": "oxfmt --check",

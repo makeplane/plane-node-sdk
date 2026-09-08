@@ -47,26 +47,26 @@ maybe("v2 workflows (live)", () => {
 
     const attached = await created.states.attach({ state_ids: [stateId] });
     expect(attached.some((s) => s.state_id === stateId)).toBe(true);
-    const workflowState = attached.find((s) => s.state_id === stateId)!;
+    const attachedState = attached.find((s) => s.state_id === stateId)!;
 
-    const patchedState = await created.states.update(workflowState.id, {
+    const patchedState = await created.states.update(attachedState.id, {
       allow_issue_creation: true,
     });
     expect(patchedState.allow_issue_creation).toBe(true);
 
     const secondState = await suite.projectRow.states.create({ name: uniqueName("wf-state-2"), color: "#f54242" });
     const secondAttached = await created.states.attach({ state_ids: [secondState.id] });
-    const secondWorkflowState = secondAttached.find((s) => s.state_id === secondState.id)!;
+    const secondAttachedState = secondAttached.find((s) => s.state_id === secondState.id)!;
 
     const transition = await created.transitions.create({
       state_id: stateId,
       transition_state_id: secondState.id,
     });
-    expect(transition.workflow_state_id).toBe(workflowState.id);
+    expect(transition.workflow_state_id).toBe(attachedState.id);
 
     await created.transitions.delete(transition.id);
-    await created.states.delete(secondWorkflowState.id);
-    await created.states.delete(workflowState.id);
+    await created.states.delete(secondAttachedState.id);
+    await created.states.delete(attachedState.id);
     await workflows.delete(created.id);
   });
 
