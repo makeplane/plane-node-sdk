@@ -101,7 +101,7 @@ export function pathIdOffenders(entry: ResourceEntry): string[] {
   const known = pathIdNamesFor(templatesOf(entry));
   const offenders: string[] = [];
   for (const method of publicMethods(entry)) {
-    for (const parameter of method.parameterNames) {
+    for (const parameter of new Set(method.signatures.flat())) {
       const stem = /Id$/.test(parameter)
         ? parameter.slice(0, -2)
         : parameter.endsWith("_id")
@@ -120,11 +120,13 @@ export function shapeOffenders(entry: ResourceEntry): string[] {
   const offenders: string[] = [];
   for (const method of publicMethods(entry)) {
     const expected = expectedLeadingPathIds(templateFor(resource, method.name));
-    const leading = method.parameterNames.slice(0, expected.length);
-    if (leading.join(",") !== expected.join(",")) {
-      offenders.push(
-        `${entry.name}.${method.name}(${method.parameterNames.join(", ")}) — expected to open [${expected.join(", ")}]`
-      );
+    for (const signature of method.signatures) {
+      const leading = signature.slice(0, expected.length);
+      if (leading.join(",") !== expected.join(",")) {
+        offenders.push(
+          `${entry.name}.${method.name}(${signature.join(", ")}) — expected to open [${expected.join(", ")}]`
+        );
+      }
     }
   }
   return offenders;

@@ -384,6 +384,15 @@ export interface MethodInfo {
   readonly name: string;
   /** Parameter names of the first declared signature — what a caller sees in hover. */
   readonly parameterNames: string[];
+  /**
+   * Parameter names of *every* declaration: each overload plus the implementation.
+   *
+   * The rules are checked against all of them, not just the first. An overload set can
+   * disagree with itself — renaming only the implementation leaves the hover text intact
+   * and the rule quietly half-broken, which is exactly what happened when this sweep was
+   * first proved.
+   */
+  readonly signatures: string[][];
   /** Property names reachable on any object-typed parameter, across every overload. */
   readonly optionProperties: Set<string>;
   /** The method's own doc comment text, lowercased. */
@@ -444,8 +453,9 @@ export function classMethods(entry: ResourceEntry): Map<string, MethodInfo> {
 
     const existing = methods.get(name);
     if (existing === undefined) {
-      methods.set(name, { name, parameterNames, optionProperties, documentation });
+      methods.set(name, { name, parameterNames, signatures: [parameterNames], optionProperties, documentation });
     } else {
+      existing.signatures.push(parameterNames);
       // An overload set: the first declaration supplies the parameter names a caller
       // sees; every declaration contributes its reachable options, so a `fields` that
       // only the narrowing overload declares still counts as offered.

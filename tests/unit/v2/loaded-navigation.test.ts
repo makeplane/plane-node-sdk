@@ -136,12 +136,14 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
       const childEntry = entryOf(child);
       if (childEntry === undefined) continue;
       for (const method of publicMethods(childEntry)) {
-        const leading = method.parameterNames.slice(0, idNames.length);
-        if (leading.join(",") !== idNames.join(",")) {
-          offenders.push(
-            `${entry.name}.${attribute}: ${childEntry.name}.${method.name} opens [${leading.join(", ")}], ` +
-              `not [${idNames.join(", ")}]`
-          );
+        for (const signature of method.signatures) {
+          const leading = signature.slice(0, idNames.length);
+          if (leading.join(",") !== idNames.join(",")) {
+            offenders.push(
+              `${entry.name}.${attribute}: ${childEntry.name}.${method.name} opens [${leading.join(", ")}], ` +
+                `not [${idNames.join(", ")}]`
+            );
+          }
         }
       }
     }
