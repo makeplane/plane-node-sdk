@@ -33,6 +33,7 @@
  *   the type system nor the URL builder can tell a transposed child from a correct one.
  */
 
+import { FIELDS } from "../../../src/api/v2/generated/constants";
 import { LoadedMeta, ownedBinding } from "../../../src/api/v2/kernel/loaded";
 import {
   AnyResource,
@@ -42,6 +43,7 @@ import {
   instantiate,
   migratedEntries,
   navigableEntries,
+  operationsOf,
   publicMethods,
   resourceEntries,
 } from "./tree-walk";
@@ -68,6 +70,39 @@ function rowOf(resource: AnyResource): Record<string, unknown> {
   const idNames = (resource as any).loadedIdNames as readonly string[];
   const ids = idNames.map((name) => `id-${name}`);
   return (resource as any).load({ id: ids[ids.length - 1] }, ids.slice(0, -1)) as Record<string, unknown>;
+}
+
+/**
+ * The same row, but carrying **every field the golden says this resource returns** rather
+ * than `id` alone.
+ *
+ * {@link rowOf} builds `{ id }`, and no navigation property can collide with `id` — so a
+ * navigation property named after a real API field is invisible to every assertion built
+ * on it, which is precisely how a collision would reach a consumer. `loadRow` refuses to
+ * define a navigation property over a field the row already carries, so building the real
+ * shape here turns that refusal into a sweep: the collision fails in CI instead of silently
+ * hiding the field behind a child resource at runtime.
+ *
+ * Every field gets the row's own id as its value so `rowId` — which some resources override
+ * to prefer a readable key like `identifier` — still yields the id the caller expects.
+ */
+function fullRowOf(resource: AnyResource): Record<string, unknown> {
+  const table = FIELDS as unknown as Record<string, readonly string[]>;
+  const operations = operationsOf(resource);
+  const idNames = idNamesOf(resource);
+  const ids = idNames.map((name) => `id-${name}`);
+  const own = ids[ids.length - 1];
+
+  const row: Record<string, unknown> = {};
+  for (const action of ["retrieve", "list"]) {
+    const operationId = operations[action];
+    for (const field of (operationId === undefined ? undefined : table[operationId]) ?? []) {
+      // `all` is the golden's "no projection" sentinel, not a field name.
+      if (field !== "all") row[field] = own;
+    }
+  }
+  row.id = own;
+  return (resource as any).load(row, ids.slice(0, -1)) as Record<string, unknown>;
 }
 
 function idNamesOf(resource: AnyResource): readonly string[] {
@@ -192,6 +227,16 @@ describe.each(NAVIGABLE.map((entry) => [entry.key, entry] as const))("%s", (_key
     }
 
     expect(offenders).toEqual([]);
+  });
+
+  it("gives no navigation property a name one of the row's own fields already uses", () => {
+    // The collision `NAVIGATION_ALIASES` exists to prevent, made visible. Python needed
+    // aliases for `Estimate.points` and `WorkItemProperty.options` — both real API fields a
+    // navigation property wanted to define over, and both belonging to families still on
+    // the opt-out list here, so this will start biting as task 3 migrates them.
+    const resource = instantiate(entry);
+
+    expect(() => fullRowOf(resource)).not.toThrow();
   });
 
   it("carries the ids that produced the row, ending with the row's own", () => {

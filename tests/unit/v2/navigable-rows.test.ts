@@ -164,6 +164,32 @@ describe("navigable rows (v2)", () => {
 
     expect(() => project.states.list()).toThrow(/does not take its leading parameters in the order \[slug, project\]/);
   });
+
+  it("stands down instead of throwing when a bundler has mangled the parameter names away", async () => {
+    nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/").reply(200, { id: "p-1", identifier: "ENG" });
+
+    const projects = makeProjects();
+    const project = await projects.retrieve("acme", "ENG");
+    (projects.states as unknown as Record<string, unknown>).list = (project_: string, slug: string) => {
+      void project_;
+      void slug;
+      return Promise.resolve(null);
+    };
+
+    // esbuild and terser both mangle function parameters, so in a minified consumer bundle
+    // every method reports `(a, b)` where the source said `(slug, project)`. The check read
+    // that as a definite mismatch and threw a TypeError on every navigated call — breaking
+    // correct downstream code, hardest of all. The canary in `kernel/loaded.ts` is mangled
+    // by the same pass, so the check can tell "wrong order" from "names are gone" and stands
+    // down for the latter; `loaded-navigation.test.ts` enforces the rule against the
+    // TypeScript source, where names cannot be mangled, and is the authoritative check.
+    const spy = jest.spyOn(Function.prototype, "toString").mockImplementation(() => "function(a,b){}");
+    try {
+      expect(() => project.states.list()).not.toThrow();
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
 
 describe("navigation typing (compile-time)", () => {

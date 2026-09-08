@@ -162,17 +162,54 @@ function leadingParameterNames(fn: AnyFunction, count: number): string[] | undef
 const CHECKED_BINDINGS = new WeakMap<AnyFunction, Set<string>>();
 
 /**
+ * A canary whose parameter names are unique to this file, used to ask one question of the
+ * running bundle: **did parameter names survive to runtime at all?**
+ *
+ * They do not under a minifier. esbuild and terser both mangle function parameters, so a
+ * consumer who bundles this SDK gets `(a, b)` where the source said `(slug, project)` —
+ * and {@link assertLeadingParameters} then sees a *definite* mismatch against every set of
+ * `idNames` and throws a `TypeError` on every navigated call. That is not a caught bug, it
+ * is the SDK breaking in ordinary downstream usage: the check would fire hardest on
+ * perfectly correct code.
+ *
+ * The canary is minified by the same pass as everything else, so if its own names come
+ * back intact then names are trustworthy here and the check is meaningful; if they do not,
+ * parameter-name introspection tells us nothing and the check stands down. Nothing is lost
+ * by standing down — `loaded-navigation.test.ts` enforces the same rule against the
+ * TypeScript source, where names cannot be mangled, and that sweep is the authoritative
+ * one. This runtime check only exists to also catch a method swapped in after compilation.
+ */
+function parameterNameCanary(slugCanary: unknown, projectCanary: unknown): void {
+  void slugCanary;
+  void projectCanary;
+}
+
+/** Whether this bundle kept its parameter names — see {@link parameterNameCanary}. */
+function parameterNamesSurvived(): boolean {
+  const names = leadingParameterNames(parameterNameCanary as AnyFunction, 2);
+  return names !== undefined && names[0] === "slugCanary" && names[1] === "projectCanary";
+}
+
+/**
  * Refuse to prepend ids that would land in the wrong parameters.
  *
  * Positional prepending has no way to notice on its own that a resource's leading
  * parameters are ordered differently from the ids being bound: the wrong values would
  * flow into a well-formed but wrong URL with no error at all. TypeScript does not catch
  * it either — every path id is a `string`, so the tuple matches whatever the order.
+ *
+ * Stands down entirely where parameter names did not survive to runtime — see
+ * {@link parameterNameCanary}. Under a minifier the names are all mangled, so the check
+ * would see a definite mismatch for *every* method and break correct code; the source-level
+ * sweep is the authoritative one either way.
  */
 function assertLeadingParameters(resource: object, name: string, fn: AnyFunction, idNames: readonly string[]): void {
   const key = idNames.join(",");
   const checked = CHECKED_BINDINGS.get(fn) ?? new Set<string>();
   if (checked.has(key)) return;
+  // Not cached: the answer is a property of the bundle, and re-deriving it costs one
+  // `toString` on a two-parameter function, only on a binding's first call.
+  if (!parameterNamesSurvived()) return;
   const actual = leadingParameterNames(fn, idNames.length);
   if (actual !== undefined && actual.join(",") !== key) {
     throw new TypeError(
@@ -236,6 +273,32 @@ export function owned<TResource extends object, TIds extends readonly string[]>(
 export type NavigationFactories<TNavigation> = { [K in keyof TNavigation]: () => TNavigation[K] };
 
 /**
+ * Define a navigation property (or `$loaded`) on a row, refusing to shadow a field the
+ * server actually sent.
+ *
+ * `Object.defineProperty` would happily overwrite the spread data property, and the row
+ * would then claim in `$loaded.present` that the field is present while reading it hands
+ * back a child resource view. That is silent data loss dressed as navigation, and it is a
+ * real collision, not a hypothetical: Python needed aliases for `Estimate.points` and
+ * `WorkItemProperty.options`, both API fields whose name a navigation property wanted.
+ *
+ * So the collision is refused, loudly, at the point the row is built. The fix is always to
+ * name the navigation property something the row does not already use (and record the
+ * mapping in `NAVIGATION_ALIASES`, which is what the loaded-navigation sweep compares
+ * against) — never to drop the field.
+ */
+function defineOver(loaded: Record<string, unknown>, name: string, descriptor: PropertyDescriptor): void {
+  if (Object.prototype.hasOwnProperty.call(loaded, name)) {
+    throw new TypeError(
+      `Cannot add the navigation property "${name}" to this row: the API response already carries a ` +
+        `field of that name, and defining over it would hide real data behind a child resource while ` +
+        `\`$loaded.present\` still reported the field as present. Rename the navigation property.`
+    );
+  }
+  Object.defineProperty(loaded, name, descriptor);
+}
+
+/**
  * Turn a fetched row into a navigable one: its own data, plus one lazily-built
  * navigation property per child, plus `$loaded`.
  *
@@ -257,9 +320,9 @@ export function loadRow<TRow extends object, TNavigation extends object>(
   const meta: LoadedMeta = { ids: [...ids], idNames: [...idNames], present };
 
   const loaded = { ...row } as Record<string, unknown>;
-  Object.defineProperty(loaded, "$loaded", { value: meta, enumerable: false });
+  defineOver(loaded, "$loaded", { value: meta, enumerable: false });
   for (const [name, factory] of Object.entries(navigation(meta)) as [string, () => unknown][]) {
-    Object.defineProperty(loaded, name, { get: factory, enumerable: false, configurable: true });
+    defineOver(loaded, name, { get: factory, enumerable: false, configurable: true });
   }
   return loaded as Loaded<TRow, TNavigation>;
 }
