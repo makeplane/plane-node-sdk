@@ -203,15 +203,31 @@ describe("the enumeration every sweep runs over", () => {
   });
 
   it("agrees with what the constructed tree reaches", () => {
-    // And against the live tree: a resource nobody can reach from `client.v2` is dead
-    // code, whichever half of the migration it currently sits in.
+    // And against the live tree, in **both** directions.
+    //
+    // entries -> reachable: a resource nobody can reach from `client.v2` is dead code,
+    // whichever half of the migration it currently sits in.
+    //
+    // reachable -> entries: the direction that was missing, and the one that keeps the
+    // *source scan* honest. `isResourceHeritage` matches the identifiers `V2Resource` and
+    // `LoadsNavigableRows` and nothing else, so a class extending a shared derived base —
+    // `class ProjectAutomationNodes extends AutomationNodes` — is invisible to the scan and
+    // therefore to all four sweeps. Being unexported from the barrel hides it from the
+    // export check too, and every URL test it has still passes. Walking the constructed
+    // tree finds it anyway, because it is wired: a class the tree reaches but the
+    // enumeration does not contain is a hole in the enumeration, not in the tree.
     const reachable = reachableResources();
+    const declared = new Set(resourceEntries().map((entry) => entry.cls as unknown));
     const unreachable = resourceEntries()
       .filter((entry) => !reachable.has(entry.cls))
       .map((entry) => entry.key)
       .sort();
+    const unenumerated = [...reachable.entries()]
+      .filter(([cls]) => !declared.has(cls))
+      .map(([cls, dotted]) => `${(cls as { name: string }).name} — reached at ${dotted}, but no entry declares it`)
+      .sort();
 
-    expect(unreachable).toEqual([]);
+    expect({ unreachable, unenumerated }).toEqual({ unreachable: [], unenumerated: [] });
   });
 });
 

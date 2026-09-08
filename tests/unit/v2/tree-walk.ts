@@ -24,8 +24,10 @@
  * 3. **The public barrel** — the classes `src/api/v2/index.ts` actually exports.
  *
  * `resourceEntries()` asserts (1) and (2) line up; `path-id-naming.test.ts` asserts (3), and
- * asserts the constructed tree reaches every entry that is not opted out. A class
- * exported but unreachable, or reachable but unexported, fails.
+ * asserts entries and the constructed tree agree **in both directions**. A class exported
+ * but unreachable, or reachable but unexported, fails — and so does a class the tree
+ * reaches that the source scan never found, which is the only thing standing behind
+ * {@link isResourceHeritage}'s deliberately literal match on the two base identifiers.
  *
  * Classes are keyed by `<module path>#<ClassName>`, not by bare name: `Comments` and
  * `Links` each name two different resources (a work item's and a release's), and a
@@ -142,6 +144,18 @@ function moduleNameOf(file: string): string {
   return path.relative(V2_ROOT, file).replace(/\.ts$/, "");
 }
 
+/**
+ * Whether a class declaration extends one of the kernel bases *by name*.
+ *
+ * Syntactic and deliberately literal — the AST is read without a type checker walk, so an
+ * intermediate base (`class ProjectAutomationNodes extends AutomationNodes`) is not matched
+ * here. What stops that becoming a silent hole is the reverse assertion in
+ * `path-id-naming.test.ts`: every class the constructed tree reaches must appear among the
+ * entries, so an intermediate-base class that is wired at all is caught even though this
+ * predicate cannot see it. Widening the match to follow heritage transitively would be the
+ * other fix; the reverse assertion is kept because it also catches classes this scan misses
+ * for reasons nobody has thought of yet.
+ */
 function isResourceHeritage(node: ts.ClassDeclaration): boolean {
   for (const clause of node.heritageClauses ?? []) {
     if (clause.token !== ts.SyntaxKind.ExtendsKeyword) continue;

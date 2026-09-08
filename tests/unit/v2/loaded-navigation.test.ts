@@ -8,6 +8,13 @@
  * while its loaded row exposed three, so the flat call worked and `project.cycles.list()`
  * raised, with every other test green.
  *
+ * **Which resources are checked is itself enumerated, not selected.** Every assertion below
+ * the first `describe` runs over the classes that extend `LoadsNavigableRows` — so a
+ * migrated family that attaches migrated children and stays on plain `V2Resource` would be
+ * checked by none of them. The first `describe` closes that by making a migrated child the
+ * thing that *obliges* a resource to be navigable, so the selected set and the set the
+ * rules apply to cannot drift apart.
+ *
  * So the correspondence is derived, never tabulated: for every resource that extends
  * `LoadsNavigableRows`, the navigation properties on a row it builds must be exactly the
  * child resources it attaches — minus the children still on the opt-out list, which have
@@ -33,6 +40,7 @@ import {
   UNMIGRATED_RESOURCES,
   childResources,
   instantiate,
+  migratedEntries,
   navigableEntries,
   publicMethods,
   resourceEntries,
@@ -95,6 +103,36 @@ describe("loaded navigation", () => {
     // A floor, not a pin: if `LoadsNavigableRows` discovery breaks, every assertion below
     // passes by checking nothing. Raise this as tasks 2 and 3 make families navigable.
     expect(NAVIGABLE.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("makes every migrated resource that attaches a migrated child navigable in the first place", () => {
+    // The assertion that turns the sweep below from a *selection* into an *enumeration*.
+    //
+    // Everything else in this file lives inside `describe.each(NAVIGABLE)`, and `NAVIGABLE`
+    // is chosen by `prototype instanceof LoadsNavigableRows`. A family that migrates its
+    // classes, attaches its migrated children, and simply stays `extends V2Resource` is
+    // therefore checked by *zero* navigation assertions: its URL tests all pass, and its
+    // grandchildren are unreachable from any fetched row. That is not a hypothetical — the
+    // Python SDK shipped exactly this hole and carried it across four plans, surfacing only
+    // in final review, where `workspaces.retrieve()` answered a bare row whose 24 children
+    // could not be reached.
+    //
+    // So attaching a migrated child is what *obliges* a resource to be navigable. A class
+    // cannot opt out of the navigation rules by declining to extend the base that carries
+    // them.
+    const navigable = new Set(NAVIGABLE.map((candidate) => candidate.key));
+    const offenders = migratedEntries()
+      .filter((entry) => !navigable.has(entry.key))
+      .map((entry) => ({ entry, children: [...migratedChildren(instantiate(entry)).keys()].sort() }))
+      .filter(({ children }) => children.length > 0)
+      .map(
+        ({ entry, children }) =>
+          `${entry.key} attaches migrated child resource(s) ${children.join(", ")} but does not extend ` +
+          `LoadsNavigableRows, so a fetched row of it reaches none of them`
+      )
+      .sort();
+
+    expect(offenders).toEqual([]);
   });
 });
 
