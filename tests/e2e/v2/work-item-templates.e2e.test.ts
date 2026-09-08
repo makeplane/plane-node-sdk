@@ -1,5 +1,6 @@
 /**
- * Reached as `proj.workItemTemplates`/`ws.workItemTemplates`, covering the `Project`/`Workspace` locator wiring too.
+ * Two path templates, one family: project-scoped templates come off the fetched project
+ * row, workspace-scoped ones are flat with the slug per call.
  */
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -10,8 +11,9 @@ const maybe = env.ready ? describe : describe.skip;
 
 maybe("WorkItemTemplates (v2, live)", () => {
   const suite = useV2Project("templates", env);
-  const ws = () => suite.client.v2.workspace(suite.workspaceSlug);
-  const proj = () => ws().project(suite.projectId);
+  const ws = () => suite.client.v2.workspaces;
+  const slug = () => suite.workspaceSlug;
+  const proj = () => suite.projectRow;
 
   describe("project-scoped", () => {
     it("creates, retrieves, updates, uses, then deletes a template", async () => {
@@ -60,22 +62,22 @@ maybe("WorkItemTemplates (v2, live)", () => {
   describe("workspace-scoped", () => {
     it("creates, retrieves, updates, then deletes a workspace template", async () => {
       const name = uniqueName("ws-template");
-      const created = await ws().workItemTemplates.create({
+      const created = await ws().workItemTemplates.create(slug(), {
         name,
         template_data: { name: "Untitled" },
       });
 
       try {
-        const retrieved = await ws().workItemTemplates.retrieve(created.id);
+        const retrieved = await ws().workItemTemplates.retrieve(slug(), created.id);
         expect(retrieved.name).toBe(name);
 
-        const updated = await ws().workItemTemplates.update(created.id, {
+        const updated = await ws().workItemTemplates.update(slug(), created.id, {
           is_published: true,
         });
         expect(updated.is_published).toBe(true);
       } finally {
         await ws()
-          .workItemTemplates.delete(created.id)
+          .workItemTemplates.delete(slug(), created.id)
           .catch(() => undefined);
       }
     });
