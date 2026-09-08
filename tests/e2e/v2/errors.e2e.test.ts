@@ -4,7 +4,7 @@
 import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
-import { SPECS } from "./support/specs";
+import { opsFor, SPECS, WayIn } from "./support/specs";
 import { useV2Project } from "./support/suite";
 
 const MISSING_ID = "00000000-0000-0000-0000-000000000000";
@@ -12,12 +12,18 @@ const MISSING_ID = "00000000-0000-0000-0000-000000000000";
 const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
 
+/**
+ * Driven flat: these assert the server's error contract, which the way in does not change.
+ * `crud.e2e.test.ts` covers both shapes.
+ */
+const WAY: WayIn = "flat";
+
 maybe("v2 error contract (live)", () => {
   const suite = useV2Project("errors", env);
 
   describe.each(SPECS)("$key", (spec) => {
     it("retrieve of a missing id surfaces a 404 PlaneApiError", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       let caught: PlaneApiError | undefined;
       try {
         await ops.retrieve(MISSING_ID);
@@ -31,7 +37,7 @@ maybe("v2 error contract (live)", () => {
     });
 
     it("an over-length name surfaces field-level .errors", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const tooLong = uniqueName(spec.key) + "x".repeat(300);
       let caught: PlaneApiError | undefined;
       try {
@@ -48,7 +54,7 @@ maybe("v2 error contract (live)", () => {
     // Deliberate server behavior: `paginate: "cursor"` with no `order_by` 400s
     // because the default ordering isn't cursor-safe.
     it("cursor pagination without an explicit order_by 400s (known API behavior)", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       let caught: PlaneApiError | undefined;
       try {
         await ops.list({ paginate: "cursor" });

@@ -3,7 +3,7 @@
  */
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
-import { SPECS } from "./support/specs";
+import { opsFor, SPECS, WayIn } from "./support/specs";
 import { useV2Project } from "./support/suite";
 
 const ROW_COUNT = 4;
@@ -11,6 +11,13 @@ const PER_PAGE = 2; // forces at least 2 pages over ROW_COUNT rows
 
 const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
+
+/**
+ * Driven navigated: `iterate` is a generator method, and `owned()` wraps it like any
+ * other — this file is the one that proves paging still follows every page through the
+ * wrapper. `crud.e2e.test.ts` covers both shapes.
+ */
+const WAY: WayIn = "navigated";
 
 maybe("v2 pagination (live)", () => {
   const suite = useV2Project("page", env);
@@ -22,7 +29,7 @@ maybe("v2 pagination (live)", () => {
     let marker: string;
 
     beforeAll(async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       marker = uniqueName(`${spec.key}-pg`);
       const items = Array.from({ length: ROW_COUNT }, (_, i) =>
         spec.makeWrite(uniqueName(`${spec.key}-pg-row`), { external_source: marker, external_id: String(i) })
@@ -33,12 +40,12 @@ maybe("v2 pagination (live)", () => {
 
     afterAll(async () => {
       if (ids.length === 0) return;
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       await ops.bulkDelete(ids);
     });
 
     it("offset: one page reports a next offset and total_count", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const page = await ops.list({ external_source: marker, per_page: PER_PAGE });
       expect(page.data).toHaveLength(PER_PAGE);
       expect("next" in page && page.next).not.toBeNull();
@@ -46,14 +53,14 @@ maybe("v2 pagination (live)", () => {
     });
 
     it("offset: iterate() follows every page", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const rows = [];
       for await (const row of ops.iterate({ external_source: marker, per_page: PER_PAGE })) rows.push(row);
       expect(new Set(rows.map((r) => r.id))).toEqual(new Set(ids));
     });
 
     it("cursor: one page uses the cursor envelope (with an explicit order_by)", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const page = await ops.list({
         external_source: marker,
         per_page: PER_PAGE,
@@ -66,7 +73,7 @@ maybe("v2 pagination (live)", () => {
     });
 
     it("cursor: iterate() follows every page (with an explicit order_by)", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const rows = [];
       for await (const row of ops.iterate({
         external_source: marker,

@@ -4,18 +4,24 @@
 import { MultipleMatchesFoundError, NoMatchFoundError } from "../../../src/errors/PlaneApiError";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
-import { SPECS } from "./support/specs";
+import { opsFor, SPECS, WayIn } from "./support/specs";
 import { useV2Project } from "./support/suite";
 
 const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
+
+/**
+ * Driven navigated: `findByName(slug, project, name)` loses two of its three leading
+ * parameters through `owned()`, which is exactly the prepend order worth proving live.
+ */
+const WAY: WayIn = "navigated";
 
 maybe("v2 findByName (live)", () => {
   const suite = useV2Project("findone", env);
 
   describe.each(SPECS)("$key", (spec) => {
     it("single match", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const name = uniqueName(`${spec.key}-single`);
       const created = await ops.create(spec.makeWrite(name));
       try {
@@ -27,12 +33,12 @@ maybe("v2 findByName (live)", () => {
     });
 
     it("zero match raises NoMatchFoundError", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       await expect(ops.findByName(uniqueName(`${spec.key}-does-not-exist`))).rejects.toBeInstanceOf(NoMatchFoundError);
     });
 
     it("multiple match raises MultipleMatchesFoundError", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const base = uniqueName(`${spec.key}-multi`);
       const lower = await ops.create(spec.makeWrite(base.toLowerCase()));
       const upper = await ops.create(spec.makeWrite(base.toUpperCase()));

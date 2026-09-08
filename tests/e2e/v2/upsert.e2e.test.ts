@@ -3,18 +3,24 @@
  */
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
-import { SPECS } from "./support/specs";
+import { opsFor, SPECS, WayIn } from "./support/specs";
 import { useV2Project } from "./support/suite";
 
 const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
+
+/**
+ * Driven flat: `upsert` reconciles on the body, so the interesting variable here is the
+ * request payload rather than the way in. `crud.e2e.test.ts` covers both shapes.
+ */
+const WAY: WayIn = "flat";
 
 maybe("v2 upsert (live)", () => {
   const suite = useV2Project("upsert", env);
 
   describe.each(SPECS)("$key", (spec) => {
     it("creates when no row matches", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const marker = uniqueName(`${spec.key}-upsert-create`);
       const created = await ops.upsert(spec.makeWrite(marker, { external_source: marker, external_id: "1" }));
       try {
@@ -26,7 +32,7 @@ maybe("v2 upsert (live)", () => {
     });
 
     it("reconciles on second call instead of duplicating", async () => {
-      const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+      const ops = opsFor(spec, WAY, suite);
       const marker = uniqueName(`${spec.key}-upsert-reconcile`);
       const first = await ops.upsert(spec.makeWrite(marker, { external_source: marker, external_id: "1" }));
       const renamed = `${marker}-renamed`;

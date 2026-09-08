@@ -8,6 +8,7 @@
  */
 import { PlaneClient } from "../../../../src/client/plane-client";
 import { LoadedProject } from "../../../../src/api/v2/loaded/Project";
+import { V2Suite } from "./suite";
 import { Label, UpdateLabel, CreateLabel } from "../../../../src/models/v2/Label";
 import { State, UpdateState, CreateState } from "../../../../src/models/v2/State";
 import { BulkUpdateItem, BulkWriteResponse, Page } from "../../../../src/models/v2/common";
@@ -102,3 +103,22 @@ export const SPECS: ResourceSpec<State | Label, CreateState | CreateLabel, Updat
   statesSpec as unknown as ResourceSpec<State | Label, CreateState | CreateLabel, UpdateState | UpdateLabel>,
   labelsSpec as unknown as ResourceSpec<State | Label, CreateState | CreateLabel, UpdateState | UpdateLabel>,
 ];
+
+/**
+ * The spec's operations, driven the requested way.
+ *
+ * Suites that only need one shape name it once at the top of the file and say why;
+ * `crud.e2e.test.ts` runs its whole body over both. Between them every method on
+ * `ResourceOps` — `list`, `iterate`, `retrieve`, `findByName`, the three `bulk*`, and the
+ * plain writes — is exercised navigated at least once, which is what proves `owned()`
+ * prepends the project's two ids into the right leading parameters against a live server.
+ */
+export function opsFor<TRead, TWrite, TPatch>(
+  spec: ResourceSpec<TRead, TWrite, TPatch>,
+  way: WayIn,
+  suite: V2Suite
+): ResourceOps<TRead, TWrite, TPatch> {
+  return way === "flat"
+    ? spec.flat(suite.client, suite.workspaceSlug, suite.projectId)
+    : spec.navigated(suite.projectRow);
+}

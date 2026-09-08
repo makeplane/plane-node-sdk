@@ -5,7 +5,7 @@ import { isBulkFailure, raiseForFailures } from "../../../src/api/v2";
 import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
-import { SPECS } from "./support/specs";
+import { opsFor, SPECS, WayIn } from "./support/specs";
 import { useV2Project } from "./support/suite";
 
 const MISSING_ID = "00000000-0000-0000-0000-000000000000";
@@ -13,13 +13,20 @@ const MISSING_ID = "00000000-0000-0000-0000-000000000000";
 const env = v2Env();
 const maybe = env.ready ? describe : describe.skip;
 
+/**
+ * Driven navigated: `bulkCreate`/`bulkUpdate`/`bulkDelete` each drop the project's two
+ * leading ids through `owned()`, and a mis-prepended id there would build a well-formed
+ * URL against the wrong project rather than fail. `crud.e2e.test.ts` covers both shapes.
+ */
+const WAY: WayIn = "navigated";
+
 maybe("v2 bulk writes (live)", () => {
   const suite = useV2Project("bulk", env);
 
   describe.each(SPECS)("$key", (spec) => {
     describe("bulkCreate", () => {
       it("all rows succeed", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const items = [0, 1, 2].map(() => spec.makeWrite(uniqueName(`${spec.key}-bc`)));
         const result = await ops.bulkCreate(items);
         try {
@@ -36,7 +43,7 @@ maybe("v2 bulk writes (live)", () => {
       });
 
       it("partial failure reports the failing row", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const takenName = uniqueName(`${spec.key}-taken`);
         const existing = await ops.create(spec.makeWrite(takenName));
         const goodName = uniqueName(`${spec.key}-ok`);
@@ -67,7 +74,7 @@ maybe("v2 bulk writes (live)", () => {
       });
 
       it("allOrNone turns a failing row into 409 batch_failed", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const takenName = uniqueName(`${spec.key}-taken-aon`);
         const existing = await ops.create(spec.makeWrite(takenName));
         const goodName = uniqueName(`${spec.key}-ok-aon`);
@@ -87,7 +94,7 @@ maybe("v2 bulk writes (live)", () => {
 
     describe("bulkUpdate", () => {
       it("all rows succeed", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const created = await ops.bulkCreate([0, 1].map(() => spec.makeWrite(uniqueName(`${spec.key}-bu`))));
         const ids = created.results.map((row) => row.id!);
         try {
@@ -102,7 +109,7 @@ maybe("v2 bulk writes (live)", () => {
       });
 
       it("partial failure on an unknown id", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const created = await ops.create(spec.makeWrite(uniqueName(`${spec.key}-bu-ok`)));
         try {
           const result = await ops.bulkUpdate([
@@ -124,7 +131,7 @@ maybe("v2 bulk writes (live)", () => {
 
     describe("bulkDelete", () => {
       it("all rows succeed", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const created = await ops.bulkCreate([0, 1].map(() => spec.makeWrite(uniqueName(`${spec.key}-bd`))));
         const ids = created.results.map((row) => row.id!);
         const result = await ops.bulkDelete(ids);
@@ -133,7 +140,7 @@ maybe("v2 bulk writes (live)", () => {
       });
 
       it("partial failure on an unknown id", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         const created = await ops.create(spec.makeWrite(uniqueName(`${spec.key}-bd-ok`)));
         const result = await ops.bulkDelete([created.id, MISSING_ID]);
         expect(result.succeeded).toBe(1);
@@ -145,17 +152,17 @@ maybe("v2 bulk writes (live)", () => {
 
     describe("empty batch rejected client-side", () => {
       it("bulkCreate([]) never hits the network", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         await expect(ops.bulkCreate([])).rejects.toThrow(/non-empty/);
       });
 
       it("bulkUpdate([]) never hits the network", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         await expect(ops.bulkUpdate([])).rejects.toThrow(/non-empty/);
       });
 
       it("bulkDelete([]) never hits the network", async () => {
-        const ops = spec.chained(suite.client, suite.workspaceSlug, suite.projectId);
+        const ops = opsFor(spec, WAY, suite);
         await expect(ops.bulkDelete([])).rejects.toThrow(/non-empty/);
       });
     });
