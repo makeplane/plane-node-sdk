@@ -28,6 +28,11 @@ export interface ListIntakeWorkItemsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface IntakeWorkItemFieldsParams {
+  fields?: readonly IntakeWorkItemField[];
+}
+
 /** A project's intake (triage queue) items; the wire path is `intake-issues`, kept as-is. No `upsert`/bulk endpoints. */
 export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, UpdateIntakeWorkItem> {
   protected path = "/workspaces/{slug}/projects/{project_id}/intake-issues/";
@@ -41,37 +46,57 @@ export class Intakes extends V2Resource<IntakeWorkItem, CreateIntakeWorkItem, Up
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
+    slug: string,
+    project: string,
     params: ListIntakeWorkItemsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<IntakeWorkItem, F | "id">>>;
-  list(params?: ListIntakeWorkItemsParams): Promise<Page<IntakeWorkItem>>;
-  list(params?: ListIntakeWorkItemsParams): Promise<Page<IntakeWorkItem>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListIntakeWorkItemsParams): Promise<Page<IntakeWorkItem>>;
+  list(slug: string, project: string, params?: ListIntakeWorkItemsParams): Promise<Page<IntakeWorkItem>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** Every intake item in the project, following pages automatically. */
-  iterate(params?: ListIntakeWorkItemsParams): AsyncGenerator<IntakeWorkItem> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, project: string, params?: ListIntakeWorkItemsParams): AsyncGenerator<IntakeWorkItem> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<IntakeWorkItemField, "all"> & keyof IntakeWorkItem>(
-    intakeWorkItemId: string,
+    slug: string,
+    project: string,
+    intake: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<IntakeWorkItem, F | "id">>;
-  retrieve(intakeWorkItemId: string, params?: { fields?: readonly IntakeWorkItemField[] }): Promise<IntakeWorkItem>;
-  retrieve(intakeWorkItemId: string, params?: { fields?: readonly IntakeWorkItemField[] }): Promise<IntakeWorkItem> {
-    return this.doRetrieve({ pk: intakeWorkItemId }, params as Record<string, unknown>);
+  retrieve(slug: string, project: string, intake: string, params?: IntakeWorkItemFieldsParams): Promise<IntakeWorkItem>;
+  retrieve(
+    slug: string,
+    project: string,
+    intake: string,
+    params?: IntakeWorkItemFieldsParams
+  ): Promise<IntakeWorkItem> {
+    return this.doRetrieve({ slug, project_id: project, pk: intake }, params as Record<string, unknown>);
   }
 
-  create(data: CreateIntakeWorkItem): Promise<IntakeWorkItem> {
-    return this.doCreate(data, {});
+  create(
+    slug: string,
+    project: string,
+    data: CreateIntakeWorkItem,
+    params?: IntakeWorkItemFieldsParams
+  ): Promise<IntakeWorkItem> {
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** Ordinary field edits and/or a triage decision (`status`/`snoozed_till`/`duplicate_to_id`) in one call. */
-  update(intakeWorkItemId: string, data: UpdateIntakeWorkItem): Promise<IntakeWorkItem> {
-    return this.doUpdate(data, { pk: intakeWorkItemId });
+  update(
+    slug: string,
+    project: string,
+    intake: string,
+    data: UpdateIntakeWorkItem,
+    params?: IntakeWorkItemFieldsParams
+  ): Promise<IntakeWorkItem> {
+    return this.doUpdate(data, { slug, project_id: project, pk: intake }, params as Record<string, unknown>);
   }
 
-  delete(intakeWorkItemId: string): Promise<void> {
-    return this.doDelete({ pk: intakeWorkItemId });
+  delete(slug: string, project: string, intake: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: intake });
   }
 }

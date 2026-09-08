@@ -5,11 +5,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeSummary = () =>
-  new ProjectWorklogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: "acme",
-    project_id: "ENG",
-  });
+const makeSummary = () => new ProjectWorklogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -22,7 +18,7 @@ describe("ProjectWorklogs.summary (v2)", () => {
         { work_item_id: "wi-2", duration: 15 },
       ]);
 
-    const summary = await makeSummary().summary();
+    const summary = await makeSummary().summary("acme", "ENG");
 
     expect(Array.isArray(summary)).toBe(true);
     expect(summary).toEqual([
@@ -34,7 +30,7 @@ describe("ProjectWorklogs.summary (v2)", () => {
   it("returns an empty array rather than throwing when there's no logged time", async () => {
     nock(BASE).get("/api/v2/workspaces/acme/projects/ENG/worklogs/summary/").reply(200, []);
 
-    const summary = await makeSummary().summary();
+    const summary = await makeSummary().summary("acme", "ENG");
 
     expect(summary).toEqual([]);
   });

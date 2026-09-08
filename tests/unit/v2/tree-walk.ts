@@ -89,12 +89,10 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
   "Initiatives/Projects#InitiativeProjects",
   "Initiatives/WorkItems#InitiativeWorkItems",
   "Initiatives/index#Initiatives",
-  "Intakes#Intakes",
   "Milestones/WorkItems#MilestoneWorkItems",
   "Milestones/index#Milestones",
   "Modules/WorkItems#ModuleWorkItems",
   "Modules/index#Modules",
-  "ProjectWorklogs#ProjectWorklogs",
   "Releases/Changelog#Changelog",
   "Releases/Comments#Comments",
   "Releases/Labels#ReleaseLabels",
@@ -124,7 +122,7 @@ export const UNMIGRATED_RESOURCES: ReadonlySet<string> = new Set([
 ]);
 
 /** How large `UNMIGRATED_RESOURCES` is allowed to be. A ratchet: lower it, never raise it. */
-export const UNMIGRATED_CEILING = 55;
+export const UNMIGRATED_CEILING = 53;
 
 // -- Source scan ---------------------------------------------------------------------
 
