@@ -7,11 +7,7 @@ const BASE = "https://api.example.com";
 const SLUG = "acme";
 const PROJECT = "ENG";
 
-const makeMembers = () =>
-  new ProjectMembers(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: SLUG,
-    project_id: PROJECT,
-  });
+const makeMembers = () => new ProjectMembers(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -28,15 +24,15 @@ describe("ProjectMembers (v2, project-scoped)", () => {
     nock(BASE).delete(`${collection}m2/`).reply(204);
 
     const members = makeMembers();
-    const page = await members.list();
+    const page = await members.list(SLUG, PROJECT);
     expect(page.data[0].role).toBe("contributor");
-    const created = await members.create({ member_id: "u2" });
+    const created = await members.create(SLUG, PROJECT, { member_id: "u2" });
     expect(created.role).toBe("member");
-    const fetched = await members.retrieve("m2");
+    const fetched = await members.retrieve(SLUG, PROJECT, "m2");
     expect(fetched.member_id).toBe("u2");
-    const updated = await members.update("m2", { role: "admin" });
+    const updated = await members.update(SLUG, PROJECT, "m2", { role: "admin" });
     expect(updated.role).toBe("admin");
-    await expect(members.delete("m2")).resolves.toBeUndefined();
+    await expect(members.delete(SLUG, PROJECT, "m2")).resolves.toBeUndefined();
   });
 
   it("filters by role__in", async () => {
@@ -44,12 +40,12 @@ describe("ProjectMembers (v2, project-scoped)", () => {
       .get(collection)
       .query({ role__in: "admin,member" })
       .reply(200, { data: [], pagination: { style: "offset" } });
-    await makeMembers().list({ role__in: ["admin", "member"] });
+    await makeMembers().list(SLUG, PROJECT, { role__in: ["admin", "member"] });
     expect(scope.isDone()).toBe(true);
   });
 
   it("rejects an expand value the operation doesn't offer", async () => {
-    await expect(makeMembers().list({ expand: ["role" as never] })).rejects.toThrow(
+    await expect(makeMembers().list(SLUG, PROJECT, { expand: ["role" as never] })).rejects.toThrow(
       /Unknown expand value\(s\) for project_members_list: role/
     );
   });

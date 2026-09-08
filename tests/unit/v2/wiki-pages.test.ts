@@ -7,8 +7,7 @@ import { NoMatchFoundError } from "../../../src/errors/PlaneApiError";
 const BASE = "https://api.example.com";
 const SLUG = "acme";
 
-const makePages = () =>
-  new WikiPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: SLUG });
+const makePages = () => new WikiPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -19,7 +18,7 @@ describe("WikiPages (v2, workspace-scoped)", () => {
     nock(BASE)
       .get(collection)
       .reply(200, { data: [{ id: "p1" }, { id: "p2" }], pagination: { style: "offset" }, next: null });
-    const page = await makePages().list();
+    const page = await makePages().list(SLUG);
     expect(page.data).toHaveLength(2);
   });
 
@@ -33,13 +32,13 @@ describe("WikiPages (v2, workspace-scoped)", () => {
       .reply(200, { data: [{ id: "p2" }], pagination: { style: "offset" }, next: null });
 
     const ids: string[] = [];
-    for await (const p of makePages().iterate()) ids.push(p.id);
+    for await (const p of makePages().iterate(SLUG)) ids.push(p.id);
     expect(ids).toEqual(["p1", "p2"]);
   });
 
   it("retrieves one workspace page via a different path template than the project-scoped detail", async () => {
     nock(BASE).get(`${collection}p1/`).reply(200, { id: "p1", is_global: true });
-    const fetched = await makePages().retrieve("p1");
+    const fetched = await makePages().retrieve(SLUG, "p1");
     expect(fetched.is_global).toBe(true);
   });
 
@@ -49,21 +48,19 @@ describe("WikiPages (v2, workspace-scoped)", () => {
     nock(BASE).delete(`${collection}wp1/`).reply(204);
 
     const pages = makePages();
-    const created = await pages.create({ name: "Handbook" });
+    const created = await pages.create(SLUG, { name: "Handbook" });
     expect(created.id).toBe("wp1");
-    const updated = await pages.update("wp1", { name: "Handbook v2" });
+    const updated = await pages.update(SLUG, "wp1", { name: "Handbook v2" });
     expect(updated.name).toBe("Handbook v2");
-    await expect(pages.delete("wp1")).resolves.toBeUndefined();
+    await expect(pages.delete(SLUG, "wp1")).resolves.toBeUndefined();
   });
 
   it("rejects an unknown field on create before making the request", async () => {
-    await expect(makePages().create({ name: "X" }, { fields: ["nope" as never] })).rejects.toThrow(/nope/);
+    await expect(makePages().create(SLUG, { name: "X" }, { fields: ["nope" as never] })).rejects.toThrow(/nope/);
   });
 
-  it("throws a clear error when constructed with no scope", async () => {
-    const pages = new WikiPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
-
-    await expect(pages.list()).rejects.toThrow(/needs the path id 'slug'/);
+  it("throws a clear error when the workspace slug is empty", async () => {
+    await expect(makePages().list("")).rejects.toThrow(/needs the path id 'slug'/);
   });
 
   describe("findByName()", () => {
@@ -79,7 +76,7 @@ describe("WikiPages (v2, workspace-scoped)", () => {
           pagination: { style: "offset" },
         });
 
-      const found = await makePages().findByName("Handbook");
+      const found = await makePages().findByName(SLUG, "Handbook");
 
       expect(scope.isDone()).toBe(true);
       expect(found.id).toBe("p1");
@@ -90,7 +87,7 @@ describe("WikiPages (v2, workspace-scoped)", () => {
         .get(collection)
         .reply(200, { data: [{ id: "p1", name: "Handbook" }], pagination: { style: "offset" } });
 
-      await expect(makePages().findByName("Nope")).rejects.toBeInstanceOf(NoMatchFoundError);
+      await expect(makePages().findByName(SLUG, "Nope")).rejects.toBeInstanceOf(NoMatchFoundError);
     });
   });
 });

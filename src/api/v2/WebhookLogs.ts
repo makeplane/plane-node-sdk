@@ -16,8 +16,18 @@ export interface ListWebhookLogsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read. */
+export interface WebhookLogFieldsParams {
+  fields?: readonly WebhookLogField[];
+}
+
 /**
- * Read-only webhook delivery logs for one webhook; backed by `WebhookEvent` (the `WebhookLog` model is deprecated upstream).
+ * Read-only webhook delivery logs for one webhook; backed by `WebhookEvent` (the
+ * `WebhookLog` model is deprecated upstream).
+ *
+ * The webhook's id sits in the **collection** path
+ * (`.../webhook-logs/{webhook_id}/`), not on a detail route, so it is a leading path id
+ * on `list` as well as on `retrieve` — and a log's own id is appended after it.
  */
 export class WebhookLogs extends V2Resource<WebhookLog, never, never> {
   protected path = "/workspaces/{slug}/webhook-logs/{webhook_id}/";
@@ -26,34 +36,30 @@ export class WebhookLogs extends V2Resource<WebhookLog, never, never> {
     retrieve: "webhook_logs_retrieve",
   };
 
-  private pk(webhookId: string, id?: string): Record<string, string> {
-    const params: Record<string, string> = { webhook_id: webhookId };
-    if (id !== undefined) params.pk = id;
-    return params;
-  }
-
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WebhookLogField, "all"> & keyof WebhookLog>(
-    webhookId: string,
+    slug: string,
+    webhook: string,
     params: ListWebhookLogsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WebhookLog, F | "id">>>;
-  list(webhookId: string, params?: ListWebhookLogsParams): Promise<Page<WebhookLog>>;
-  list(webhookId: string, params?: ListWebhookLogsParams): Promise<Page<WebhookLog>> {
-    return this.doList(this.pk(webhookId), params as Record<string, unknown>);
+  list(slug: string, webhook: string, params?: ListWebhookLogsParams): Promise<Page<WebhookLog>>;
+  list(slug: string, webhook: string, params?: ListWebhookLogsParams): Promise<Page<WebhookLog>> {
+    return this.doList({ slug, webhook_id: webhook }, params as Record<string, unknown>);
   }
 
   /** Every delivery log for this webhook, following pages automatically. */
-  iterate(webhookId: string, params?: ListWebhookLogsParams): AsyncGenerator<WebhookLog> {
-    return this.doIterate(this.pk(webhookId), params as Record<string, unknown>);
+  iterate(slug: string, webhook: string, params?: ListWebhookLogsParams): AsyncGenerator<WebhookLog> {
+    return this.doIterate({ slug, webhook_id: webhook }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WebhookLogField, "all"> & keyof WebhookLog>(
-    webhookId: string,
-    logId: string,
+    slug: string,
+    webhook: string,
+    log: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WebhookLog, F | "id">>;
-  retrieve(webhookId: string, logId: string, params?: { fields?: readonly WebhookLogField[] }): Promise<WebhookLog>;
-  retrieve(webhookId: string, logId: string, params?: { fields?: readonly WebhookLogField[] }): Promise<WebhookLog> {
-    return this.doRetrieve(this.pk(webhookId, logId), params as Record<string, unknown>);
+  retrieve(slug: string, webhook: string, log: string, params?: WebhookLogFieldsParams): Promise<WebhookLog>;
+  retrieve(slug: string, webhook: string, log: string, params?: WebhookLogFieldsParams): Promise<WebhookLog> {
+    return this.doRetrieve({ slug, webhook_id: webhook, pk: log }, params as Record<string, unknown>);
   }
 }

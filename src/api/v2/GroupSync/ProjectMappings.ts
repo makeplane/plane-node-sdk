@@ -17,7 +17,19 @@ export interface ListGroupSyncProjectMappingsParams {
   count?: boolean;
 }
 
-/** IdP group -> project(s) + role mappings for SSO/SCIM sync. No upsert or bulk write. */
+/** `?fields=` on a single-row read or write. */
+export interface GroupSyncProjectMappingFieldsParams {
+  fields?: readonly GroupSyncProjectMappingField[];
+}
+
+/**
+ * IdP group -> project(s) + role mappings for SSO/SCIM sync. No upsert or bulk write.
+ *
+ * **Workspace-level despite the name.** Its path is
+ * `/workspaces/{slug}/group-sync/project-mappings/` — there is no `{project_id}` in it,
+ * so every method here takes `slug` alone. The projects a group maps to are fields on
+ * the row, not part of the URL.
+ */
 export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGroupMapping, UpdateGroupMapping> {
   protected path = "/workspaces/{slug}/group-sync/project-mappings/";
   protected operations: Record<string, OperationId> = {
@@ -30,36 +42,43 @@ export class GroupSyncProjectMappings extends V2Resource<GroupMapping, CreateGro
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
+    slug: string,
     params: ListGroupSyncProjectMappingsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<GroupMapping, F | "id">>>;
-  list(params?: ListGroupSyncProjectMappingsParams): Promise<Page<GroupMapping>>;
-  list(params?: ListGroupSyncProjectMappingsParams): Promise<Page<GroupMapping>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListGroupSyncProjectMappingsParams): Promise<Page<GroupMapping>>;
+  list(slug: string, params?: ListGroupSyncProjectMappingsParams): Promise<Page<GroupMapping>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every mapping, following pages automatically. */
-  iterate(params?: ListGroupSyncProjectMappingsParams): AsyncGenerator<GroupMapping> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListGroupSyncProjectMappingsParams): AsyncGenerator<GroupMapping> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<GroupSyncProjectMappingField, "all"> & keyof GroupMapping>(
-    mappingId: string,
+    slug: string,
+    mapping: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<GroupMapping, F | "id">>;
-  retrieve(mappingId: string, params?: { fields?: readonly GroupSyncProjectMappingField[] }): Promise<GroupMapping>;
-  retrieve(mappingId: string, params?: { fields?: readonly GroupSyncProjectMappingField[] }): Promise<GroupMapping> {
-    return this.doRetrieve({ pk: mappingId }, params as Record<string, unknown>);
+  retrieve(slug: string, mapping: string, params?: GroupSyncProjectMappingFieldsParams): Promise<GroupMapping>;
+  retrieve(slug: string, mapping: string, params?: GroupSyncProjectMappingFieldsParams): Promise<GroupMapping> {
+    return this.doRetrieve({ slug, pk: mapping }, params as Record<string, unknown>);
   }
 
-  create(data: CreateGroupMapping): Promise<GroupMapping> {
-    return this.doCreate(data, {});
+  create(slug: string, data: CreateGroupMapping, params?: GroupSyncProjectMappingFieldsParams): Promise<GroupMapping> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(mappingId: string, data: UpdateGroupMapping): Promise<GroupMapping> {
-    return this.doUpdate(data, { pk: mappingId });
+  update(
+    slug: string,
+    mapping: string,
+    data: UpdateGroupMapping,
+    params?: GroupSyncProjectMappingFieldsParams
+  ): Promise<GroupMapping> {
+    return this.doUpdate(data, { slug, pk: mapping }, params as Record<string, unknown>);
   }
 
-  delete(mappingId: string): Promise<void> {
-    return this.doDelete({ pk: mappingId });
+  delete(slug: string, mapping: string): Promise<void> {
+    return this.doDelete({ slug, pk: mapping });
   }
 }

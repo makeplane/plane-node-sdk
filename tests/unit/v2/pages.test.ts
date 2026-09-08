@@ -8,11 +8,7 @@ const BASE = "https://api.example.com";
 const SLUG = "acme";
 const PROJECT = "ENG";
 
-const makePages = () =>
-  new ProjectPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), {
-    slug: SLUG,
-    project_id: PROJECT,
-  });
+const makePages = () => new ProjectPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -29,15 +25,15 @@ describe("ProjectPages (v2, project-scoped)", () => {
     nock(BASE).delete(`${collection}p1/`).reply(204);
 
     const pages = makePages();
-    const page = await pages.list();
+    const page = await pages.list(SLUG, PROJECT);
     expect(page.data[0].name).toBe("Runbook");
-    const created = await pages.create({ name: "Runbook" });
+    const created = await pages.create(SLUG, PROJECT, { name: "Runbook" });
     expect(created.access).toBe(0);
-    const fetched = await pages.retrieve("p1");
+    const fetched = await pages.retrieve(SLUG, PROJECT, "p1");
     expect(fetched.name).toBe("Runbook");
-    const updated = await pages.update("p1", { is_locked: true });
+    const updated = await pages.update(SLUG, PROJECT, "p1", { is_locked: true });
     expect(updated.is_locked).toBe(true);
-    await expect(pages.delete("p1")).resolves.toBeUndefined();
+    await expect(pages.delete(SLUG, PROJECT, "p1")).resolves.toBeUndefined();
   });
 
   it("encodes the owned_by/parent expand", async () => {
@@ -45,12 +41,12 @@ describe("ProjectPages (v2, project-scoped)", () => {
       .get(collection)
       .query({ expand: "owned_by,parent" })
       .reply(200, { data: [], pagination: { style: "offset" } });
-    await makePages().list({ expand: ["owned_by", "parent"] });
+    await makePages().list(SLUG, PROJECT, { expand: ["owned_by", "parent"] });
     expect(scope.isDone()).toBe(true);
   });
 
   it("rejects an expand value the operation doesn't offer", async () => {
-    await expect(makePages().list({ expand: ["assignees" as never] })).rejects.toThrow(
+    await expect(makePages().list(SLUG, PROJECT, { expand: ["assignees" as never] })).rejects.toThrow(
       /Unknown expand value\(s\) for project_pages_list: assignees/
     );
   });
@@ -60,14 +56,12 @@ describe("ProjectPages (v2, project-scoped)", () => {
       .get(collection)
       .query({ type: "shared" })
       .reply(200, { data: [], pagination: { style: "offset" } });
-    await makePages().list({ type: "shared" });
+    await makePages().list(SLUG, PROJECT, { type: "shared" });
     expect(scope.isDone()).toBe(true);
   });
 
-  it("throws a clear error when constructed with no scope", async () => {
-    const pages = new ProjectPages(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
-
-    await expect(pages.list()).rejects.toThrow(/needs the path id 'slug'/);
+  it("throws a clear error when the workspace slug is empty", async () => {
+    await expect(makePages().list("", PROJECT)).rejects.toThrow(/needs the path id 'slug'/);
   });
 
   describe("findByName()", () => {
@@ -86,7 +80,7 @@ describe("ProjectPages (v2, project-scoped)", () => {
           pagination: { style: "offset" },
         });
 
-      const found = await makePages().findByName("Runbook");
+      const found = await makePages().findByName(SLUG, PROJECT, "Runbook");
 
       expect(scope.isDone()).toBe(true);
       expect(found.id).toBe("p1");
@@ -97,7 +91,7 @@ describe("ProjectPages (v2, project-scoped)", () => {
         .get(collection)
         .reply(200, { data: [{ id: "p1", name: "Runbook" }], pagination: { style: "offset" } });
 
-      await expect(makePages().findByName("Nope")).rejects.toBeInstanceOf(NoMatchFoundError);
+      await expect(makePages().findByName(SLUG, PROJECT, "Nope")).rejects.toBeInstanceOf(NoMatchFoundError);
     });
   });
 });

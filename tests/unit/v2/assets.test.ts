@@ -8,7 +8,7 @@ const BASE = "https://api.example.com";
 const SLUG = "acme";
 
 const makeTransport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
-const makeAssets = () => new Assets(makeTransport(), { slug: SLUG });
+const makeAssets = () => new Assets(makeTransport());
 const makeUserAssets = () => new UserAssets(makeTransport());
 
 afterEach(() => nock.cleanAll());
@@ -20,10 +20,10 @@ describe("Assets (v2, workspace-scoped)", () => {
     nock(BASE)
       .get(collection)
       .reply(200, { data: [{ id: "a1", name: "logo.png", is_uploaded: true }], pagination: { style: "offset" } });
-    const page = await makeAssets().list();
+    const page = await makeAssets().list(SLUG);
     expect(page.data[0].name).toBe("logo.png");
 
-    await expect(makeAssets().list({ fields: ["nope" as never] })).rejects.toThrow(/nope/);
+    await expect(makeAssets().list(SLUG, { fields: ["nope" as never] })).rejects.toThrow(/nope/);
   });
 
   it("is a two-step upload: create returns credentials, update (empty body) confirms", async () => {
@@ -37,23 +37,23 @@ describe("Assets (v2, workspace-scoped)", () => {
     nock(BASE).delete(`${collection}a1/`).reply(204);
 
     const assets = makeAssets();
-    const created = await assets.create(createBody);
+    const created = await assets.create(SLUG, createBody);
     expect(created.is_uploaded).toBe(false);
     expect(created.asset_url).toBeTruthy();
 
-    const confirmed = await assets.update("a1");
+    const confirmed = await assets.update(SLUG, "a1");
     expect(confirmed.is_uploaded).toBe(true);
 
-    await expect(assets.delete("a1")).resolves.toBeUndefined();
+    await expect(assets.delete(SLUG, "a1")).resolves.toBeUndefined();
   });
 
   it("retrieves one asset", async () => {
     nock(BASE).get(`${collection}a1/`).reply(200, { id: "a1", name: "logo.png" });
-    expect((await makeAssets().retrieve("a1")).name).toBe("logo.png");
+    expect((await makeAssets().retrieve(SLUG, "a1")).name).toBe("logo.png");
   });
 
   it("rejects an unknown order_by before making the request", async () => {
-    await expect(makeAssets().list({ order_by: "name" as never })).rejects.toThrow(
+    await expect(makeAssets().list(SLUG, { order_by: "name" as never })).rejects.toThrow(
       /Unknown order_by 'name' for assets_list/
     );
   });

@@ -6,8 +6,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 const BASE = "https://api.example.com";
 const SLUG = "acme";
 
-const makeLogs = () =>
-  new WebhookLogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: SLUG });
+const makeLogs = () => new WebhookLogs(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -21,7 +20,7 @@ describe("WebhookLogs (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeLogs().list("wh-1");
+    const page = await makeLogs().list(SLUG, "wh-1");
 
     expect(page.data[0].event_type).toBe("work_item.created");
   });
@@ -31,7 +30,7 @@ describe("WebhookLogs (v2)", () => {
       .get("/api/v2/workspaces/acme/webhook-logs/wh-1/log-1/")
       .reply(200, { id: "log-1", webhook_id: "wh-1", request_body: "{}", response_body: "{}" });
 
-    const log = await makeLogs().retrieve("wh-1", "log-1");
+    const log = await makeLogs().retrieve(SLUG, "wh-1", "log-1");
 
     expect(log.request_body).toBe("{}");
   });
@@ -41,13 +40,13 @@ describe("WebhookLogs (v2)", () => {
       .get("/api/v2/workspaces/acme/webhook-logs/wh%2Fslash/")
       .reply(200, { data: [], pagination: { style: "offset" } });
 
-    await makeLogs().list("wh/slash");
+    await makeLogs().list(SLUG, "wh/slash");
 
     expect(scope.isDone()).toBe(true);
   });
 
   it("rejects an unknown order_by before making the request", async () => {
-    await expect(makeLogs().list("wh-1", { order_by: "webhook_id" as never })).rejects.toThrow(
+    await expect(makeLogs().list(SLUG, "wh-1", { order_by: "webhook_id" as never })).rejects.toThrow(
       /Unknown order_by 'webhook_id' for webhook_logs_list/
     );
   });
@@ -63,7 +62,7 @@ describe("WebhookLogs (v2)", () => {
       .reply(200, { data: [{ id: "log-2" }], pagination: { style: "offset" }, next: null });
 
     const ids: string[] = [];
-    for await (const row of makeLogs().iterate("wh-1", { per_page: 1 })) {
+    for await (const row of makeLogs().iterate(SLUG, "wh-1", { per_page: 1 })) {
       ids.push(row.id);
     }
 

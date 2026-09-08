@@ -6,7 +6,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 const BASE = "https://api.example.com";
 
 const makeWorkspaceWorkItems = () =>
-  new WorkspaceWorkItems(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: "acme" });
+  new WorkspaceWorkItems(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -17,7 +17,7 @@ describe("WorkspaceWorkItems (v2)", () => {
       .query({ priority: "urgent" })
       .reply(200, { data: [{ id: "1" }, { id: "2" }], pagination: { style: "offset" } });
 
-    const page = await makeWorkspaceWorkItems().list({ priority: "urgent" });
+    const page = await makeWorkspaceWorkItems().list("acme", { priority: "urgent" });
 
     expect(scope.isDone()).toBe(true);
     expect(page.data).toHaveLength(2);
@@ -33,13 +33,13 @@ describe("WorkspaceWorkItems (v2)", () => {
       .reply(200, { data: [{ id: "2" }], pagination: { style: "offset" }, next: null });
 
     const seen: string[] = [];
-    for await (const row of makeWorkspaceWorkItems().iterate()) seen.push(row.id);
+    for await (const row of makeWorkspaceWorkItems().iterate("acme")) seen.push(row.id);
 
     expect(seen).toEqual(["1", "2"]);
   });
 
   it("rejects an unknown expand value before making the request", async () => {
-    await expect(makeWorkspaceWorkItems().list({ expand: ["nope" as never] })).rejects.toThrow(
+    await expect(makeWorkspaceWorkItems().list("acme", { expand: ["nope" as never] })).rejects.toThrow(
       /Unknown expand value\(s\) for workspace_work_items_list: nope/
     );
   });
@@ -49,7 +49,7 @@ describe("WorkspaceWorkItems (v2)", () => {
       .get("/api/v2/workspaces/acme/work-items/ENG-12/")
       .reply(200, { id: "uuid-1", identifier: "ENG-12", sequence_id: 12 });
 
-    const found = await makeWorkspaceWorkItems().retrieveByIdentifier("ENG-12");
+    const found = await makeWorkspaceWorkItems().retrieveByIdentifier("acme", "ENG-12");
 
     expect(scope.isDone()).toBe(true);
     expect(found.identifier).toBe("ENG-12");
@@ -64,8 +64,8 @@ describe("WorkspaceWorkItems (v2)", () => {
       .get("/api/v2/workspaces/acme/work-items/")
       .reply(200, { data: [{ id: "1" }], pagination: { style: "offset" } });
 
-    await makeWorkspaceWorkItems().retrieveByIdentifier("ENG-12");
-    await makeWorkspaceWorkItems().list();
+    await makeWorkspaceWorkItems().retrieveByIdentifier("acme", "ENG-12");
+    await makeWorkspaceWorkItems().list("acme");
 
     expect(identifierScope.isDone()).toBe(true);
     expect(listScope.isDone()).toBe(true);

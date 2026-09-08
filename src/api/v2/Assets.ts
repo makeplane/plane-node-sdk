@@ -20,6 +20,11 @@ export interface ListWorkspaceAssetsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface WorkspaceAssetFieldsParams {
+  fields?: readonly WorkspaceAssetField[];
+}
+
 /** Workspace file assets — two-step upload: `create` returns S3 credentials, `update` (empty PATCH) confirms. `list` only shows uploaded assets. */
 export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadRequest, WorkspaceAssetConfirmRequest> {
   protected path = "/workspaces/{slug}/assets/";
@@ -33,41 +38,47 @@ export class Assets extends V2Resource<WorkspaceAsset, WorkspaceAssetUploadReque
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkspaceAssetField, "all"> & keyof WorkspaceAsset>(
+    slug: string,
     params: ListWorkspaceAssetsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceAsset, F | "id">>>;
-  list(params?: ListWorkspaceAssetsParams): Promise<Page<WorkspaceAsset>>;
-  list(params?: ListWorkspaceAssetsParams): Promise<Page<WorkspaceAsset>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListWorkspaceAssetsParams): Promise<Page<WorkspaceAsset>>;
+  list(slug: string, params?: ListWorkspaceAssetsParams): Promise<Page<WorkspaceAsset>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every uploaded asset, following pages automatically. */
-  iterate(params?: ListWorkspaceAssetsParams): AsyncGenerator<WorkspaceAsset> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListWorkspaceAssetsParams): AsyncGenerator<WorkspaceAsset> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkspaceAssetField, "all"> & keyof WorkspaceAsset>(
-    assetId: string,
+    slug: string,
+    asset: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkspaceAsset, F | "id">>;
-  retrieve(assetId: string, params?: { fields?: readonly WorkspaceAssetField[] }): Promise<WorkspaceAsset>;
-  retrieve(assetId: string, params?: { fields?: readonly WorkspaceAssetField[] }): Promise<WorkspaceAsset> {
-    return this.doRetrieve({ pk: assetId }, params as Record<string, unknown>);
+  retrieve(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset>;
+  retrieve(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset> {
+    return this.doRetrieve({ slug, pk: asset }, params as Record<string, unknown>);
   }
 
-  /** Step 1: get upload credentials. Follow up with `update(...)` once the bytes land. */
-  create(
-    data: WorkspaceAssetUploadRequest,
-    params?: { fields?: readonly WorkspaceAssetField[] }
-  ): Promise<WorkspaceAsset> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  /**
+   * Step 1: get upload credentials. Follow up with `update(...)` once the bytes land.
+   *
+   * Deliberately offers no `fields`, though `assets_create` declares it: the presigned
+   * upload data exists only in this one reply and cannot be re-fetched, so a projection
+   * could silently strand the caller mid-upload. Named in `ONE_TIME_RESPONSES` in
+   * `tests/unit/v2/fields-coverage.test.ts`.
+   */
+  create(slug: string, data: WorkspaceAssetUploadRequest): Promise<WorkspaceAsset> {
+    return this.doCreate(data, { slug });
   }
 
   /** Step 2: confirm the upload. Takes no body — see {@link WorkspaceAssetConfirmRequest}. */
-  update(assetId: string, params?: { fields?: readonly WorkspaceAssetField[] }): Promise<WorkspaceAsset> {
-    return this.doUpdate({}, { pk: assetId }, params as Record<string, unknown>);
+  update(slug: string, asset: string, params?: WorkspaceAssetFieldsParams): Promise<WorkspaceAsset> {
+    return this.doUpdate({}, { slug, pk: asset }, params as Record<string, unknown>);
   }
 
-  delete(assetId: string): Promise<void> {
-    return this.doDelete({ pk: assetId });
+  delete(slug: string, asset: string): Promise<void> {
+    return this.doDelete({ slug, pk: asset });
   }
 }

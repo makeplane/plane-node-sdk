@@ -5,8 +5,7 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 
-const makeResource = () =>
-  new Invitations(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })), { slug: "acme" });
+const makeResource = () => new Invitations(new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" })));
 
 afterEach(() => nock.cleanAll());
 
@@ -19,7 +18,7 @@ describe("Invitations (v2)", () => {
         pagination: { style: "offset" },
       });
 
-    const page = await makeResource().list();
+    const page = await makeResource().list("acme");
 
     expect(page.data[0].email).toBe("a@example.com");
   });
@@ -29,7 +28,7 @@ describe("Invitations (v2)", () => {
       .post("/api/v2/workspaces/acme/invitations/", { email: "a@example.com" })
       .reply(201, { id: "1", email: "a@example.com", role: "member" });
 
-    const created = await makeResource().create({ email: "a@example.com" });
+    const created = await makeResource().create("acme", { email: "a@example.com" });
 
     expect(created.role).toBe("member");
   });
@@ -38,10 +37,10 @@ describe("Invitations (v2)", () => {
     nock(BASE).get("/api/v2/workspaces/acme/invitations/1/").reply(200, { id: "1", email: "a@example.com" });
     const deleteScope = nock(BASE).delete("/api/v2/workspaces/acme/invitations/1/").reply(204);
 
-    const fetched = await makeResource().retrieve("1");
+    const fetched = await makeResource().retrieve("acme", "1");
     expect(fetched.id).toBe("1");
 
-    await expect(makeResource().delete("1")).resolves.toBeUndefined();
+    await expect(makeResource().delete("acme", "1")).resolves.toBeUndefined();
     expect(deleteScope.isDone()).toBe(true);
   });
 
@@ -59,7 +58,7 @@ describe("Invitations (v2)", () => {
         { id: "2", email: "b@example.com" },
       ]);
 
-    const created = await makeResource().bulk(body);
+    const created = await makeResource().bulk("acme", body);
 
     expect(scope.isDone()).toBe(true);
     expect(created).toHaveLength(2);
@@ -70,7 +69,7 @@ describe("Invitations (v2)", () => {
     // Proof this can actually fail: "display_name" is not one of members_bulk's
     // allowed fields (that enum only covers WorkspaceInvite's own columns).
     await expect(
-      makeResource().bulk({ emails: ["a@example.com"] }, { fields: ["display_name"] as never })
+      makeResource().bulk("acme", { emails: ["a@example.com"] }, { fields: ["display_name"] as never })
     ).rejects.toThrow(/Unknown field\(s\) for members_bulk/);
   });
 });

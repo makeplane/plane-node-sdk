@@ -16,6 +16,11 @@ export interface ListUserAssetsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface UserAssetFieldsParams {
+  fields?: readonly UserAssetField[];
+}
+
 /**
  * Personal avatar/cover assets (not workspace-scoped); two-step S3 upload via `create`+`update`.
  */
@@ -44,25 +49,31 @@ export class UserAssets extends V2Resource<UserAsset, UserAssetUploadRequest, Us
   }
 
   retrieve<F extends Exclude<UserAssetField, "all"> & keyof UserAsset>(
-    assetId: string,
+    asset: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<UserAsset, F | "id">>;
-  retrieve(assetId: string, params?: { fields?: readonly UserAssetField[] }): Promise<UserAsset>;
-  retrieve(assetId: string, params?: { fields?: readonly UserAssetField[] }): Promise<UserAsset> {
-    return this.doRetrieve({ pk: assetId }, params as Record<string, unknown>);
+  retrieve(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset>;
+  retrieve(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset> {
+    return this.doRetrieve({ pk: asset }, params as Record<string, unknown>);
   }
 
-  /** Step 1: get upload credentials. Follow up with `update(...)` once the bytes land. */
-  create(data: UserAssetUploadRequest, params?: { fields?: readonly UserAssetField[] }): Promise<UserAsset> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  /**
+   * Step 1: get upload credentials. Follow up with `update(...)` once the bytes land.
+   *
+   * The user-scoped twin of `Assets.create`, and offers no `fields` for the same reason:
+   * the presigned upload data is in this reply only and cannot be re-fetched. Named in
+   * `ONE_TIME_RESPONSES` in `tests/unit/v2/fields-coverage.test.ts`.
+   */
+  create(data: UserAssetUploadRequest): Promise<UserAsset> {
+    return this.doCreate(data, {});
   }
 
   /** Step 2: confirm the upload. Takes no body — see {@link UserAssetConfirmRequest}. */
-  update(assetId: string, params?: { fields?: readonly UserAssetField[] }): Promise<UserAsset> {
-    return this.doUpdate({}, { pk: assetId }, params as Record<string, unknown>);
+  update(asset: string, params?: UserAssetFieldsParams): Promise<UserAsset> {
+    return this.doUpdate({}, { pk: asset }, params as Record<string, unknown>);
   }
 
-  delete(assetId: string): Promise<void> {
-    return this.doDelete({ pk: assetId });
+  delete(asset: string): Promise<void> {
+    return this.doDelete({ pk: asset });
   }
 }

@@ -1,7 +1,12 @@
 import { GroupSyncConfig, UpdateGroupSyncConfig } from "../../../models/v2/GroupSyncConfig";
 import { AnyOperationId, V2Resource } from "../kernel/resource";
 
-/** Singleton workspace IdP group-sync config. GET/PATCH only; talks to the singleton URL directly, bypassing `doRetrieve`/`doUpdate`. */
+/**
+ * The workspace's IdP group-sync configuration.
+ *
+ * A **singleton**: GET/PATCH against the collection URL, no primary key of its own, so
+ * both verbs go through the kernel's singleton helpers.
+ */
 export class GroupSyncConfigResource extends V2Resource<GroupSyncConfig, never, UpdateGroupSyncConfig> {
   protected path = "/workspaces/{slug}/group-sync/config/";
   // No entry needed: this operation takes no `fields`/`order_by`/`expand`.
@@ -10,13 +15,11 @@ export class GroupSyncConfigResource extends V2Resource<GroupSyncConfig, never, 
     update: "group_sync_config_update",
   };
 
-  // `async` is required: `urlFor` throws synchronously, and a non-async method
-  // returning the transport promise directly would let that escape as a throw.
-  async get(): Promise<GroupSyncConfig> {
-    return this.transport.request<GroupSyncConfig>("GET", this.urlFor("get", {}));
+  get(slug: string): Promise<GroupSyncConfig> {
+    return this.doRetrieveSingleton<GroupSyncConfig>({ slug }, "get");
   }
 
-  async update(data: UpdateGroupSyncConfig): Promise<GroupSyncConfig> {
-    return this.transport.request<GroupSyncConfig>("PATCH", this.urlFor("update", {}), { data });
+  update(slug: string, data: UpdateGroupSyncConfig): Promise<GroupSyncConfig> {
+    return this.doUpdateSingleton<GroupSyncConfig>(data, { slug });
   }
 }

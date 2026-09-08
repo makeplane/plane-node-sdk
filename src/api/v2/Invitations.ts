@@ -19,9 +19,18 @@ export interface ListInvitationsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface WorkspaceInviteFieldsParams {
+  fields?: readonly WorkspaceInviteField[];
+}
+
 /** Workspace invitations; no PATCH (accepted/declined by the invitee, not edited) and no `upsert`. */
 export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvite, never> {
   protected path = "/workspaces/{slug}/invitations/";
+  // `bulk` POSTs to `.../invitations/bulk/`, which is a template of its own rather than
+  // a verb on a row — declared here so `urlFor` builds it and the sweeps check `bulk`'s
+  // leading parameters against this template, not against `path`.
+  protected extraPaths = { bulk: "/workspaces/{slug}/invitations/bulk/" };
   protected operations: Record<string, OperationId> = {
     list: "members_list",
     retrieve: "members_retrieve",
@@ -32,44 +41,54 @@ export class Invitations extends V2Resource<WorkspaceInvite, CreateWorkspaceInvi
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
+    slug: string,
     params: ListInvitationsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceInvite, F | "id">>>;
-  list(params?: ListInvitationsParams): Promise<Page<WorkspaceInvite>>;
-  list(params?: ListInvitationsParams): Promise<Page<WorkspaceInvite>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListInvitationsParams): Promise<Page<WorkspaceInvite>>;
+  list(slug: string, params?: ListInvitationsParams): Promise<Page<WorkspaceInvite>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every invitation, following pages automatically. */
-  iterate(params?: ListInvitationsParams): AsyncGenerator<WorkspaceInvite> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListInvitationsParams): AsyncGenerator<WorkspaceInvite> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WorkspaceInviteField, "all"> & keyof WorkspaceInvite>(
-    inviteId: string,
+    slug: string,
+    invite: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkspaceInvite, F | "id">>;
-  retrieve(inviteId: string, params?: { fields?: readonly WorkspaceInviteField[] }): Promise<WorkspaceInvite>;
-  retrieve(inviteId: string, params?: { fields?: readonly WorkspaceInviteField[] }): Promise<WorkspaceInvite> {
-    return this.doRetrieve({ pk: inviteId }, params as Record<string, unknown>);
+  retrieve(slug: string, invite: string, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite>;
+  retrieve(slug: string, invite: string, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite> {
+    return this.doRetrieve({ slug, pk: invite }, params as Record<string, unknown>);
   }
 
-  create(data: CreateWorkspaceInvite): Promise<WorkspaceInvite> {
-    return this.doCreate(data, {});
+  create(slug: string, data: CreateWorkspaceInvite, params?: WorkspaceInviteFieldsParams): Promise<WorkspaceInvite> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
   /** Revoke an invitation. The API rejects revoking one already accepted (400). */
-  delete(inviteId: string): Promise<void> {
-    return this.doDelete({ pk: inviteId });
+  delete(slug: string, invite: string): Promise<void> {
+    return this.doDelete({ slug, pk: invite });
   }
 
-  /** Invite up to 100 emails. Golden's schema shows a single object; the live view returns an array — modeled as such. */
-  async bulk(
+  /**
+   * Invite up to 100 emails in one call; emails already invited are skipped server-side.
+   *
+   * Answers an array rather than one row (the golden's schema shows a single object; the
+   * live view returns a list), so it goes through the kernel's custom-action helper at
+   * its own `extraPaths` template.
+   */
+  bulk(
+    slug: string,
     data: BulkCreateWorkspaceInvites,
-    params?: { fields?: readonly WorkspaceInviteField[] }
+    params?: WorkspaceInviteFieldsParams
   ): Promise<WorkspaceInvite[]> {
-    return this.transport.request<WorkspaceInvite[]>("POST", `${this.collectionUrl({})}bulk/`, {
-      params: this.query(params, "bulk"),
+    return this.doCustomAction<WorkspaceInvite[]>("bulk", {
+      pathParams: { slug },
       data,
+      params: params as Record<string, unknown>,
     });
   }
 }

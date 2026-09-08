@@ -21,6 +21,11 @@ export interface ListGroupSyncWorkspaceMappingsParams {
   count?: boolean;
 }
 
+/** `?fields=` on a single-row read or write. */
+export interface GroupSyncWorkspaceMappingFieldsParams {
+  fields?: readonly GroupSyncWorkspaceMappingField[];
+}
+
 /** IdP group -> workspace role mappings for SSO/SCIM sync. No upsert or bulk write. */
 export class GroupSyncWorkspaceMappings extends V2Resource<
   WorkspaceGroupMapping,
@@ -38,42 +43,55 @@ export class GroupSyncWorkspaceMappings extends V2Resource<
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
+    slug: string,
     params: ListGroupSyncWorkspaceMappingsParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WorkspaceGroupMapping, F | "id">>>;
-  list(params?: ListGroupSyncWorkspaceMappingsParams): Promise<Page<WorkspaceGroupMapping>>;
-  list(params?: ListGroupSyncWorkspaceMappingsParams): Promise<Page<WorkspaceGroupMapping>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): Promise<Page<WorkspaceGroupMapping>>;
+  list(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): Promise<Page<WorkspaceGroupMapping>> {
+    return this.doList({ slug }, params as Record<string, unknown>);
   }
 
   /** Every mapping, following pages automatically. */
-  iterate(params?: ListGroupSyncWorkspaceMappingsParams): AsyncGenerator<WorkspaceGroupMapping> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, params?: ListGroupSyncWorkspaceMappingsParams): AsyncGenerator<WorkspaceGroupMapping> {
+    return this.doIterate({ slug }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<GroupSyncWorkspaceMappingField, "all"> & keyof WorkspaceGroupMapping>(
-    mappingId: string,
+    slug: string,
+    mapping: string,
     params: { fields: readonly F[] }
   ): Promise<Pick<WorkspaceGroupMapping, F | "id">>;
   retrieve(
-    mappingId: string,
-    params?: { fields?: readonly GroupSyncWorkspaceMappingField[] }
+    slug: string,
+    mapping: string,
+    params?: GroupSyncWorkspaceMappingFieldsParams
   ): Promise<WorkspaceGroupMapping>;
   retrieve(
-    mappingId: string,
-    params?: { fields?: readonly GroupSyncWorkspaceMappingField[] }
+    slug: string,
+    mapping: string,
+    params?: GroupSyncWorkspaceMappingFieldsParams
   ): Promise<WorkspaceGroupMapping> {
-    return this.doRetrieve({ pk: mappingId }, params as Record<string, unknown>);
+    return this.doRetrieve({ slug, pk: mapping }, params as Record<string, unknown>);
   }
 
-  create(data: CreateWorkspaceGroupMapping): Promise<WorkspaceGroupMapping> {
-    return this.doCreate(data, {});
+  create(
+    slug: string,
+    data: CreateWorkspaceGroupMapping,
+    params?: GroupSyncWorkspaceMappingFieldsParams
+  ): Promise<WorkspaceGroupMapping> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
   }
 
-  update(mappingId: string, data: UpdateWorkspaceGroupMapping): Promise<WorkspaceGroupMapping> {
-    return this.doUpdate(data, { pk: mappingId });
+  update(
+    slug: string,
+    mapping: string,
+    data: UpdateWorkspaceGroupMapping,
+    params?: GroupSyncWorkspaceMappingFieldsParams
+  ): Promise<WorkspaceGroupMapping> {
+    return this.doUpdate(data, { slug, pk: mapping }, params as Record<string, unknown>);
   }
 
-  delete(mappingId: string): Promise<void> {
-    return this.doDelete({ pk: mappingId });
+  delete(slug: string, mapping: string): Promise<void> {
+    return this.doDelete({ slug, pk: mapping });
   }
 }

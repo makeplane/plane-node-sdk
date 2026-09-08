@@ -7,9 +7,9 @@ import { V2Transport } from "../../../src/api/v2/kernel/transport";
 
 const BASE = "https://api.example.com";
 const transport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
-const makeConfig = () => new GroupSyncConfigResource(transport(), { slug: "acme" });
-const makeProjectMappings = () => new GroupSyncProjectMappings(transport(), { slug: "acme" });
-const makeWorkspaceMappings = () => new GroupSyncWorkspaceMappings(transport(), { slug: "acme" });
+const makeConfig = () => new GroupSyncConfigResource(transport());
+const makeProjectMappings = () => new GroupSyncProjectMappings(transport());
+const makeWorkspaceMappings = () => new GroupSyncWorkspaceMappings(transport());
 
 afterEach(() => nock.cleanAll());
 
@@ -19,7 +19,7 @@ describe("GroupSyncConfigResource (v2)", () => {
       .get("/api/v2/workspaces/acme/group-sync/config/")
       .reply(200, { id: "1", is_enabled: true, group_attribute_key: "groups" });
 
-    const config = await makeConfig().get();
+    const config = await makeConfig().get("acme");
 
     expect(config.is_enabled).toBe(true);
     expect(config.group_attribute_key).toBe("groups");
@@ -30,7 +30,7 @@ describe("GroupSyncConfigResource (v2)", () => {
       .patch("/api/v2/workspaces/acme/group-sync/config/", { is_enabled: false })
       .reply(200, { id: "1", is_enabled: false });
 
-    const updated = await makeConfig().update({ is_enabled: false });
+    const updated = await makeConfig().update("acme", { is_enabled: false });
 
     expect(scope.isDone()).toBe(true);
     expect(updated.is_enabled).toBe(false);
@@ -47,7 +47,7 @@ describe("GroupSyncProjectMappings (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeProjectMappings().list();
+    const page = await makeProjectMappings().list("acme");
 
     expect(page.data[0].idp_group_name).toBe("engineering");
   });
@@ -65,12 +65,12 @@ describe("GroupSyncProjectMappings (v2)", () => {
       .reply(200, { id: "1", role_slug: "admin" });
 
     const mappings = makeProjectMappings();
-    const created = await mappings.create({
+    const created = await mappings.create("acme", {
       idp_group_name: "engineering",
       role_slug: "member",
       project_id: "proj-1",
     });
-    const updated = await mappings.update(created.id, { role_slug: "admin" });
+    const updated = await mappings.update("acme", created.id, { role_slug: "admin" });
 
     expect(updated.role_slug).toBe("admin");
   });
@@ -78,7 +78,7 @@ describe("GroupSyncProjectMappings (v2)", () => {
   it("deletes a mapping", async () => {
     const scope = nock(BASE).delete("/api/v2/workspaces/acme/group-sync/project-mappings/1/").reply(204);
 
-    await makeProjectMappings().delete("1");
+    await makeProjectMappings().delete("acme", "1");
 
     expect(scope.isDone()).toBe(true);
   });
@@ -86,7 +86,7 @@ describe("GroupSyncProjectMappings (v2)", () => {
   // No nock interceptor is registered for this URL, so the message-specific regex
   // pins the real validator, not just "any throw".
   it("rejects an unknown fields value before making the request", async () => {
-    await expect(makeProjectMappings().list({ fields: ["nope" as never] })).rejects.toThrow(
+    await expect(makeProjectMappings().list("acme", { fields: ["nope" as never] })).rejects.toThrow(
       /Unknown field\(s\) for group_sync_project_mappings_list/
     );
   });
@@ -102,7 +102,7 @@ describe("GroupSyncWorkspaceMappings (v2)", () => {
         total_count: 1,
       });
 
-    const page = await makeWorkspaceMappings().list();
+    const page = await makeWorkspaceMappings().list("acme");
 
     expect(page.data[0].idp_group_name).toBe("everyone");
   });
@@ -119,8 +119,8 @@ describe("GroupSyncWorkspaceMappings (v2)", () => {
       .reply(200, { id: "1", role_slug: "admin" });
 
     const mappings = makeWorkspaceMappings();
-    const created = await mappings.create({ idp_group_name: "everyone", role_slug: "member" });
-    const updated = await mappings.update(created.id, { role_slug: "admin" });
+    const created = await mappings.create("acme", { idp_group_name: "everyone", role_slug: "member" });
+    const updated = await mappings.update("acme", created.id, { role_slug: "admin" });
 
     expect(updated.role_slug).toBe("admin");
   });
@@ -128,13 +128,13 @@ describe("GroupSyncWorkspaceMappings (v2)", () => {
   it("deletes a mapping", async () => {
     const scope = nock(BASE).delete("/api/v2/workspaces/acme/group-sync/workspace-mappings/1/").reply(204);
 
-    await makeWorkspaceMappings().delete("1");
+    await makeWorkspaceMappings().delete("acme", "1");
 
     expect(scope.isDone()).toBe(true);
   });
 
   it("rejects an unknown order_by before making the request", async () => {
-    await expect(makeWorkspaceMappings().list({ order_by: "role_slug" as never })).rejects.toThrow(
+    await expect(makeWorkspaceMappings().list("acme", { order_by: "role_slug" as never })).rejects.toThrow(
       /Unknown order_by 'role_slug' for group_sync_workspace_mappings_list/
     );
   });

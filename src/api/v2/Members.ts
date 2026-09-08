@@ -24,7 +24,13 @@ export interface ListMembersParams {
   count?: boolean;
 }
 
-/** Project members, reached bound to a project. Full CRUD; the workspace-scoped sibling is a separate class, `WorkspaceMembers`. */
+/** `?fields=`/`?expand=` on a single-row read or write. */
+export interface ProjectMemberShapeParams {
+  fields?: readonly ProjectMemberField[];
+  expand?: readonly ProjectMemberExpand[];
+}
+
+/** Project members. Full CRUD; the workspace-scoped sibling is a separate class, `WorkspaceMembers`. */
 export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMember, UpdateProjectMember> {
   protected path = "/workspaces/{slug}/projects/{project_id}/members/";
   protected operations: Record<string, AnyOperationId> = {
@@ -37,51 +43,53 @@ export class ProjectMembers extends V2Resource<ProjectMember, CreateProjectMembe
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<ProjectMemberField, "all"> & keyof ProjectMember>(
+    slug: string,
+    project: string,
     params: ListMembersParams & { fields: readonly F[] }
   ): Promise<Page<Pick<ProjectMember, F | "id">>>;
-  list(params?: ListMembersParams): Promise<Page<ProjectMember>>;
-  list(params?: ListMembersParams): Promise<Page<ProjectMember>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListMembersParams): Promise<Page<ProjectMember>>;
+  list(slug: string, project: string, params?: ListMembersParams): Promise<Page<ProjectMember>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** Every project member, following pages automatically. */
-  iterate(params?: ListMembersParams): AsyncGenerator<ProjectMember> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, project: string, params?: ListMembersParams): AsyncGenerator<ProjectMember> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<ProjectMemberField, "all"> & keyof ProjectMember>(
-    memberId: string,
+    slug: string,
+    project: string,
+    member: string,
     params: { fields: readonly F[]; expand?: readonly ProjectMemberExpand[] }
   ): Promise<Pick<ProjectMember, F | "id">>;
-  retrieve(
-    memberId: string,
-    params?: { fields?: readonly ProjectMemberField[]; expand?: readonly ProjectMemberExpand[] }
-  ): Promise<ProjectMember>;
-  retrieve(
-    memberId: string,
-    params?: { fields?: readonly ProjectMemberField[]; expand?: readonly ProjectMemberExpand[] }
-  ): Promise<ProjectMember> {
-    return this.doRetrieve({ pk: memberId }, params as Record<string, unknown>);
+  retrieve(slug: string, project: string, member: string, params?: ProjectMemberShapeParams): Promise<ProjectMember>;
+  retrieve(slug: string, project: string, member: string, params?: ProjectMemberShapeParams): Promise<ProjectMember> {
+    return this.doRetrieve({ slug, project_id: project, pk: member }, params as Record<string, unknown>);
   }
 
   /** `member_id` is required; `role` defaults to `"member"` server-side when omitted. */
   create(
+    slug: string,
+    project: string,
     data: CreateProjectMember,
-    params?: { fields?: readonly ProjectMemberField[]; expand?: readonly ProjectMemberExpand[] }
+    params?: ProjectMemberShapeParams
   ): Promise<ProjectMember> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** `role` only — `member_id` is immutable on update, see {@link UpdateProjectMember}. */
   update(
-    memberId: string,
+    slug: string,
+    project: string,
+    member: string,
     data: UpdateProjectMember,
-    params?: { fields?: readonly ProjectMemberField[]; expand?: readonly ProjectMemberExpand[] }
+    params?: ProjectMemberShapeParams
   ): Promise<ProjectMember> {
-    return this.doUpdate(data, { pk: memberId }, params as Record<string, unknown>);
+    return this.doUpdate(data, { slug, project_id: project, pk: member }, params as Record<string, unknown>);
   }
 
-  delete(memberId: string): Promise<void> {
-    return this.doDelete({ pk: memberId });
+  delete(slug: string, project: string, member: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: member });
   }
 }

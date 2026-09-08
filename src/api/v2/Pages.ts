@@ -30,7 +30,13 @@ export interface ListWikiPagesParams {
   count?: boolean;
 }
 
-/** Project-scoped wiki pages, reached via `client.v2.workspace(slug).project(project).pages`; workspace-scoped sibling is {@link WikiPages}. */
+/** `?fields=`/`?expand=` on a single-row read or write; shared with {@link WikiPages}. */
+export interface WikiPageShapeParams {
+  fields?: readonly WikiPageField[];
+  expand?: readonly WikiPageExpand[];
+}
+
+/** Project-scoped wiki pages; the workspace-scoped sibling is `WikiPages`, at its own path. */
 export class ProjectPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
   protected path = "/workspaces/{slug}/projects/{project_id}/pages/";
   protected operations: Record<string, OperationId> = {
@@ -43,37 +49,35 @@ export class ProjectPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
 
   /** The row shape returned when `fields` is a literal tuple. `id` is always present. */
   list<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
+    slug: string,
+    project: string,
     params: ListWikiPagesParams & { fields: readonly F[] }
   ): Promise<Page<Pick<WikiPage, F | "id">>>;
-  list(params?: ListWikiPagesParams): Promise<Page<WikiPage>>;
-  list(params?: ListWikiPagesParams): Promise<Page<WikiPage>> {
-    return this.doList({}, params as Record<string, unknown>);
+  list(slug: string, project: string, params?: ListWikiPagesParams): Promise<Page<WikiPage>>;
+  list(slug: string, project: string, params?: ListWikiPagesParams): Promise<Page<WikiPage>> {
+    return this.doList({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   /** Every page in the project, following pages automatically. */
-  iterate(params?: ListWikiPagesParams): AsyncGenerator<WikiPage> {
-    return this.doIterate({}, params as Record<string, unknown>);
+  iterate(slug: string, project: string, params?: ListWikiPagesParams): AsyncGenerator<WikiPage> {
+    return this.doIterate({ slug, project_id: project }, params as Record<string, unknown>);
   }
 
   retrieve<F extends Exclude<WikiPageField, "all"> & keyof WikiPage>(
-    pageId: string,
+    slug: string,
+    project: string,
+    page: string,
     params: { fields: readonly F[]; expand?: readonly WikiPageExpand[] }
   ): Promise<Pick<WikiPage, F | "id">>;
-  retrieve(
-    pageId: string,
-    params?: { fields?: readonly WikiPageField[]; expand?: readonly WikiPageExpand[] }
-  ): Promise<WikiPage>;
-  retrieve(
-    pageId: string,
-    params?: { fields?: readonly WikiPageField[]; expand?: readonly WikiPageExpand[] }
-  ): Promise<WikiPage> {
-    return this.doRetrieve({ pk: pageId }, params as Record<string, unknown>);
+  retrieve(slug: string, project: string, page: string, params?: WikiPageShapeParams): Promise<WikiPage>;
+  retrieve(slug: string, project: string, page: string, params?: WikiPageShapeParams): Promise<WikiPage> {
+    return this.doRetrieve({ slug, project_id: project, pk: page }, params as Record<string, unknown>);
   }
 
   /** The one page with this name; throws if none or several match. Filters client-side — `search` is fuzzy, not exact. */
-  async findByName(name: string): Promise<WikiPage> {
+  async findByName(slug: string, project: string, name: string): Promise<WikiPage> {
     const matches: WikiPage[] = [];
-    for await (const row of this.iterate()) {
+    for await (const row of this.iterate(slug, project)) {
       if (row.name === name) matches.push(row);
     }
     if (matches.length === 0) {
@@ -88,22 +92,21 @@ export class ProjectPages extends V2Resource<WikiPage, CreatePage, UpdatePage> {
   }
 
   /** Omitting `collection_id` lands a **public** page in the default ("General") collection; **private** pages need one explicitly. */
-  create(
-    data: CreatePage,
-    params?: { fields?: readonly WikiPageField[]; expand?: readonly WikiPageExpand[] }
-  ): Promise<WikiPage> {
-    return this.doCreate(data, {}, params as Record<string, unknown>);
+  create(slug: string, project: string, data: CreatePage, params?: WikiPageShapeParams): Promise<WikiPage> {
+    return this.doCreate(data, { slug, project_id: project }, params as Record<string, unknown>);
   }
 
   update(
-    pageId: string,
+    slug: string,
+    project: string,
+    page: string,
     data: UpdatePage,
-    params?: { fields?: readonly WikiPageField[]; expand?: readonly WikiPageExpand[] }
+    params?: WikiPageShapeParams
   ): Promise<WikiPage> {
-    return this.doUpdate(data, { pk: pageId }, params as Record<string, unknown>);
+    return this.doUpdate(data, { slug, project_id: project, pk: page }, params as Record<string, unknown>);
   }
 
-  delete(pageId: string): Promise<void> {
-    return this.doDelete({ pk: pageId });
+  delete(slug: string, project: string, page: string): Promise<void> {
+    return this.doDelete({ slug, project_id: project, pk: page });
   }
 }
