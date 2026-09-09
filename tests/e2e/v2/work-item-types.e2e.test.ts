@@ -160,7 +160,12 @@ maybe("v2 work item types (live)", () => {
 
       await proj().workItemTypes.enable(slug(), project());
       const enabledAgain = await proj().workItemTypes.enable(slug(), project());
-      expect(enabledAgain.is_epic).toBe(true);
+
+      // `enable` answers the *default* type, which it selects with `is_epic=False`,
+      // so the response is never the Epic. The Epic is created as a side effect by
+      // `_ensure_epic_exists` and is only observable through the list below.
+      expect(enabledAgain.is_epic).toBe(false);
+      expect(enabledAgain.is_default).toBe(true);
 
       const page = await proj().workItemTypes.list(slug(), project());
       expect(page.data.some((row) => row.is_epic)).toBe(true);
