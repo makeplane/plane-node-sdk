@@ -21,11 +21,10 @@ maybe("v2 work item comments (live)", () => {
     workItem = await suite.projectRow.workItems.create({ name: uniqueName("wic-parent") });
   });
 
-  afterAll(async () => {
-    if (workItem) {
-      await suite.projectRow.workItems.delete(workItem.id);
-    }
-  });
+  // No explicit work item teardown: `useV2Project` registers its project-delete
+  // `afterAll` first, and Jest runs afterAll hooks in declaration order, so the
+  // project is already gone by the time a hook declared here would run — deleting
+  // the work item then 404s. Project deletion cascades to its work items anyway.
 
   it("creates, retrieves, updates, deletes", async () => {
     const created = await workItem.comments.create({ comment_html: "<p>hello</p>" });
