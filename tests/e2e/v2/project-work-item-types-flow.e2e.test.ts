@@ -3,6 +3,7 @@
  * `tests/e2e/api_v2/project_work_item_types_flow.py`). Set PLANE_E2E_KEEP=1 to keep the rows.
  */
 import { PlaneApiError } from "../../../src/errors/PlaneApiError";
+import { useCapability } from "./support/capability";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -37,12 +38,18 @@ maybe("v2 project work item types flow (live)", () => {
   const slug = () => suite.workspaceSlug;
   const project = () => suite.projectId;
 
+  // Work item *types* are core, but the custom properties this flow attaches to them are
+  // licensed separately: step 4 below is where an unlicensed workspace answers 402, well
+  // after the flow has created rows. The gate catches it only once the `finally` has
+  // unwound, so the cleanup still runs.
+  const capability = useCapability("custom properties are not enabled for this workspace");
+
   let mode: WorkItemTypeMode;
   beforeAll(async () => {
     mode = await resolveWorkItemTypeMode(suite.client, suite.workspaceSlug);
   });
 
-  it("enables, creates a type + properties, links them, writes custom_fields, marks default", async () => {
+  capability.it("enables, creates a type + properties, links them, writes custom_fields, marks default", async () => {
     if (skipUnlessMode(mode, "project", "this flow needs project-managed work item types")) return;
 
     const suffix = uniqueName("").slice(1);

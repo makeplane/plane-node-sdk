@@ -2,6 +2,7 @@
  * Two path templates, one family: project-scoped templates come off the fetched project
  * row, workspace-scoped ones are flat with the slug per call.
  */
+import { useCapability } from "./support/capability";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -14,9 +15,11 @@ maybe("WorkItemTemplates (v2, live)", () => {
   const ws = () => suite.client.v2.workspaces;
   const slug = () => suite.workspaceSlug;
   const proj = () => suite.projectRow;
+  // Both path templates sit behind the same licence, so one gate covers the file.
+  const capability = useCapability("FeatureFlag.WORKITEM_TEMPLATES is not enabled for this workspace");
 
   describe("project-scoped", () => {
-    it("creates, retrieves, updates, uses, then deletes a template", async () => {
+    capability.it("creates, retrieves, updates, uses, then deletes a template", async () => {
       const name = uniqueName("template");
       const created = await proj().workItemTemplates.create({
         name,
@@ -41,7 +44,7 @@ maybe("WorkItemTemplates (v2, live)", () => {
       }
     });
 
-    it("lists templates in the project", async () => {
+    capability.it("lists templates in the project", async () => {
       const name = uniqueName("template-list");
       const created = await proj().workItemTemplates.create({
         name,
@@ -60,7 +63,7 @@ maybe("WorkItemTemplates (v2, live)", () => {
   });
 
   describe("workspace-scoped", () => {
-    it("creates, retrieves, updates, then deletes a workspace template", async () => {
+    capability.it("creates, retrieves, updates, then deletes a workspace template", async () => {
       const name = uniqueName("ws-template");
       const created = await ws().workItemTemplates.create(slug(), {
         name,

@@ -8,6 +8,7 @@
  */
 import { PlaneClient } from "../../../src/client/plane-client";
 import { LoadedProjectAutomation, LoadedWorkspaceAutomation } from "../../../src/api/v2/loaded/Automation";
+import { useCapability } from "./support/capability";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -22,8 +23,9 @@ maybe("v2 project automations (live)", () => {
   const automations = () => suite.client.v2.workspaces.projects.automations;
   const slug = () => suite.workspaceSlug;
   const project = () => suite.projectId;
+  const capability = useCapability("FeatureFlag.PROJECT_AUTOMATIONS is not enabled for this workspace");
 
-  it("creates, lists, retrieves, patches, and deletes an automation", async () => {
+  capability.it("creates, lists, retrieves, patches, and deletes an automation", async () => {
     const created = await automations().create(slug(), project(), {
       name: uniqueName("automation"),
       scope: "work-item",
@@ -47,7 +49,7 @@ maybe("v2 project automations (live)", () => {
     expect(pageAfterDelete.data.some((row) => row.id === created.id)).toBe(false);
   });
 
-  it("enables an automation through the status action", async () => {
+  capability.it("enables an automation through the status action", async () => {
     const created = await automations().create(slug(), project(), {
       name: uniqueName("automation-status"),
       scope: "work-item",
@@ -85,7 +87,7 @@ maybe("v2 project automations (live)", () => {
   describe("nodes, edges, and activities", () => {
     let automation: LoadedProjectAutomation;
 
-    beforeAll(async () => {
+    capability.beforeAll(async () => {
       automation = await automations().create(slug(), project(), {
         name: uniqueName("automation-graph"),
         scope: "work-item",
@@ -99,7 +101,7 @@ maybe("v2 project automations (live)", () => {
         .catch(() => undefined);
     });
 
-    it("builds a trigger -> action graph and reads its activity log", async () => {
+    capability.it("builds a trigger -> action graph and reads its activity log", async () => {
       const nodes = automation.nodes;
       const edges = automation.edges;
       const activities = automation.activities;
@@ -139,7 +141,7 @@ maybe("v2 project automations (live)", () => {
       await nodes.delete(trigger.id);
     });
 
-    it("regenerates a send_webhook action node's secret", async () => {
+    capability.it("regenerates a send_webhook action node's secret", async () => {
       const nodes = automation.nodes;
       const webhookNode = await nodes.create({
         name: "Outbound webhook",
@@ -168,6 +170,8 @@ maybe("v2 workspace (global) automations (live)", () => {
   });
   const automations = () => client.v2.workspaces.automations;
   const slug = env.workspaceSlug;
+  // A separate flag from the project-scoped one above, so a separate gate.
+  const capability = useCapability("FeatureFlag.WORKSPACE_AUTOMATIONS is not enabled for this workspace");
 
   const createdIds: string[] = [];
 
@@ -181,7 +185,7 @@ maybe("v2 workspace (global) automations (live)", () => {
     }
   });
 
-  it("creates a global automation and toggles it enabled via status", async () => {
+  capability.it("creates a global automation and toggles it enabled via status", async () => {
     const created: LoadedWorkspaceAutomation = await automations().create(slug, {
       name: uniqueName("workspace-automation"),
       scope: "work-item",
@@ -212,7 +216,7 @@ maybe("v2 workspace (global) automations (live)", () => {
     expect(fetched.is_enabled).toBe(true);
   });
 
-  it("lists workspace automations without a project segment", async () => {
+  capability.it("lists workspace automations without a project segment", async () => {
     const created = await automations().create(slug, {
       name: uniqueName("workspace-automation-list"),
       scope: "work-item",

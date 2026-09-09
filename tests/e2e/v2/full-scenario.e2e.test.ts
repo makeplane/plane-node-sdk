@@ -12,7 +12,7 @@
  * with no path id of its own, and `workItems.retrieveByIdentifier` deliberately hangs off
  * the workspace so it needs no project at all.
  */
-import { PlaneApiError } from "../../../src/errors/PlaneApiError";
+import { useCapability } from "./support/capability";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 
@@ -21,7 +21,12 @@ const maybe = env.ready ? describe : describe.skip;
 const KEEP = process.env.PLANE_E2E_KEEP === "1";
 
 maybe("v2 full scenario (live)", () => {
-  it("builds a project end to end and tears it down", async () => {
+  // The scenario is core end to end except for the custom property it hangs off the work
+  // item type: an unlicensed workspace answers 402 at step 5, six mutations in. The gate
+  // catches that only after the `finally` below has undone all of them.
+  const capability = useCapability("custom properties are not enabled for this workspace");
+
+  capability.it("builds a project end to end and tears it down", async () => {
     const client = createV2Client(env);
     const slug = env.workspaceSlug;
     const ws = await client.v2.workspaces.retrieve(slug);
@@ -42,38 +47,29 @@ maybe("v2 full scenario (live)", () => {
       // ---- 2. Work item types + a custom property (mode-aware) --------------------
       const workspaceMode = Boolean((await ws.features.retrieve()).is_work_item_types_enabled);
       let bugType, severity;
-      try {
-        if (workspaceMode) {
-          bugType = await ws.workItemTypes.create({ name: `Bug ${tag}` });
-          const typeId = bugType.id;
-          cleanup.push(["type", () => ws.workItemTypes.delete(typeId)]);
-          await proj.workItemTypes.import([typeId]);
-          severity = await ws.workItemProperties.create({ display_name: `Severity ${tag}`, property_type: "TEXT" });
-          const propertyId = severity.id;
-          cleanup.push(["property", () => ws.workItemProperties.delete(propertyId)]);
-          // Three deep: workspace row -> type row -> its attached properties.
-          await bugType.properties.link([propertyId]);
-          const attachedTo = bugType;
-          cleanup.push(["unlink", () => attachedTo.properties.unlink(propertyId)]);
-        } else {
-          await proj.workItemTypes.enable();
-          bugType = await proj.workItemTypes.create({ name: `Bug ${tag}` });
-          const typeId = bugType.id;
-          cleanup.push(["type", () => proj.workItemTypes.delete(typeId)]);
-          severity = await proj.workItemProperties.create({ display_name: `Severity ${tag}`, property_type: "TEXT" });
-          const propertyId = severity.id;
-          cleanup.push(["property", () => proj.workItemProperties.delete(propertyId)]);
-          await bugType.properties.link([propertyId]);
-          const attachedTo = bugType;
-          cleanup.push(["unlink", () => attachedTo.properties.unlink(propertyId)]);
-        }
-      } catch (error) {
-        if (error instanceof PlaneApiError && error.status === 402) {
-          // eslint-disable-next-line no-console -- the harness has no runtime skip; log why nothing ran
-          console.warn("v2 live suite: skipping — work item types are not enabled on this workspace's plan");
-          return;
-        }
-        throw error;
+      if (workspaceMode) {
+        bugType = await ws.workItemTypes.create({ name: `Bug ${tag}` });
+        const typeId = bugType.id;
+        cleanup.push(["type", () => ws.workItemTypes.delete(typeId)]);
+        await proj.workItemTypes.import([typeId]);
+        severity = await ws.workItemProperties.create({ display_name: `Severity ${tag}`, property_type: "TEXT" });
+        const propertyId = severity.id;
+        cleanup.push(["property", () => ws.workItemProperties.delete(propertyId)]);
+        // Three deep: workspace row -> type row -> its attached properties.
+        await bugType.properties.link([propertyId]);
+        const attachedTo = bugType;
+        cleanup.push(["unlink", () => attachedTo.properties.unlink(propertyId)]);
+      } else {
+        await proj.workItemTypes.enable();
+        bugType = await proj.workItemTypes.create({ name: `Bug ${tag}` });
+        const typeId = bugType.id;
+        cleanup.push(["type", () => proj.workItemTypes.delete(typeId)]);
+        severity = await proj.workItemProperties.create({ display_name: `Severity ${tag}`, property_type: "TEXT" });
+        const propertyId = severity.id;
+        cleanup.push(["property", () => proj.workItemProperties.delete(propertyId)]);
+        await bugType.properties.link([propertyId]);
+        const attachedTo = bugType;
+        cleanup.push(["unlink", () => attachedTo.properties.unlink(propertyId)]);
       }
       const severityKey = severity.name!;
       expect((await proj.workItemTypes.list()).data.some((row) => row.id === bugType.id)).toBe(true);

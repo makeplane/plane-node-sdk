@@ -1,7 +1,8 @@
 /**
- * Group-sync may be gated behind an EE feature flag/plan tier; a 402 `payment_required` there is expected, not a bug.
+ * Group-sync is EE-gated: an unlicensed workspace answers 402 `payment_required` to every
+ * route here, which the capability gate turns into an announced sit-out rather than a failure.
  */
-import { PlaneApiError } from "../../../src/errors/PlaneApiError";
+import { useCapability } from "./support/capability";
 import { v2Env } from "./support/env";
 import { useV2Project } from "./support/suite";
 
@@ -14,18 +15,14 @@ maybe("GroupSync (v2, live)", () => {
   // a navigation property on a row and each child takes the slug per call.
   const groupSync = () => suite.client.v2.workspaces.groupSync;
   const slug = () => suite.workspaceSlug;
+  const capability = useCapability("FeatureFlag.IDP_GROUP_SYNC is not enabled for this workspace");
 
-  it("reads the workspace config singleton", async () => {
-    try {
-      const config = await groupSync().config.retrieve(slug());
-      expect(config.id).toBeTruthy();
-    } catch (error) {
-      if (error instanceof PlaneApiError && error.status === 402) return; // feature not enabled — expected on some plans
-      throw error;
-    }
+  capability.it("reads the workspace config singleton", async () => {
+    const config = await groupSync().config.retrieve(slug());
+    expect(config.id).toBeTruthy();
   });
 
-  it("creates, retrieves, updates, then deletes a project mapping", async () => {
+  capability.it("creates, retrieves, updates, then deletes a project mapping", async () => {
     let createdId: string | undefined;
     try {
       const created = await groupSync().projectMappings.create(slug(), {
@@ -42,9 +39,6 @@ maybe("GroupSync (v2, live)", () => {
         role_slug: "admin",
       });
       expect(updated.role_slug).toBe("admin");
-    } catch (error) {
-      if (error instanceof PlaneApiError && error.status === 402) return;
-      throw error;
     } finally {
       if (createdId) {
         await groupSync()
@@ -54,7 +48,7 @@ maybe("GroupSync (v2, live)", () => {
     }
   });
 
-  it("creates, lists, then deletes a workspace mapping", async () => {
+  capability.it("creates, lists, then deletes a workspace mapping", async () => {
     let createdId: string | undefined;
     try {
       const idpGroupName = `sdk-e2e-ws-${Date.now()}`;
@@ -68,9 +62,6 @@ maybe("GroupSync (v2, live)", () => {
         search: idpGroupName,
       });
       expect(page.data.some((mapping) => mapping.id === created.id)).toBe(true);
-    } catch (error) {
-      if (error instanceof PlaneApiError && error.status === 402) return;
-      throw error;
     } finally {
       if (createdId) {
         await groupSync()

@@ -7,6 +7,7 @@
 import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { Workflows } from "../../../src/api/v2/Workflows";
 import { ProjectIds } from "../../../src/api/v2/loaded/Project";
+import { useCapability } from "./support/capability";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -18,8 +19,11 @@ maybe("v2 workflows (live)", () => {
   const suite = useV2Project("wf", env);
   let workflows: Owned<Workflows, ProjectIds>;
   let stateId: string;
+  // `is_workflow_enabled` is the project toggle; the routes behind it need the licence,
+  // and the graph half of the file needs MULTIPLE_WORKFLOWS on top of that.
+  const capability = useCapability("FeatureFlag.WORKFLOWS is not enabled for this workspace");
 
-  beforeAll(async () => {
+  capability.beforeAll(async () => {
     workflows = suite.projectRow.workflows;
 
     await suite.client.v2.workspaces.projects.features.update(suite.workspaceSlug, suite.projectId, {
@@ -30,7 +34,7 @@ maybe("v2 workflows (live)", () => {
     stateId = state.id;
   });
 
-  it("has no pre-seeded default workflow on a freshly enabled project", async () => {
+  capability.it("has no pre-seeded default workflow on a freshly enabled project", async () => {
     // See this file's own top-of-file note: `is_default` is server-only and
     // nothing seeds one automatically — this locks in that (currently accurate)
     // absence rather than assuming a default exists.
@@ -38,7 +42,7 @@ maybe("v2 workflows (live)", () => {
     expect(page.data.some((w) => w.is_default)).toBe(false);
   });
 
-  it("creates a workflow, attaches a state, creates a transition, then tears down", async () => {
+  capability.it("creates a workflow, attaches a state, creates a transition, then tears down", async () => {
     const created = await workflows.create({ name: uniqueName("wf-graph") });
     expect(created.name).toBeDefined();
 
@@ -70,6 +74,8 @@ maybe("v2 workflows (live)", () => {
     await workflows.delete(created.id);
   });
 
+  // Not gated: `order_by` is rejected client-side, before any request, so it still has
+  // something to prove on a workspace with no workflow licence at all.
   it("rejects an unknown order_by", async () => {
     await expect(workflows.list({ order_by: "description" as never })).rejects.toThrow(/Unknown order_by/);
   });

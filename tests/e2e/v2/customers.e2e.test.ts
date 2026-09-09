@@ -7,6 +7,7 @@
  */
 import { Customers } from "../../../src/api/v2/Customers";
 import { LoadedCustomer } from "../../../src/api/v2/loaded/Customer";
+import { useCapability } from "./support/capability";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -19,8 +20,11 @@ maybe("v2 customers (live)", () => {
   let customers: Customers;
   const slug = () => suite.workspaceSlug;
   let customer: LoadedCustomer;
+  // The workspace toggle below and every customer route behind it are EE-gated; an
+  // unlicensed workspace answers 402 to the whole family.
+  const capability = useCapability("FeatureFlag.CUSTOMERS is not enabled for this workspace");
 
-  beforeAll(async () => {
+  capability.beforeAll(async () => {
     customers = suite.client.v2.workspaces.customers;
 
     await suite.client.v2.workspaces.features.update(suite.workspaceSlug, { is_customer_enabled: true });
@@ -33,7 +37,7 @@ maybe("v2 customers (live)", () => {
     await customers.delete(slug(), customer.id).catch(() => undefined);
   });
 
-  it("retrieves and patches the customer", async () => {
+  capability.it("retrieves and patches the customer", async () => {
     const fetched = await customers.retrieve(slug(), customer.id);
     expect(fetched.id).toBe(customer.id);
 
@@ -41,7 +45,7 @@ maybe("v2 customers (live)", () => {
     expect(updated.stage).toBe("trial");
   });
 
-  it("upserts on (external_source, external_id)", async () => {
+  capability.it("upserts on (external_source, external_id)", async () => {
     const externalId = uniqueName("ext");
     const created = await customers.upsert(slug(), {
       name: uniqueName("e2e-upsert-customer"),
@@ -62,7 +66,7 @@ maybe("v2 customers (live)", () => {
   });
 
   describe("requests", () => {
-    it("creates, lists, updates and deletes a request", async () => {
+    capability.it("creates, lists, updates and deletes a request", async () => {
       const created = await customer.requests.create({
         name: uniqueName("e2e-request"),
       });
@@ -81,14 +85,14 @@ maybe("v2 customers (live)", () => {
   });
 
   describe("propertyValues", () => {
-    it("reads an empty map for a customer with no stored values", async () => {
+    capability.it("reads an empty map for a customer with no stored values", async () => {
       const values = await customer.propertyValues.list();
       expect(values).toEqual({});
     });
   });
 
   describe("linked work items", () => {
-    it("adds then removes a work item link", async () => {
+    capability.it("adds then removes a work item link", async () => {
       const workItems = suite.projectRow.workItems;
       const workItem = await workItems.create({
         name: uniqueName("cust-linked-wi"),
@@ -104,6 +108,8 @@ maybe("v2 customers (live)", () => {
     });
   });
 
+  // Not gated: `fields` is validated client-side and never reaches the network, so this
+  // one still has something to prove on a workspace that cannot host a customer at all.
   it("rejects an unknown fields value", async () => {
     await expect(customers.list(slug(), { fields: ["nope" as never] })).rejects.toThrow(/Unknown field/);
   });

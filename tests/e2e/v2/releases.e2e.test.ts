@@ -11,6 +11,7 @@
  * the tag catalog is a sibling of releases rather than a child — the URL is what decides,
  * and nesting it under `releases` would have implied a path segment that does not exist.
  */
+import { useCapability } from "./support/capability";
 import { uniqueName } from "./support/names";
 import { v2Env } from "./support/env";
 import { useV2Project } from "./support/suite";
@@ -26,13 +27,16 @@ maybe("v2 releases (live)", () => {
   const releaseTags = () => suite.client.v2.workspaces.releaseTags;
   const workItems = () => suite.projectRow.workItems;
   const slug = () => suite.workspaceSlug;
+  // Every route in this file is EE-gated: a workspace without the licence answers 402 to
+  // the toggle below and to each release call, and that is an absent capability, not a bug.
+  const capability = useCapability("FeatureFlag.RELEASES is not enabled for this workspace");
 
-  beforeAll(async () => {
+  capability.beforeAll(async () => {
     await suite.client.v2.workspaces.features.update(suite.workspaceSlug, { is_release_enabled: true });
   });
 
   describe("CRUD", () => {
-    it("creates, retrieves, updates, deletes a release", async () => {
+    capability.it("creates, retrieves, updates, deletes a release", async () => {
       const created = await releases().create(slug(), { name: uniqueName("rel-crud") });
       expect(created.id).toBeDefined();
       expect(created.status).toBe("unreleased");
@@ -52,7 +56,7 @@ maybe("v2 releases (live)", () => {
       await expect(releases().retrieve(slug(), created.id)).rejects.toThrow();
     });
 
-    it("lists releases and narrows fields", async () => {
+    capability.it("lists releases and narrows fields", async () => {
       const created = await releases().create(slug(), { name: uniqueName("rel-list") });
       try {
         const page = await releases().list(slug(), { fields: ["name"] });
@@ -68,7 +72,7 @@ maybe("v2 releases (live)", () => {
   });
 
   describe("comments", () => {
-    it("creates, retrieves, updates, deletes a comment on a release", async () => {
+    capability.it("creates, retrieves, updates, deletes a comment on a release", async () => {
       const release = await releases().create(slug(), { name: uniqueName("rel-comments") });
       try {
         const created = await release.comments.create({
@@ -96,7 +100,7 @@ maybe("v2 releases (live)", () => {
   });
 
   describe("links", () => {
-    it("creates, retrieves, updates, deletes a link on a release", async () => {
+    capability.it("creates, retrieves, updates, deletes a link on a release", async () => {
       const release = await releases().create(slug(), { name: uniqueName("rel-links") });
       try {
         const created = await release.links.create({
@@ -125,7 +129,7 @@ maybe("v2 releases (live)", () => {
   });
 
   describe("changelog", () => {
-    it("auto-creates empty on first GET, then updates", async () => {
+    capability.it("auto-creates empty on first GET, then updates", async () => {
       const release = await releases().create(slug(), { name: uniqueName("rel-changelog") });
       try {
         const fetched = await release.changelog.retrieve();
@@ -144,7 +148,7 @@ maybe("v2 releases (live)", () => {
   });
 
   describe("release label/tag definitions", () => {
-    it("creates, retrieves, updates, deletes a release label definition", async () => {
+    capability.it("creates, retrieves, updates, deletes a release label definition", async () => {
       const created = await releaseLabels().create(slug(), { name: uniqueName("rel-label") });
       try {
         const fetched = await releaseLabels().retrieve(slug(), created.id);
@@ -159,7 +163,7 @@ maybe("v2 releases (live)", () => {
       }
     });
 
-    it("creates, retrieves, updates, deletes a release tag definition", async () => {
+    capability.it("creates, retrieves, updates, deletes a release tag definition", async () => {
       const created = await releaseTags().create(slug(), { version: uniqueName("1.0.0") });
       try {
         const fetched = await releaseTags().retrieve(slug(), created.id);
@@ -176,7 +180,7 @@ maybe("v2 releases (live)", () => {
   });
 
   describe("labels.add/remove / workItems.add/remove", () => {
-    it("adds and removes a release label definition via labels.add/remove", async () => {
+    capability.it("adds and removes a release label definition via labels.add/remove", async () => {
       const release = await releases().create(slug(), { name: uniqueName("rel-mgmt-labels") });
       const label = await releaseLabels().create(slug(), { name: uniqueName("rel-mgmt-label") });
       try {
@@ -201,7 +205,7 @@ maybe("v2 releases (live)", () => {
       }
     });
 
-    it("adds a work item via workItems.add", async () => {
+    capability.it("adds a work item via workItems.add", async () => {
       const release = await releases().create(slug(), { name: uniqueName("rel-mgmt-wi") });
       const workItem = await workItems().create({
         name: uniqueName("rel-mgmt-wi-item"),

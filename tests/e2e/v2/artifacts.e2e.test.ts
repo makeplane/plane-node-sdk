@@ -6,6 +6,7 @@
 import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { Artifacts } from "../../../src/api/v2/Artifacts";
 import { WorkspaceIds } from "../../../src/api/v2/loaded/Workspace";
+import { useCapability } from "./support/capability";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -17,6 +18,9 @@ maybe("Artifacts (v2 live)", () => {
   // The navigated way in: a fetched workspace row hands back the artifacts resource with
   // the slug already bound, so every call below is the flat one minus its leading id.
   let resource: Owned<Artifacts, WorkspaceIds>;
+  // This route's 402 arrives with no problem-detail body at all (`code: "server_error"`,
+  // `detail: "Request failed."`), so the reason below is the only name the log can carry.
+  const capability = useCapability("artifacts are not enabled for this workspace");
 
   beforeAll(async () => {
     const client = createV2Client(env);
@@ -24,7 +28,7 @@ maybe("Artifacts (v2 live)", () => {
     resource = workspace.artifacts;
   });
 
-  it("creates, retrieves, publishes, updates", async () => {
+  capability.it("creates, retrieves, publishes, updates", async () => {
     const created = await resource.create({
       name: uniqueName("artifact"),
       html: "<p>hello</p>",

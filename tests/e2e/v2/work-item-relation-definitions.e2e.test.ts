@@ -1,8 +1,9 @@
 /**
- * list/retrieve/create/update/delete, workspace-scoped; gated on CUSTOM_RELATIONS (402 if disabled), skips cleanly.
+ * list/retrieve/create/update/delete, workspace-scoped; gated on CUSTOM_RELATIONS — a 402
+ * there is an announced sit-out (see `support/capability.ts`), never a silent pass.
  */
-import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 import { WorkItemRelationDefinitions } from "../../../src/api/v2/WorkItemRelationDefinitions";
+import { useCapability } from "./support/capability";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -15,7 +16,7 @@ maybe("WorkItemRelationDefinitions (v2 live)", () => {
   let resource: WorkItemRelationDefinitions;
   const slug = env.workspaceSlug;
   let definitionId: string;
-  let featureDisabled = false;
+  const capability = useCapability("FeatureFlag.CUSTOM_RELATIONS is not enabled for this workspace");
 
   beforeAll(() => {
     const client = createV2Client(env);
@@ -27,22 +28,13 @@ maybe("WorkItemRelationDefinitions (v2 live)", () => {
     await resource.delete(slug, definitionId).catch(() => undefined);
   });
 
-  it("creates, retrieves, lists, patches, deletes", async () => {
+  capability.it("creates, retrieves, lists, patches, deletes", async () => {
     const label = uniqueName("relDef");
-    let created;
-    try {
-      created = await resource.create(slug, {
-        name: label,
-        inward: `${label}-inward`,
-        outward: `${label}-outward`,
-      });
-    } catch (error) {
-      if (error instanceof PlaneApiError && error.status === 402) {
-        featureDisabled = true;
-        return;
-      }
-      throw error;
-    }
+    const created = await resource.create(slug, {
+      name: label,
+      inward: `${label}-inward`,
+      outward: `${label}-outward`,
+    });
     definitionId = created.id;
     expect(created.is_default).toBe(false);
 
@@ -61,8 +53,7 @@ maybe("WorkItemRelationDefinitions (v2 live)", () => {
     await expect(resource.retrieve(slug, idToClear)).rejects.toThrow();
   });
 
-  it("rejects editing a seeded default definition", async () => {
-    if (featureDisabled) return;
+  capability.it("rejects editing a seeded default definition", async () => {
     const page = await resource.list(slug, { per_page: 100 });
     const seeded = page.data.find((row) => row.is_default);
     if (!seeded) return; // no seeded defaults on this workspace — nothing to assert

@@ -4,6 +4,7 @@
 import { CustomerProperties } from "../../../src/api/v2/CustomerProperties";
 import { Owned } from "../../../src/api/v2/kernel/loaded";
 import { WorkspaceIds } from "../../../src/api/v2/loaded/Workspace";
+import { useCapability } from "./support/capability";
 import { createV2Client } from "./support/client";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
@@ -15,6 +16,9 @@ maybe("CustomerProperties (v2 live)", () => {
   // Navigated: bound off a fetched workspace row.
   let resource: Owned<CustomerProperties, WorkspaceIds>;
   let propertyId: string;
+  // Customer properties live behind the customers licence, so an unlicensed workspace
+  // answers 402 to every write here.
+  const capability = useCapability("FeatureFlag.CUSTOMERS is not enabled for this workspace");
 
   beforeAll(async () => {
     const client = createV2Client(env);
@@ -27,7 +31,7 @@ maybe("CustomerProperties (v2 live)", () => {
     await resource.delete(propertyId).catch(() => undefined);
   });
 
-  it("creates, retrieves, lists, patches", async () => {
+  capability.it("creates, retrieves, lists, patches", async () => {
     const created = await resource.create({
       display_name: uniqueName("cp"),
       property_type: "TEXT",
@@ -45,7 +49,7 @@ maybe("CustomerProperties (v2 live)", () => {
     expect(updated.is_required).toBe(true);
   });
 
-  it("deletes", async () => {
+  capability.it("deletes", async () => {
     const created = await resource.create({
       display_name: uniqueName("cp-del"),
       property_type: "BOOLEAN",

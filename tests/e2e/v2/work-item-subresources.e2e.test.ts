@@ -8,6 +8,7 @@
  * the deepest navigation these routes have.
  */
 import { LoadedWorkItem } from "../../../src/api/v2/loaded/WorkItem";
+import { useCapability } from "./support/capability";
 import { v2Env } from "./support/env";
 import { uniqueName } from "./support/names";
 import { useV2Project } from "./support/suite";
@@ -55,7 +56,11 @@ maybe("v2 work item sub-resources (live)", () => {
   });
 
   describe("worklogs", () => {
-    it("creates, retrieves, updates, deletes (requires is_time_tracking_enabled)", async () => {
+    // The only EE-gated family in this file: links, attachments and the rest are core,
+    // so the gate is scoped to this describe rather than the whole suite.
+    const capability = useCapability("FeatureFlag.ISSUE_WORKLOG is not enabled for this workspace");
+
+    capability.it("creates, retrieves, updates, deletes (requires is_time_tracking_enabled)", async () => {
       const created = await workItem.worklogs.create({ duration: 45, description: "Investigated" });
       expect(created.duration).toBe(45);
 
