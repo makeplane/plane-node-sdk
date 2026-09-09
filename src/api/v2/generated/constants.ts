@@ -1,5 +1,5 @@
 // Generated from the api_v2 OpenAPI golden. Do not edit by hand.
-// Source golden: ../plane-ee-preview/apps/api/plane/api_v2/core/schema/openapi
+// Source golden: ../plane-ee/apps/api/plane/api_v2/core/schema/openapi
 // api_v2 OpenAPI version: 2.0.0
 // Regenerate with: pnpm codegen:v2 <path-to>/api_v2/core/schema/openapi
 
