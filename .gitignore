@@ -8,3 +8,4 @@ dist
 .env.test
 env
 .DS_Store
+.superpowers/
