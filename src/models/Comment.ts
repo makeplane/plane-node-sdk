@@ -19,6 +19,7 @@ export interface WorkItemComment {
   workspace?: string;
   issue?: string;
   actor?: string;
+  parent?: string;
 }
 
 export interface WorkItemCommentCreateRequest {
@@ -27,6 +28,8 @@ export interface WorkItemCommentCreateRequest {
   access?: AccessEnum;
   external_source?: string;
   external_id?: string;
+  /** ID of a top-level comment on the same work item to reply to. */
+  parent?: string;
 }
 
 export interface WorkItemCommentUpdateRequest {
