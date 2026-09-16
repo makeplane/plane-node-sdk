@@ -18,6 +18,6 @@
     "resolveJsonModule": true,
     "types": ["jest", "node"]
   },
-  "include": ["src/**/*", "tests/e2e/**/*"],
+  "include": ["src/**/*", "tests/e2e/**/*", "examples/**/*"],
   "exclude": ["node_modules", "dist"]
 }

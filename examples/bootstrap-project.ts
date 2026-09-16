@@ -1,5 +1,5 @@
-// examples/project-bootstrap.ts
-import { CreateWorkItemProperty, PlaneClient, WorkItemProperty } from "../../src";
+// examples/bootstrap-project.ts
+import { CreateWorkItemProperty, PlaneClient, WorkItemProperty } from "../src";
 
 async function bootstrapProject(workspaceSlug: string) {
   const client = new PlaneClient({

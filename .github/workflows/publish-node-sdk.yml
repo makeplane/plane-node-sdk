@@ -30,6 +30,11 @@ jobs:
       - name: Run Build
         run: pnpm build
 
+      # A `workflow_dispatch` could publish a red tree: `pnpm build` gates the type
+      # bundle's export snapshot but runs no test at all.
+      - name: Run unit tests
+        run: pnpm test:unit
+
       - name: Publish to npm
         run: npm publish --access public
 

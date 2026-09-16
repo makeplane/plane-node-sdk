@@ -1,6 +1,13 @@
 import { createTestClient, randomizeName, wait } from "../helpers/test-utils";
 import { e2eConfig } from "./config";
+import { installAxiosRateLimitRetry } from "./support/rate-limit";
 import { Project, Cycle, Module, WorkItem } from "../../src/models";
+
+// v1 goes through `BaseResource` -> the global axios instance, which had no 429 handling
+// at all: this suite shares one throttled API key with every v2 file in the run, so it
+// was failing on the shared quota rather than on anything it tests. See the installer's
+// own doc comment for the bounds.
+installAxiosRateLimitRetry();
 
 describe("End to End Project Test", () => {
   // Shared state across tests

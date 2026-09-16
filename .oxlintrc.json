@@ -102,6 +102,24 @@
       }
     },
     {
+      "files": ["scripts/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    // Deliberately narrow: covers e2e cleanup logging only (a test-support helper
+    // that warns on a best-effort cleanup failure is doing the right thing). Does
+    // NOT extend to tests/** generally -- pre-existing `console` warnings elsewhere
+    // under tests/ (e.g. stray console.log calls in v1 test files) are intentionally
+    // left visible; a broader tests/** override would silence ~70 of them and turn
+    // the lint count from a tripwire into a number nobody can trust again.
+    {
+      "files": ["tests/e2e/v2/support/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
       "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       "rules": {
         "constructor-super": "off",

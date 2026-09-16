@@ -1,0 +1,189 @@
+import nock from "nock";
+import { Configuration } from "../../../src/Configuration";
+import { Estimates } from "../../../src/api/v2/Estimates";
+import { EstimatePoints } from "../../../src/api/v2/Estimates/Points";
+import { V2Transport } from "../../../src/api/v2/kernel/transport";
+
+const BASE = "https://api.example.com";
+const SLUG = "acme";
+const PROJECT = "ENG";
+
+const makeTransport = () => new V2Transport(new Configuration({ baseUrl: BASE, apiKey: "secret" }));
+const makeEstimates = () => new Estimates(makeTransport());
+
+afterEach(() => nock.cleanAll());
+
+describe("Estimates (v2)", () => {
+  const collection = `/api/v2/workspaces/${SLUG}/projects/${PROJECT}/estimates/`;
+
+  it("lists, creates, patches, and deletes", async () => {
+    nock(BASE)
+      .get(collection)
+      .reply(200, { data: [{ id: "e1", name: "Sizing", type: "points" }], pagination: { style: "offset" } });
+    const page = await makeEstimates().list(SLUG, PROJECT);
+    expect(page.data[0].type).toBe("points");
+
+    nock(BASE)
+      .post(collection, { name: "T-shirt sizes", type: "categories" })
+      .reply(201, { id: "e2", name: "T-shirt sizes", type: "categories" });
+    const created = await makeEstimates().create(SLUG, PROJECT, { name: "T-shirt sizes", type: "categories" });
+    expect(created.id).toBe("e2");
+
+    nock(BASE)
+      .patch(`${collection}e2/`, { description: "Small/Medium/Large" })
+      .reply(200, { id: "e2", description: "Small/Medium/Large" });
+    const updated = await makeEstimates().update(SLUG, PROJECT, "e2", { description: "Small/Medium/Large" });
+    expect(updated.description).toBe("Small/Medium/Large");
+
+    nock(BASE).delete(`${collection}e2/`).reply(204);
+    await expect(makeEstimates().delete(SLUG, PROJECT, "e2")).resolves.toBeUndefined();
+  });
+
+  it("finds by name", async () => {
+    nock(BASE)
+      .get(collection)
+      .query(true)
+      .reply(200, { data: [{ id: "e1", name: "Sizing" }], pagination: { style: "offset" } });
+    expect((await makeEstimates().findByName(SLUG, PROJECT, "Sizing")).id).toBe("e1");
+  });
+
+  it("reconciles on upsert", async () => {
+    nock(BASE)
+      .post(`${collection}upsert/`, { name: "Sizing", external_id: "ext-1", external_source: "jira" })
+      .reply(200, { id: "e1", name: "Sizing", external_id: "ext-1", external_source: "jira" });
+    const result = await makeEstimates().upsert(SLUG, PROJECT, {
+      name: "Sizing",
+      external_id: "ext-1",
+      external_source: "jira",
+    });
+    expect(result.id).toBe("e1");
+  });
+
+  it("passes a valid expand value through, and rejects one estimates_list doesn't offer", async () => {
+    const scope = nock(BASE)
+      .get(`${collection}e1/`)
+      .query({ expand: "points" })
+      .reply(200, { id: "e1", name: "Sizing" });
+    await makeEstimates().retrieve(SLUG, PROJECT, "e1", { expand: ["points"] });
+    expect(scope.isDone()).toBe(true);
+
+    await expect(makeEstimates().retrieve(SLUG, PROJECT, "e1", { expand: ["assignees"] as never })).rejects.toThrow(
+      /Unknown expand value\(s\) for estimates_retrieve: assignees/
+    );
+  });
+
+  it("performs all three bulk actions", async () => {
+    const createScope = nock(BASE)
+      .post(`${collection}bulk-create/`, { items: [{ name: "Sizing" }], all_or_none: false })
+      .reply(200, { results: [{ index: 0, result: "created", id: "e1" }], succeeded: 1, failed: 0 });
+    const updateScope = nock(BASE)
+      .post(`${collection}bulk-update/`, { items: [{ id: "e1", name: "Renamed" }], all_or_none: false })
+      .reply(200, { results: [{ index: 0, result: "updated", id: "e1" }], succeeded: 1, failed: 0 });
+    const deleteScope = nock(BASE)
+      .post(`${collection}bulk-delete/`, { ids: ["e1"], all_or_none: false })
+      .reply(200, { results: [{ index: 0, result: "deleted", id: "e1" }], succeeded: 1, failed: 0 });
+
+    const estimates = makeEstimates();
+    await estimates.bulkCreate(SLUG, PROJECT, [{ name: "Sizing" }]);
+    await estimates.bulkUpdate(SLUG, PROJECT, [{ id: "e1", name: "Renamed" }]);
+    await estimates.bulkDelete(SLUG, PROJECT, ["e1"]);
+
+    expect(createScope.isDone()).toBe(true);
+    expect(updateScope.isDone()).toBe(true);
+    expect(deleteScope.isDone()).toBe(true);
+  });
+
+  it("rejects an empty bulk-create batch before making a request", async () => {
+    await expect(makeEstimates().bulkCreate(SLUG, PROJECT, [])).rejects.toThrow(/non-empty/);
+  });
+});
+
+describe("Estimates.points (v2)", () => {
+  const ESTIMATE = "e1";
+  const collection = `/api/v2/workspaces/${SLUG}/projects/${PROJECT}/estimates/${ESTIMATE}/points/`;
+  const make = () => new EstimatePoints(makeTransport());
+
+  it("lists, creates, retrieves, patches, and deletes", async () => {
+    nock(BASE)
+      .get(collection)
+      .reply(200, { data: [{ id: "p1", key: 0, value: "XS" }], pagination: { style: "offset" } });
+    const page = await make().list(SLUG, PROJECT, ESTIMATE);
+    expect(page.data[0].value).toBe("XS");
+
+    nock(BASE).post(collection, { value: "S", key: 1 }).reply(201, { id: "p2", value: "S", key: 1 });
+    const created = await make().create(SLUG, PROJECT, ESTIMATE, { value: "S", key: 1 });
+    expect(created.id).toBe("p2");
+
+    nock(BASE).get(`${collection}p2/`).reply(200, { id: "p2", value: "S" });
+    expect((await make().retrieve(SLUG, PROJECT, ESTIMATE, "p2")).value).toBe("S");
+
+    nock(BASE).patch(`${collection}p2/`, { value: "M" }).reply(200, { id: "p2", value: "M" });
+    const updated = await make().update(SLUG, PROJECT, ESTIMATE, "p2", { value: "M" });
+    expect(updated.value).toBe("M");
+
+    nock(BASE).delete(`${collection}p2/`).reply(204);
+    await expect(make().delete(SLUG, PROJECT, ESTIMATE, "p2")).resolves.toBeUndefined();
+  });
+
+  it("reconciles on upsert", async () => {
+    nock(BASE)
+      .post(`${collection}upsert/`, { value: "XS", external_id: "ext-1", external_source: "jira" })
+      .reply(200, { id: "p1", value: "XS", external_id: "ext-1", external_source: "jira" });
+    const result = await make().upsert(SLUG, PROJECT, ESTIMATE, {
+      value: "XS",
+      external_id: "ext-1",
+      external_source: "jira",
+    });
+    expect(result.id).toBe("p1");
+  });
+
+  it("performs all three bulk actions scoped to the estimate", async () => {
+    const createScope = nock(BASE)
+      .post(`${collection}bulk-create/`, { items: [{ value: "XS" }], all_or_none: false })
+      .reply(200, { results: [{ index: 0, result: "created", id: "p1" }], succeeded: 1, failed: 0 });
+    const updateScope = nock(BASE)
+      .post(`${collection}bulk-update/`, { items: [{ id: "p1", value: "XXS" }], all_or_none: false })
+      .reply(200, { results: [{ index: 0, result: "updated", id: "p1" }], succeeded: 1, failed: 0 });
+    const deleteScope = nock(BASE)
+      .post(`${collection}bulk-delete/`, { ids: ["p1"], all_or_none: false })
+      .reply(200, { results: [{ index: 0, result: "deleted", id: "p1" }], succeeded: 1, failed: 0 });
+
+    const points = make();
+    await points.bulkCreate(SLUG, PROJECT, ESTIMATE, [{ value: "XS" }]);
+    await points.bulkUpdate(SLUG, PROJECT, ESTIMATE, [{ id: "p1", value: "XXS" }]);
+    await points.bulkDelete(SLUG, PROJECT, ESTIMATE, ["p1"]);
+
+    expect(createScope.isDone()).toBe(true);
+    expect(updateScope.isDone()).toBe(true);
+    expect(deleteScope.isDone()).toBe(true);
+  });
+
+  it("rejects an unknown order_by before making the request", async () => {
+    await expect(make().list(SLUG, PROJECT, ESTIMATE, { order_by: "value" as never })).rejects.toThrow(
+      /Unknown order_by 'value' for estimate_points_list/
+    );
+  });
+
+  describe("findByKey()", () => {
+    it("resolves the one point with this numeric key via the server-side ?key= filter", async () => {
+      const scope = nock(BASE)
+        .get(collection)
+        .query({ key: "3", per_page: "2", count: "false" })
+        .reply(200, { data: [{ id: "p3", key: 3, value: "L" }], pagination: { style: "offset" } });
+
+      const found = await make().findByKey(SLUG, PROJECT, ESTIMATE, 3);
+
+      expect(scope.isDone()).toBe(true);
+      expect(found.id).toBe("p3");
+    });
+
+    it("throws NoMatchFoundError when no point matches the key", async () => {
+      nock(BASE)
+        .get(collection)
+        .query({ key: "99", per_page: "2", count: "false" })
+        .reply(200, { data: [], pagination: { style: "offset" } });
+
+      await expect(make().findByKey(SLUG, PROJECT, ESTIMATE, 99)).rejects.toThrow(/No EstimatePoints matched/);
+    });
+  });
+});
