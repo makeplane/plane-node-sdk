@@ -139,6 +139,53 @@ export type WorkItemPropertyValues = {
 }[];
 
 /**
+ * The value of a rich text property: `property_type: "RELATION"`, `relation_type: "RICH_TEXT"`.
+ *
+ * Plane requires an object here, not a bare HTML string (a string answers 400 "Rich text
+ * value must be an object"), and sanitises the HTML before storing it. Reads return the
+ * stored content in {@link WorkItemPropertyValueDetail.value_detail}.
+ */
+export interface RichTextValue {
+  /** The content, as HTML, e.g. `"<p>Notes</p>"` */
+  description_html: string;
+}
+
+/**
+ * The stored content of a rich text property value, as Plane returns it.
+ */
+export interface RichTextValueDetail {
+  /** ID of the stored description; `null` when never set */
+  id: string | null;
+  /** The content as sanitised HTML */
+  description_html: string;
+  /** The content as plain text */
+  description_stripped: string;
+}
+
+/**
+ * A single property value, as returned by the per-property `values/` endpoint
+ * (`retrieve`, `create`, `update`). A property holding more than one value (multi-select,
+ * or a cascading property's levels) answers a list of these instead.
+ */
+export interface WorkItemPropertyValueDetail {
+  id: string;
+  property_id: string;
+  issue_id: string;
+  /**
+   * The value, formatted according to the property type. For rich text this is the ID of
+   * the stored content; the HTML is in `value_detail`.
+   */
+  value: string | boolean | number | null;
+  value_type?: string | null;
+  /** The stored content of a rich text property; absent for every other type. */
+  value_detail?: RichTextValueDetail;
+  external_id?: string | null;
+  external_source?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
  * UpdateWorkItemPropertyValue model interface
  * Request model for creating/updating a work item property value.
  *
@@ -149,6 +196,7 @@ export type WorkItemPropertyValues = {
  * - BOOLEAN: boolean (true/false)
  * - OPTION/RELATION (single): string (UUID)
  * - OPTION/RELATION (multi, when is_multi=True): list of strings (UUIDs) or single string
+ * - RELATION with relation_type=RICH_TEXT: {@link RichTextValue}
  *
  * For multi-value properties (is_multi=True):
  * - Accept either a single UUID string or a list of UUID strings
@@ -159,7 +207,7 @@ export type WorkItemPropertyValues = {
  * - Only one value is allowed per work item/property combination
  */
 export type UpdateWorkItemPropertyValue = {
-  value: string | boolean | number | string[];
+  value: string | boolean | number | string[] | RichTextValue;
   external_id?: string;
   external_source?: string;
 };

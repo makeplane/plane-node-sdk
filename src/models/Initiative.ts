@@ -55,10 +55,27 @@ export interface RemoveInitiativeProjectsRequest {
   project_ids: string[];
 }
 
+/** @deprecated Use {@link AddInitiativeWorkItemsRequest} with `client.initiatives.workItems`. */
 export interface AddInitiativeEpicsRequest {
   epic_ids: string[];
 }
 
+/** @deprecated Use {@link RemoveInitiativeWorkItemsRequest} with `client.initiatives.workItems`. */
 export interface RemoveInitiativeEpicsRequest {
   epic_ids: string[];
+}
+
+export interface AddInitiativeWorkItemsRequest {
+  work_item_ids: string[];
+}
+
+export interface RemoveInitiativeWorkItemsRequest {
+  work_item_ids: string[];
+}
+
+export interface ListInitiativeWorkItemsParams {
+  /** Page size; the server defaults to 20. */
+  per_page?: number;
+  /** Cursor from a previous page's `next_cursor`. */
+  cursor?: string;
 }

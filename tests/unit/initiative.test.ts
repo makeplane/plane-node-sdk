@@ -3,6 +3,7 @@ import { Initiative, InitiativeState, UpdateInitiative } from "../../src/models/
 import { InitiativeLabel } from "../../src/models/InitiativeLabel";
 import { Project } from "../../src/models/Project";
 import { Epic } from "../../src/models/Epic";
+import { WorkItem } from "../../src/models/WorkItem";
 import { config } from "./constants";
 import { createTestClient, randomizeName } from "../helpers/test-utils";
 import { describeIf } from "../helpers/conditional-tests";
@@ -239,6 +240,57 @@ describeIf(!!(config.workspaceSlug && config.projectId), "Initiative API Tests",
       const projects = await client.initiatives.projects.list(workspaceSlug, initiative.id);
       const foundProject = projects.results.find((p) => p.id === testProject.id);
       expect(foundProject).toBeUndefined();
+    });
+  });
+
+  describe("Initiative Work Items", () => {
+    let testWorkItem: WorkItem;
+
+    beforeAll(async () => {
+      testWorkItem = await client.workItems.create(workspaceSlug, projectId, {
+        name: randomizeName("Test Initiative Work Item"),
+      });
+    });
+
+    afterAll(async () => {
+      if (testWorkItem?.id) {
+        try {
+          await client.workItems.delete(workspaceSlug, projectId, testWorkItem.id);
+        } catch (error) {
+          console.warn("Failed to delete test work item:", error);
+        }
+      }
+    });
+
+    it("should add work items to initiative", async () => {
+      const added = await client.initiatives.workItems.add(workspaceSlug, initiative.id, {
+        work_item_ids: [testWorkItem.id!],
+      });
+
+      expect(Array.isArray(added)).toBe(true);
+      expect(added.map((item) => item.id)).toContain(testWorkItem.id);
+    });
+
+    it("should list work items in initiative", async () => {
+      const workItems = await client.initiatives.workItems.list(workspaceSlug, initiative.id);
+
+      expect(Array.isArray(workItems.results)).toBe(true);
+      expect(workItems.results.map((item) => item.id)).toContain(testWorkItem.id);
+    });
+
+    it("should list work items in initiative with a page size", async () => {
+      const workItems = await client.initiatives.workItems.list(workspaceSlug, initiative.id, { per_page: 1 });
+
+      expect(workItems.results.length).toBeLessThanOrEqual(1);
+    });
+
+    it("should remove work items from initiative", async () => {
+      await client.initiatives.workItems.remove(workspaceSlug, initiative.id, {
+        work_item_ids: [testWorkItem.id!],
+      });
+
+      const workItems = await client.initiatives.workItems.list(workspaceSlug, initiative.id);
+      expect(workItems.results.map((item) => item.id)).not.toContain(testWorkItem.id);
     });
   });
 

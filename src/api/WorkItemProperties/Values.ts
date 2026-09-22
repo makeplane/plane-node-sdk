@@ -3,6 +3,7 @@ import { Configuration } from "../../Configuration";
 import {
   UpdateWorkItemPropertyValue,
   ListWorkItemPropertyValuesParams,
+  WorkItemPropertyValueDetail,
   WorkItemPropertyValues,
 } from "../../models/WorkItemProperty";
 
@@ -16,15 +17,19 @@ export class Values extends BaseResource {
   }
 
   /**
-   * Retrieve a property value by ID
+   * Retrieve a work item's value(s) for one property
+   *
+   * Answers a single value, or a list when the property holds more than one
+   * (multi-select, or a cascading property's levels). A rich text value carries its
+   * HTML in `value_detail`; its `value` is the ID of the stored content.
    */
   async retrieve(
     workspaceSlug: string,
     projectId: string,
     workItemId: string,
     propertyId: string
-  ): Promise<WorkItemPropertyValues> {
-    const propertyValues = await this.get<WorkItemPropertyValues>(
+  ): Promise<WorkItemPropertyValueDetail | WorkItemPropertyValueDetail[]> {
+    const propertyValues = await this.get<WorkItemPropertyValueDetail | WorkItemPropertyValueDetail[]>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/`
     );
     return propertyValues;
@@ -48,9 +53,12 @@ export class Values extends BaseResource {
   /**
    * Create/update a property value
    *
+   * A rich text property (`relation_type: "RICH_TEXT"`) takes a `RichTextValue`
+   * object, not a bare HTML string.
+   *
    * For single-value properties:
    * - Acts as an upsert operation (create or update)
-   * - Returns a single WorkItemPropertyValues
+   * - Returns a single WorkItemPropertyValueDetail
    *
    * For multi-value properties (is_multi=True):
    * - Replaces all existing values with the new ones (sync operation)
@@ -62,8 +70,8 @@ export class Values extends BaseResource {
     workItemId: string,
     propertyId: string,
     updateData: UpdateWorkItemPropertyValue
-  ): Promise<WorkItemPropertyValues> {
-    return this.post<WorkItemPropertyValues>(
+  ): Promise<WorkItemPropertyValueDetail | WorkItemPropertyValueDetail[]> {
+    return this.post<WorkItemPropertyValueDetail | WorkItemPropertyValueDetail[]>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/`,
       updateData
     );
@@ -74,7 +82,7 @@ export class Values extends BaseResource {
    *
    * For single-value properties:
    * - Updates the existing value
-   * - Returns a single WorkItemPropertyValues
+   * - Returns a single WorkItemPropertyValueDetail
    *
    * For multi-value properties (is_multi=True):
    * - Replaces all existing values with the new ones (sync operation)
@@ -88,8 +96,8 @@ export class Values extends BaseResource {
     workItemId: string,
     propertyId: string,
     updateData: UpdateWorkItemPropertyValue
-  ): Promise<WorkItemPropertyValues> {
-    return this.patch<WorkItemPropertyValues>(
+  ): Promise<WorkItemPropertyValueDetail | WorkItemPropertyValueDetail[]> {
+    return this.patch<WorkItemPropertyValueDetail | WorkItemPropertyValueDetail[]>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/work-items/${workItemId}/work-item-properties/${propertyId}/values/`,
       updateData
     );

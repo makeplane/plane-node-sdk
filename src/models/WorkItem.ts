@@ -66,18 +66,23 @@ export interface CreateWorkItem {
   priority?: PriorityEnum;
 }
 
+/**
+ * Plane patches partially: a field that is present is written, and a field left out is
+ * left alone. On the nullable fields, `null` clears the value -- `undefined` or an
+ * omitted key does not, since it never reaches the wire.
+ */
 export interface UpdateWorkItem {
   name?: string;
   description_html?: string;
   state?: string;
   assignees?: string[];
   labels?: string[];
-  parent?: string;
-  estimate_point?: string;
+  parent?: string | null;
+  estimate_point?: string | null;
   type?: string;
   module?: string;
-  target_date?: string;
-  start_date?: string;
+  target_date?: string | null;
+  start_date?: string | null;
   priority?: PriorityEnum;
 }
 

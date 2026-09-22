@@ -66,6 +66,7 @@ export { Projects as TeamspaceProjects } from "./api/Teamspaces/Projects";
 export { Members as TeamspaceMembers } from "./api/Teamspaces/Members";
 export { Labels as InitiativeLabels } from "./api/Initiatives/Labels";
 export { Projects as InitiativeProjects } from "./api/Initiatives/Projects";
+export { WorkItems as InitiativeWorkItems } from "./api/Initiatives/WorkItems";
 export { Epics as InitiativeEpics } from "./api/Initiatives/Epics";
 export { Activities as AgentRunActivities } from "./api/AgentRuns/Activities";
 export { WorkItems as WorkspaceWorkItemTemplates } from "./api/WorkspaceTemplates/WorkItems";
@@ -236,6 +237,9 @@ export type { CollectionMember as V2CollectionMember } from "./models/v2/Collect
 export type { CollectionMemberAccess as V2CollectionMemberAccess } from "./models/v2/Collection";
 export type { Customer as V2Customer } from "./models/v2/Customer";
 export type { CustomerProperty as V2CustomerProperty } from "./models/v2/CustomerProperty";
+// v1 declares `CustomerPropertyType` too (`src/models/common.ts`). The two unions hold
+// the same nine values, so the bare name moving to v1 changes nothing a consumer sees.
+export type { CustomerPropertyType as V2CustomerPropertyType } from "./models/v2/CustomerProperty";
 export type { CustomerRequest as V2CustomerRequest } from "./models/v2/CustomerRequest";
 export type { Estimate as V2Estimate } from "./models/v2/Estimate";
 export type { EstimatePoint as V2EstimatePoint } from "./models/v2/EstimatePoint";
