@@ -5,6 +5,7 @@ import { PaginatedResponse } from "../../models/common";
 import { Labels } from "./Labels";
 import { Projects } from "./Projects";
 import { Epics } from "./Epics";
+import { WorkItems } from "./WorkItems";
 
 /**
  * Initiatives API resource
@@ -13,12 +14,15 @@ import { Epics } from "./Epics";
 export class Initiatives extends BaseResource {
   public labels: Labels;
   public projects: Projects;
+  public workItems: WorkItems;
+  /** @deprecated Use {@link Initiatives.workItems}; it accepts every work item type. */
   public epics: Epics;
 
   constructor(config: Configuration) {
     super(config);
     this.labels = new Labels(config);
     this.projects = new Projects(config);
+    this.workItems = new WorkItems(config);
     this.epics = new Epics(config);
   }
 

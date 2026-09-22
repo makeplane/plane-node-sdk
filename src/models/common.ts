@@ -75,9 +75,40 @@ export type ResponseEntity<T> = T;
 
 export type PriorityEnum = "urgent" | "high" | "medium" | "low" | "none";
 
-export type PropertyType = "TEXT" | "DECIMAL" | "OPTION" | "BOOLEAN" | "DATETIME" | "RELATION";
+/** Work item property types. */
+export type PropertyType =
+  | "TEXT"
+  | "DATETIME"
+  | "DECIMAL"
+  | "BOOLEAN"
+  | "OPTION"
+  | "RELATION"
+  | "URL"
+  | "EMAIL"
+  | "FILE"
+  | "FORMULA"
+  | "CASCADING";
 
-export type PropertyRelationType = "USER" | "ISSUE";
+/**
+ * Work item relation types. A rich text property is `property_type: "RELATION"` with
+ * `relation_type: "RICH_TEXT"`, not a property type of its own.
+ */
+export type PropertyRelationType = "ISSUE" | "USER" | "RELEASE" | "RICH_TEXT";
+
+/** Customer property types -- the work item set without FORMULA and CASCADING. */
+export type CustomerPropertyType =
+  | "TEXT"
+  | "DATETIME"
+  | "DECIMAL"
+  | "BOOLEAN"
+  | "OPTION"
+  | "RELATION"
+  | "URL"
+  | "EMAIL"
+  | "FILE";
+
+/** Customer relation types -- a customer property can relate to a work item or a user. */
+export type CustomerRelationType = "ISSUE" | "USER";
 
 export type AccessEnum = "INTERNAL" | "EXTERNAL";
 

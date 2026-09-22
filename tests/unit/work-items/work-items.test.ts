@@ -71,6 +71,20 @@ describe(!!(config.workspaceSlug && config.projectId && config.userId), "Work It
     expect(updatedWorkItem.description_html).toBe("<p>Updated Test Work Item Description</p>");
   });
 
+  it("should clear a date set to null and leave the other alone", async () => {
+    await client.workItems.update(workspaceSlug, projectId, workItem.id!, {
+      start_date: "2026-01-01",
+      target_date: "2026-01-31",
+    });
+
+    const cleared = await client.workItems.update(workspaceSlug, projectId, workItem.id!, {
+      target_date: null,
+    });
+
+    expect(cleared.target_date ?? null).toBeNull();
+    expect(cleared.start_date).toBe("2026-01-01");
+  });
+
   it("should list work items", async () => {
     const workItems = await client.workItems.list(workspaceSlug, projectId);
 

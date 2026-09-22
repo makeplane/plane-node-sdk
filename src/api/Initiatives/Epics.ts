@@ -6,7 +6,12 @@ import { AddInitiativeEpicsRequest, RemoveInitiativeEpicsRequest } from "../../m
 
 /**
  * Initiative Epics API resource
- * Handles initiative epic relationships
+ *
+ * @deprecated Use `client.initiatives.workItems`. The `/epics/` endpoints are preserved
+ * for backward compatibility. Server-side they share one implementation and one
+ * association model with `/work-items/`, so any work item type is accepted and returned
+ * here despite the name; the request field is spelled `epic_ids` only because it
+ * predates the unified model.
  */
 export class Epics extends BaseResource {
   constructor(config: Configuration) {

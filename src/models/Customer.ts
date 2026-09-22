@@ -1,4 +1,4 @@
-import { BaseModel, PropertyRelationType, PropertyType } from "./common";
+import { BaseModel, CustomerPropertyType, CustomerRelationType } from "./common";
 
 /**
  * Customer model interfaces
@@ -94,8 +94,8 @@ export interface CustomerProperty extends BaseModel {
   description?: string;
   logo_props?: any;
   sort_order?: number;
-  property_type: PropertyType;
-  relation_type?: PropertyRelationType;
+  property_type: CustomerPropertyType;
+  relation_type?: CustomerRelationType;
   is_required?: boolean;
   default_value?: string[];
   settings?: any;
@@ -111,8 +111,8 @@ export interface CreateCustomerPropertyRequest {
   description?: string;
   logo_props?: any;
   sort_order?: number;
-  property_type?: PropertyType;
-  relation_type?: PropertyRelationType;
+  property_type?: CustomerPropertyType;
+  relation_type?: CustomerRelationType;
   is_required?: boolean;
   default_value?: string[];
   settings?: any;
@@ -131,8 +131,8 @@ export interface UpdateCustomerPropertyRequest {
   description?: string;
   logo_props?: any;
   sort_order?: number;
-  property_type?: PropertyType;
-  relation_type?: PropertyRelationType;
+  property_type?: CustomerPropertyType;
+  relation_type?: CustomerRelationType;
   is_required?: boolean;
   default_value?: string[];
   settings?: any;
