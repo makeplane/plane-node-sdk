@@ -1,5 +1,5 @@
 overrides:
-  js-yaml: 4.1.1
+  js-yaml: 4.3.2
   minimatch@3: 3.1.4
   handlebars: 4.7.9
   follow-redirects: 1.16.0
