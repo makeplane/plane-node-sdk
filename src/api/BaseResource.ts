@@ -2,6 +2,18 @@ import axios, { InternalAxiosRequestConfig } from "axios";
 import { Configuration } from "../Configuration";
 import { HttpError } from "../errors";
 
+/** Longest serialized body a log line carries before it is cut. */
+const MAX_LOGGED_DATA_LENGTH = 1000;
+
+/**
+ * Configurations whose request logger is already installed on the global axios instance.
+ *
+ * Every resource and sub-resource a `PlaneClient` builds runs the `BaseResource`
+ * constructor with the same `Configuration`. Installing once per resource logged every
+ * request once per resource; keying on the configuration installs it once per client.
+ */
+const loggingInstalledFor = new WeakSet<Configuration>();
+
 /**
  * Base resource class containing HTTP logic and authentication
  * All API resources should extend this class
@@ -12,7 +24,8 @@ export abstract class BaseResource {
 
   constructor(config: Configuration) {
     this.config = config;
-    if (config.enableLogging) {
+    if (config.enableLogging && !loggingInstalledFor.has(config)) {
+      loggingInstalledFor.add(config);
       this.setupInterceptors();
     }
   }
@@ -37,15 +50,25 @@ export abstract class BaseResource {
   }
 
   /**
-   * Sanitize data to remove sensitive information and limit size
+   * Sanitize data to remove sensitive information and limit size.
+   *
+   * Only ever feeds a log line, so it must never throw: logging describes a request and
+   * must not change its outcome.
    */
-  private sanitizeData(data: any): any {
+  private sanitizeData(data: unknown): unknown {
     if (!data) return data;
 
-    // If data is too large, truncate it
-    const dataStr = JSON.stringify(data);
-    if (dataStr.length > 1000) {
-      return JSON.parse(dataStr.substring(0, 1000)) + "... [TRUNCATED]";
+    let dataStr: string | undefined;
+    try {
+      dataStr = JSON.stringify(data);
+    } catch {
+      return "[UNSERIALIZABLE]";
+    }
+
+    // If data is too large, truncate it. The cut lands mid-JSON, so keep it a string —
+    // `JSON.parse` on it throws.
+    if (dataStr !== undefined && dataStr.length > MAX_LOGGED_DATA_LENGTH) {
+      return `${dataStr.slice(0, MAX_LOGGED_DATA_LENGTH)}... [TRUNCATED]`;
     }
 
     return data;
@@ -185,12 +208,19 @@ export abstract class BaseResource {
   }
 
   /**
-   * Setup axios interceptors for request and response logging
+   * Setup the axios request interceptor that logs requests.
+   *
+   * It sits on the global axios instance, which the host application and `OAuthClient`
+   * use too, so it only reports requests under this client's API prefix. Matching
+   * `baseUrl` alone would log `OAuthClient`'s token exchange, whose body carries the
+   * client secret.
    */
   private setupInterceptors(): void {
+    const apiPrefix = `${this.config.baseUrl}${this.apiBasePath}`;
     // Request interceptor
     axios.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
+        if (!config.url?.startsWith(apiPrefix)) return config;
         console.log("🚀 [REQUEST]", {
           method: config.method?.toUpperCase(),
           url: config.url,
