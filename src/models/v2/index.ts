@@ -13,6 +13,7 @@ export * from "./CustomerPropertyValue";
 export * from "./CustomerRequest";
 export * from "./Cycle";
 export * from "./CycleTransfer";
+export * from "./Dashboard";
 export * from "./Estimate";
 export * from "./EstimatePoint";
 export * from "./Feature";
@@ -44,6 +45,7 @@ export * from "./View";
 export * from "./Webhook";
 export * from "./WebhookLog";
 export * from "./WhoAmI";
+export * from "./Widget";
 export * from "./Workspace";
 // `Page` (wiki page) and `common`'s `Page<T>` (pagination envelope) both export a
 // member named `Page`; this explicit re-export wins the bare `Page` name for the
