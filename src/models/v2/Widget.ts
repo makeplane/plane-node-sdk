@@ -38,7 +38,11 @@ export type StoredWidgetChartType =
 /** Allowed values depend on the chart type; a chart type without variants takes `BASIC`. */
 export type WidgetChartModel = "BASIC" | "STACKED" | "GROUPED" | "MULTI_LINE" | "COMPARISON" | "PROGRESS";
 
-/** Which widget filter applies: `pql_filters`, or `rich_filters` (which applies `filters`). */
+/**
+ * Which widget filter a chart applies: `rich_filters` (the default) applies the widget's
+ * `filters`; `pql_filters` applies `pql_filters.stripped`. The `rich_filters` field itself is
+ * never read by a chart, whatever this says.
+ */
 export type WidgetLastUsedFilter = "pql_filters" | "rich_filters";
 
 /** Bucket size for a date x axis. */
@@ -69,17 +73,26 @@ export interface Widget {
   config?: Record<string, unknown>;
   /** e.g. `PRIORITY`, `STATE_GROUPS`, `TARGET_DATE`, or a custom property as `cp_<property_id>`. */
   x_axis_property?: string | null;
-  x_axis_date_grouping?: WidgetDateGrouping | null;
-  y_axis_metric?: WidgetYAxisMetric | null;
+  /**
+   * A {@link WidgetDateGrouping} on a widget the API wrote. Typed as `string` because the
+   * column is free text: a widget the web app saved can carry any value, including `""`.
+   */
+  x_axis_date_grouping?: string | null;
+  /** A {@link WidgetYAxisMetric} on a widget the API wrote; free text (`""` included) otherwise. */
+  y_axis_metric?: string | null;
   group_by?: string | null;
   width?: number;
   height?: number;
   x_axis_coord?: number;
   y_axis_coord?: number;
   pql_filters?: DashboardPqlFilters;
-  /** The web app's filter-builder state. Stored and returned; charts don't read it. */
+  /** The web app's filter-builder state. Stored and returned; charts never read it. */
   rich_filters?: Record<string, unknown>;
-  last_used_filter?: WidgetLastUsedFilter;
+  /**
+   * Which filter the chart applies — see {@link WidgetLastUsedFilter}. Usually one of its two
+   * values, but the column is free text, so a widget the web app saved can carry another.
+   */
+  last_used_filter?: string | null;
   filters?: Record<string, unknown>;
   created_at?: string;
   updated_at?: string;
@@ -101,15 +114,24 @@ export interface CreateWidget {
   height?: number;
   x_axis_coord?: number;
   y_axis_coord?: number;
-  /** Applies when `last_used_filter` is `pql_filters`. */
+  /** Applies (as `pql_filters.stripped`) when `last_used_filter` is `pql_filters`. */
   pql_filters?: DashboardPqlFilters;
+  /** The web app's filter-builder state. Stored and returned; charts never read it. */
   rich_filters?: Record<string, unknown>;
+  /**
+   * Defaults to `rich_filters`. On create, sending a non-empty `pql_filters` with neither
+   * `filters` nor `last_used_filter` makes the API store `pql_filters` here instead, so a
+   * PQL-only widget charts with its PQL.
+   */
   last_used_filter?: WidgetLastUsedFilter;
   /** Applies when `last_used_filter` is `rich_filters`. */
   filters?: Record<string, unknown>;
 }
 
-/** PATCH body — every field optional. v2 has no PUT. */
+/**
+ * PATCH body — every field optional. v2 has no PUT. Send `null` to clear `group_by`,
+ * `x_axis_property`, `x_axis_date_grouping` or `y_axis_metric`; the client sends it as is.
+ */
 export type UpdateWidget = Partial<CreateWidget>;
 
 /** One row of `Dashboards.widgetTypes`: a chart type, the models it accepts, and whether the plan includes it. */
@@ -136,7 +158,11 @@ export interface WidgetChartSchemaEntry {
  * rest by key.
  */
 export interface WidgetChart {
-  /** Entity key (`state`, `priority`, …) → id → display details for the ids in `data`. */
+  /**
+   * Entity key (`state`, `priority`, …) → id → display details for the ids in `data`. Named
+   * `schema` as on the wire; the Python SDK calls it `chart_schema` only because `schema`
+   * clashes with pydantic.
+   */
   schema?: Record<string, Record<string, WidgetChartSchemaEntry>>;
   /** The rows, buckets, slices or groups. `WORK_ITEMS_STATISTICS` puts them under `results.data` instead. */
   data?: unknown;
@@ -160,7 +186,10 @@ export interface WidgetChartParams {
   row_ids?: readonly string[];
 }
 
-/** One widget's entry in `Widgets.charts`. Each widget succeeds or fails on its own. */
+/**
+ * One widget's entry in `Widgets.charts`. Each widget succeeds or fails on its own: a widget
+ * that cannot be charted gets a non-200 `status` and an `error` here instead of failing the call.
+ */
 export interface WidgetChartResult {
   widget_id: string;
   chart_type: StoredWidgetChartType;

@@ -173,6 +173,41 @@ describe("Dashboard widgets (v2)", () => {
     await expect(widgets.delete(SLUG, DASHBOARD, WIDGET)).resolves.toBeUndefined();
   });
 
+  it("creates a PQL-filtered widget that charts with its PQL", async () => {
+    const body = {
+      name: "Urgent by state",
+      chart_type: "BAR_CHART" as const,
+      chart_model: "BASIC" as const,
+      x_axis_property: "STATE_GROUPS",
+      y_axis_metric: "WORK_ITEM_COUNT" as const,
+      pql_filters: { raw: 'priority = "urgent"', stripped: 'priority = "urgent"' },
+      last_used_filter: "pql_filters" as const,
+    };
+    const scope = nock(BASE)
+      .post(widgetsUrl, body)
+      .reply(201, { id: WIDGET, ...body, pql_filters: { ...body.pql_filters, json: {} }, filters: {} });
+
+    const created = await makeDashboards().widgets.create(SLUG, DASHBOARD, body);
+
+    expect(scope.isDone()).toBe(true);
+    expect(created.last_used_filter).toBe("pql_filters");
+    expect(created.pql_filters?.stripped).toBe('priority = "urgent"');
+  });
+
+  it("sends null to clear the axis fields on an update", async () => {
+    const cleared = { group_by: null, x_axis_property: null, x_axis_date_grouping: null, y_axis_metric: null };
+    const scope = nock(BASE)
+      .patch(`${widgetsUrl}${WIDGET}/`, (sent) => JSON.stringify(sent) === JSON.stringify(cleared))
+      .reply(200, { id: WIDGET, ...cleared, last_used_filter: "" });
+
+    const updated = await makeDashboards().widgets.update(SLUG, DASHBOARD, WIDGET, cleared);
+
+    expect(scope.isDone()).toBe(true);
+    expect(updated.group_by).toBeNull();
+    // The read model types these as free text: a widget the web app saved can carry "".
+    expect(updated.last_used_filter).toBe("");
+  });
+
   it("lists widgets with the chart filters and sort order", async () => {
     nock(BASE)
       .get(widgetsUrl)
@@ -213,6 +248,29 @@ describe("Dashboard widgets (v2)", () => {
     expect(chart.columns).toEqual(["high"]);
   });
 
+  it("pages a table chart by rows and columns without sending row_ids", async () => {
+    const scope = nock(BASE)
+      .get(`${widgetsUrl}${WIDGET}/chart/`)
+      .query((query) => JSON.stringify(query) === JSON.stringify({ page: "3", column_page: "2" }))
+      .reply(200, {
+        schema: {},
+        data: [{ group_by_id: "urgent", cells: { backlog: 4 } }],
+        columns: ["backlog"],
+        page: 3,
+        per_page: 10,
+        total_pages: 3,
+        next_page: null,
+        prev_page: 2,
+      });
+
+    const chart = await makeDashboards().widgets.chart(SLUG, DASHBOARD, WIDGET, { page: 3, column_page: 2 });
+
+    expect(scope.isDone()).toBe(true);
+    expect(chart.page).toBe(3);
+    expect(chart.next_page).toBeNull();
+    expect(chart.prev_page).toBe(2);
+  });
+
   it("fetches a chart with no query string when no params are given", async () => {
     nock(BASE)
       .get(`${widgetsUrl}${WIDGET}/chart/`)
@@ -250,5 +308,17 @@ describe("Dashboard widgets (v2)", () => {
     expect(results[0].chart?.value).toBe(10);
     expect(results[1].status).toBe(400);
     expect(results[1].error?.code).toBe("invalid_request");
+  });
+
+  it("answers an empty widget_ids selection with no request", async () => {
+    // `?widget_ids=` used to chart every widget, so the call must not reach the server at all.
+    const scope = nock(BASE)
+      .get(`${widgetsUrl}charts/`)
+      .query(true)
+      .reply(200, { data: [{ widget_id: "w1", chart_type: "NUMBER", status: 200, chart: { value: 1 } }] });
+
+    await expect(makeDashboards().widgets.charts(SLUG, DASHBOARD, { widget_ids: [] })).resolves.toEqual([]);
+
+    expect(scope.isDone()).toBe(false);
   });
 });

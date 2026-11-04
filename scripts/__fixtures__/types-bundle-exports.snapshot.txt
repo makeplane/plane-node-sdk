@@ -817,7 +817,7 @@ root	WebhookLogOrderBy	WebhookLogOrderBy	ec2dca9ddef07b93
 root	WebhookNavigation	WebhookNavigation	46f44d74dbda490c
 root	WebhookOrderBy	WebhookOrderBy	8208ef1cf8b386b0
 root	WhoAmI	WhoAmI	9bda88ee24634842
-root	Widget	Widget	f74d320a49522a43
+root	Widget	Widget	f20ace833052fa1d
 root	WidgetChart	WidgetChart	ff3b8751e0493763
 root	WidgetChartModel	WidgetChartModel	63023f85b7b5a221
 root	WidgetChartParams	WidgetChartParams	cd0a770665d4c043
@@ -1722,7 +1722,7 @@ v2models	WebhookContentType	WebhookContentType	d3f26efdb3421ac9
 v2models	WebhookCreateResponse	WebhookCreateResponse	00f2ef9f126d731b
 v2models	WebhookLog	WebhookLog	86648f9796a85528
 v2models	WhoAmI	WhoAmI	9bda88ee24634842
-v2models	Widget	Widget	f74d320a49522a43
+v2models	Widget	Widget	f20ace833052fa1d
 v2models	WidgetChart	WidgetChart	ff3b8751e0493763
 v2models	WidgetChartModel	WidgetChartModel	63023f85b7b5a221
 v2models	WidgetChartParams	WidgetChartParams	cd0a770665d4c043

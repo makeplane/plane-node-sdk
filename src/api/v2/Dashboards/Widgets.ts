@@ -38,7 +38,10 @@ export interface WidgetShapeParams {
 
 /** Query parameters of {@link Widgets.charts}. */
 export interface WidgetChartsParams {
-  /** Only these widgets (sent comma-separated). Ids not on the dashboard are skipped. Default: every widget. */
+  /**
+   * Only these widgets (sent comma-separated). Ids not on the dashboard are skipped. Omit it
+   * for every widget; an empty array resolves to `[]` without a request.
+   */
   widget_ids?: readonly string[];
 }
 
@@ -162,7 +165,9 @@ export class Widgets extends V2Resource<Widget, CreateWidget, UpdateWidget> {
 
   /**
    * The data one widget draws, computed from the dashboard's current work items with both
-   * the dashboard's and the widget's filters applied. The shape depends on the widget's
+   * the dashboard's and the widget's filters applied. The widget filter is its `filters` when
+   * `last_used_filter` is `rich_filters` (the default) and `pql_filters.stripped` when it is
+   * `pql_filters`; `rich_filters` is never read. The shape depends on the widget's
    * `chart_type`. `row_ids` is sent as the JSON array the API expects.
    */
   chart(slug: string, dashboard: string, widget: string, params?: WidgetChartParams): Promise<WidgetChart> {
@@ -175,11 +180,17 @@ export class Widgets extends V2Resource<Widget, CreateWidget, UpdateWidget> {
   }
 
   /**
-   * Every widget's chart data in one call, in layout order, each at its first page.
-   * Resolves to the response's `data` array: one entry per widget, each carrying its own
-   * `status` and either `chart` or `error`, so one widget failing never fails the call.
+   * Every widget's chart data in one call, in layout order, each at its first page, with the
+   * same filters as {@link chart}. Resolves to the response's `data` array: one entry per
+   * widget, each carrying its own `status` and either `chart` or `error`. A widget that
+   * cannot be charted (400, 402) fails only its own entry; the call itself still rejects
+   * for anything about the dashboard (401/403, 404 for a dashboard the caller cannot see,
+   * 402 when the plan has no dashboards). An empty `widget_ids` resolves to `[]` without a
+   * request.
    */
   async charts(slug: string, dashboard: string, params?: WidgetChartsParams): Promise<WidgetChartResult[]> {
+    // `?widget_ids=` with nothing after it is an empty selection, so skip the round trip.
+    if (params?.widget_ids !== undefined && params.widget_ids.length === 0) return [];
     const response = await this.doCustomAction<{ data: WidgetChartResult[] }>("charts", {
       method: "GET",
       pathParams: { slug, dashboard_id: dashboard },

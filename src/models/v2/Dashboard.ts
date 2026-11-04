@@ -44,7 +44,10 @@ export interface CreateDashboard {
   logo_props?: unknown;
 }
 
-/** PATCH body — every field optional. `project_ids` replaces the whole list. v2 has no PUT. */
+/**
+ * PATCH body — every field optional. `project_ids` replaces the whole list. v2 has no PUT.
+ * Changing `access` needs the dashboard's owner; sending the value it already has does not.
+ */
 export type UpdateDashboard = Partial<CreateDashboard>;
 
 /** Body of `copy`: any create field, each one overriding the copied value. `name` defaults to `"<source name> (Copy)"`. */
