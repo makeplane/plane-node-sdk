@@ -183,7 +183,7 @@ export class Widgets extends V2Resource<Widget, CreateWidget, UpdateWidget> {
    * Every widget's chart data in one call, in layout order, each at its first page, with the
    * same filters as {@link chart}. Resolves to the response's `data` array: one entry per
    * widget, each carrying its own `status` and either `chart` or `error`. A widget that
-   * cannot be charted (400, 402) fails only its own entry; the call itself still rejects
+   * cannot be charted (400, 402, 500) fails only its own entry; the call itself still rejects
    * for anything about the dashboard (401/403, 404 for a dashboard the caller cannot see,
    * 402 when the plan has no dashboards). An empty `widget_ids` resolves to `[]` without a
    * request.
