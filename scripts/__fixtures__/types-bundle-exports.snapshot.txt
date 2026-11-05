@@ -85,6 +85,7 @@ root	CollectionPageSearchResult	CollectionPageSearchResult	db96ac010e9afa9a
 root	CollectionPagesResource	Pages$2	db32805900a83eb9
 root	Collections	Collections$1	7f4d552d43ffae22
 root	Configuration	Configuration	3699a98cbead400c
+root	CopyDashboard	CopyDashboard	84504ff55ac98c03
 root	CreateAgentRunActivityRequest	CreateAgentRunActivityRequest	b6ab9ab8d2670c55
 root	CreateAgentRunRequest	CreateAgentRunRequest	4ee23b5478c4a50f
 root	CreateArtifact	CreateArtifact	a1a0c90fb34f4ef3
@@ -102,6 +103,7 @@ root	CreateCustomerPropertyValues	CreateCustomerPropertyValues	da41ca7f5977895d
 root	CreateCustomerRequest	CreateCustomerRequest$1	565f10415fc05cb5
 root	CreateCycle	CreateCycle	23f0ebe512ec0384
 root	CreateCycleRequest	CreateCycleRequest	92245f5608794af0
+root	CreateDashboard	CreateDashboard	bfc4b6753b1a7c63
 root	CreateDateTimeWorkItemProperty	CreateDateTimeWorkItemProperty	126ae159a2d193ba
 root	CreateDecimalWorkItemProperty	CreateDecimalWorkItemProperty	f119312c419b53cb
 root	CreateEntity	CreateEntity	027f8a4bde7bb893
@@ -137,6 +139,7 @@ root	CreateTeamspace	CreateTeamspace$1	4006be56b72002d5
 root	CreateTextWorkItemProperty	CreateTextWorkItemProperty	cd83ddc6cab7cf09
 root	CreateView	CreateView	c45c383521d10adb
 root	CreateWebhook	CreateWebhook	cf78dd312a0d05ba
+root	CreateWidget	CreateWidget	49fc63784e1294bb
 root	CreateWorkflow	CreateWorkflow$1	78201216b4754e3a
 root	CreateWorkflowTransition	CreateWorkflowTransition$1	45510e0b617f6460
 root	CreateWorkflowTransitionHook	CreateWorkflowTransitionHook	38fff173d57eafa0
@@ -201,6 +204,14 @@ root	CycleShapeParams	CycleShapeParams	216745d121c9812c
 root	CycleTransferRequest	CycleTransferRequest	e7f43182d7f1d576
 root	CycleTransferResult	CycleTransferResult	d042aace96311191
 root	CycleWorkItem	CycleWorkItem	af003efccbfafd8b
+root	Dashboard	Dashboard	5137bc4765c2078a
+root	DashboardAccess	DashboardAccess	9a4882177567be3a
+root	DashboardField	DashboardField	a190e0e22a026356
+root	DashboardIds	DashboardIds	dfd479449a7cd57a
+root	DashboardNavigation	DashboardNavigation	182d47ab3fa3d5f2
+root	DashboardOrderBy	DashboardOrderBy	2ba5d71187618d39
+root	DashboardPqlFilters	DashboardPqlFilters	1142ca51729a38b2
+root	DashboardShapeParams	DashboardShapeParams	4687426a01955f0c
 root	DependencyType	DependencyType	3ed943095fdce55a
 root	EffectivePermissions	EffectivePermissions	5d3fedb6e24b57e8
 root	EmojiProps	EmojiProps	2b5b186e421c9ec0
@@ -283,6 +294,7 @@ root	ListCustomerRequestsParams	ListCustomerRequestsParams$1	7b1f7d6168d79468
 root	ListCustomersParams	ListCustomersParams$1	8ab3b319d7924e70
 root	ListCyclesLiteParams	ListCyclesLiteParams	77cde90f2cf29adb
 root	ListCyclesParams	ListCyclesParams	95683034ab0a9062
+root	ListDashboardsParams	ListDashboardsParams	c5cd54d5b0306462
 root	ListEstimatePointsParams	ListEstimatePointsParams	1362a53a830f6c73
 root	ListEstimatesParams	ListEstimatesParams	6daf133b406ea280
 root	ListGroupSyncProjectMappingsParams	ListGroupSyncProjectMappingsParams	00a094b744dfab95
@@ -321,6 +333,7 @@ root	ListTeamspacesParams	ListTeamspacesParams$1	c28f2812c77dc449
 root	ListUserAssetsParams	ListUserAssetsParams	7d4cbd36b728669a
 root	ListWebhookLogsParams	ListWebhookLogsParams	573e242efd6ba1e0
 root	ListWebhooksParams	ListWebhooksParams	7af80adf7001e64c
+root	ListWidgetsParams	ListWidgetsParams	e175c388657fc986
 root	ListWikiPagesParams	ListWikiPagesParams	5290376dc466b3a3
 root	ListWorkflowActivitiesParams	ListWorkflowActivitiesParams	0ff243eda596d2a1
 root	ListWorkflowsParams	ListWorkflowsParams	370088cb48409b55
@@ -358,6 +371,8 @@ root	LoadedCustomer	LoadedCustomer	0ec83e3fdac137b5
 root	LoadedCustomerRow	LoadedCustomerRow	f14ffb011489ddae
 root	LoadedCycle	LoadedCycle	85083ab073c1de92
 root	LoadedCycleRow	LoadedCycleRow	f8369f4dfd7401e5
+root	LoadedDashboard	LoadedDashboard	1f0ada408413b70d
+root	LoadedDashboardRow	LoadedDashboardRow	cb93823b7f9d1ae5
 root	LoadedEstimate	LoadedEstimate	b79f12fd657ab746
 root	LoadedEstimateRow	LoadedEstimateRow	d282ee47dfe6cd1c
 root	LoadedInitiative	LoadedInitiative	b6ca2d1f1ce01700
@@ -555,6 +570,7 @@ root	Sticky	Sticky$1	254b45a34412a145
 root	StickyField	StickyField	643b8430d75e9720
 root	StickyFieldsParams	StickyFieldsParams	0fdade5bc02755a7
 root	StickyOrderBy	StickyOrderBy	bd49f4cf606fd7fa
+root	StoredWidgetChartType	StoredWidgetChartType	1feec4b36ffde2b5
 root	SubmitWorkItemApproval	SubmitWorkItemApproval	e05baade0aeb8934
 root	Teamspace	Teamspace$1	897aaec6f2d51519
 root	TeamspaceExpand	TeamspaceExpand	e9abd665df475ac7
@@ -585,6 +601,7 @@ root	UpdateCustomerPropertyValue	UpdateCustomerPropertyValue	60f25edbb6c8a557
 root	UpdateCustomerRequest	UpdateCustomerRequest$1	9492d2887887f4bf
 root	UpdateCycle	UpdateCycle	d7a6321443f778fc
 root	UpdateCycleRequest	UpdateCycleRequest	633c449f7634a34a
+root	UpdateDashboard	UpdateDashboard	7a6293791fc656a0
 root	UpdateEntity	UpdateEntity	42b752b777fbae51
 root	UpdateEpic	UpdateEpic	803b8f8ab713d25e
 root	UpdateEstimate	UpdateEstimate	0fae5e80e8f23562
@@ -622,6 +639,7 @@ root	UpdateTeamspace	UpdateTeamspace$1	8d4d0691624dc911
 root	UpdateTypeGovernance	UpdateTypeGovernance	ba2fff182138554f
 root	UpdateView	UpdateView	6040aff91b83ecc6
 root	UpdateWebhook	UpdateWebhook	8045e2f55d040ebb
+root	UpdateWidget	UpdateWidget	0469f80037587922
 root	UpdateWorkflow	UpdateWorkflow$1	0929b3752ee0fe44
 root	UpdateWorkflowState	UpdateWorkflowState$1	ecb713c892cf7421
 root	UpdateWorkflowTransition	UpdateWorkflowTransition$1	9190e212b49f3955
@@ -799,6 +817,21 @@ root	WebhookLogOrderBy	WebhookLogOrderBy	ec2dca9ddef07b93
 root	WebhookNavigation	WebhookNavigation	46f44d74dbda490c
 root	WebhookOrderBy	WebhookOrderBy	8208ef1cf8b386b0
 root	WhoAmI	WhoAmI	9bda88ee24634842
+root	Widget	Widget	f20ace833052fa1d
+root	WidgetChart	WidgetChart	ff3b8751e0493763
+root	WidgetChartModel	WidgetChartModel	63023f85b7b5a221
+root	WidgetChartParams	WidgetChartParams	e08f42a3efc0e795
+root	WidgetChartResult	WidgetChartResult	cf4ada472fb0989b
+root	WidgetChartSchemaEntry	WidgetChartSchemaEntry	1d893d2793a353a5
+root	WidgetChartsParams	WidgetChartsParams	a6c58190366b284e
+root	WidgetChartType	WidgetChartType	986ca7ab4e136daf
+root	WidgetDateGrouping	WidgetDateGrouping	b01881c8ca4e6793
+root	WidgetField	WidgetField	031f7fd7faa535e1
+root	WidgetLastUsedFilter	WidgetLastUsedFilter	2a17869a66311d52
+root	WidgetOrderBy	WidgetOrderBy	84e9b98d55c55510
+root	WidgetShapeParams	WidgetShapeParams	bde434605ccec0a2
+root	WidgetType	WidgetType	be7711d06b85c633
+root	WidgetYAxisMetric	WidgetYAxisMetric	5838f1f9900b8726
 root	WikiPageExpand	WikiPageExpand	b41bd04e55582fc9
 root	WikiPageField	WikiPageField	bd8a2930ea927502
 root	WikiPageOrderBy	WikiPageOrderBy	3a466d4c1bcc4994
@@ -982,7 +1015,7 @@ root	WorkspaceInviteFieldsParams	WorkspaceInviteFieldsParams	0ef3341d4a9644d9
 root	WorkspaceInviteOrderBy	WorkspaceInviteOrderBy	d1901ca37563d14d
 root	WorkspaceMember	WorkspaceMember$1	b61f7162ec8d5356
 root	WorkspaceMemberRemoveRequest	WorkspaceMemberRemoveRequest	4aa6efab146d5e24
-root	WorkspaceNavigation	WorkspaceNavigation	1a4d13616ba9f074
+root	WorkspaceNavigation	WorkspaceNavigation	2cf6f713a92b6f34
 root	WorkspacePageTemplate	WorkspacePageTemplate	d209e4164ca13886
 root	WorkspacePageTemplates	Pages$3	2cc15181e9ebcbf7
 root	WorkspaceProjectLabel	WorkspaceProjectLabel	a429972341041c5e
@@ -1068,6 +1101,13 @@ v2	CycleNavigation	CycleNavigation	3460fed225ee677a
 v2	CycleOrderBy	CycleOrderBy	6b31c08b310b702d
 v2	Cycles	Cycles	a17a7edc1ef1e569
 v2	CycleWorkItems	CycleWorkItems	3fcdd031d36e5af3
+v2	DASHBOARD_ID_NAMES	DASHBOARD_ID_NAMES	bd98a1d9139c2fcb
+v2	DashboardField	DashboardField	a190e0e22a026356
+v2	DashboardIds	DashboardIds	dfd479449a7cd57a
+v2	DashboardNavigation	DashboardNavigation	182d47ab3fa3d5f2
+v2	DashboardOrderBy	DashboardOrderBy	2ba5d71187618d39
+v2	Dashboards	Dashboards	94b1212c6c8eabde
+v2	DashboardShapeParams	DashboardShapeParams	4687426a01955f0c
 v2	ESTIMATE_ID_NAMES	ESTIMATE_ID_NAMES	f7dcd631df5fd14c
 v2	EstimateExpand	EstimateExpand	c8abfa612422fc68
 v2	EstimateField	EstimateField	a72670e931819453
@@ -1081,7 +1121,7 @@ v2	EstimatePointShapeParams	EstimatePointShapeParams	96705610b691e978
 v2	Estimates	Estimates	63e06c142c0d270e
 v2	EstimateShapeParams	EstimateShapeParams	811689714b8de6c5
 v2	EXPAND	EXPAND	142e756475b2b6e3
-v2	FIELDS	FIELDS	d180ca352a84ec95
+v2	FIELDS	FIELDS	cc4d7f53e2f5eb1d
 v2	GroupSync	GroupSync	c0121fc6a056a668
 v2	GroupSyncConfigResource	GroupSyncConfigResource	18b8cb8f6179b66b
 v2	GroupSyncProjectMappingField	GroupSyncProjectMappingField	cf293d1a76286806
@@ -1121,6 +1161,7 @@ v2	ListCustomerPropertiesParams	ListCustomerPropertiesParams	55c9e8dfc2a9f17d
 v2	ListCustomerRequestsParams	ListCustomerRequestsParams	52fe3e2d66e33be8
 v2	ListCustomersParams	ListCustomersParams	86e0f026102f9edf
 v2	ListCyclesParams	ListCyclesParams	95683034ab0a9062
+v2	ListDashboardsParams	ListDashboardsParams	c5cd54d5b0306462
 v2	ListEstimatePointsParams	ListEstimatePointsParams	1362a53a830f6c73
 v2	ListEstimatesParams	ListEstimatesParams	6daf133b406ea280
 v2	ListGroupSyncProjectMappingsParams	ListGroupSyncProjectMappingsParams	00a094b744dfab95
@@ -1151,6 +1192,7 @@ v2	ListTeamspacesParams	ListTeamspacesParams	0a2ec007446e4b96
 v2	ListUserAssetsParams	ListUserAssetsParams	7d4cbd36b728669a
 v2	ListWebhookLogsParams	ListWebhookLogsParams	573e242efd6ba1e0
 v2	ListWebhooksParams	ListWebhooksParams	7af80adf7001e64c
+v2	ListWidgetsParams	ListWidgetsParams	e175c388657fc986
 v2	ListWikiPagesParams	ListWikiPagesParams	5290376dc466b3a3
 v2	ListWorkflowsParams	ListWorkflowsParams	370088cb48409b55
 v2	ListWorkflowStatesParams	ListWorkflowStatesParams	a75a30e0c217d42e
@@ -1183,6 +1225,8 @@ v2	LoadedCustomer	LoadedCustomer	0ec83e3fdac137b5
 v2	LoadedCustomerRow	LoadedCustomerRow	f14ffb011489ddae
 v2	LoadedCycle	LoadedCycle	85083ab073c1de92
 v2	LoadedCycleRow	LoadedCycleRow	f8369f4dfd7401e5
+v2	LoadedDashboard	LoadedDashboard	1f0ada408413b70d
+v2	LoadedDashboardRow	LoadedDashboardRow	cb93823b7f9d1ae5
 v2	LoadedEstimate	LoadedEstimate	b79f12fd657ab746
 v2	LoadedEstimateRow	LoadedEstimateRow	d282ee47dfe6cd1c
 v2	LoadedInitiative	LoadedInitiative	b6ca2d1f1ce01700
@@ -1236,7 +1280,7 @@ v2	Modules	Modules	aee10c3a49ca6450
 v2	ModuleWorkItems	ModuleWorkItems	feea697c3da3cf2d
 v2	NavigationFactories	NavigationFactories	5d7432b20941852e
 v2	OPENAPI_VERSION	OPENAPI_VERSION	1a18ca7e9c72b223
-v2	ORDER_BY	ORDER_BY	70cab4aa87392d31
+v2	ORDER_BY	ORDER_BY	7e6cd8d0a3ff338c
 v2	owned	owned	cadd2d5773a9efd5
 v2	Owned	Owned	456b60e9253eca90
 v2	OWNED	OWNED	cc458929fbdd7953
@@ -1341,6 +1385,11 @@ v2	WebhookLogs	WebhookLogs	59a8fa4f91f3559e
 v2	WebhookNavigation	WebhookNavigation	46f44d74dbda490c
 v2	WebhookOrderBy	WebhookOrderBy	8208ef1cf8b386b0
 v2	Webhooks	Webhooks	fea14751bec01d1d
+v2	WidgetChartsParams	WidgetChartsParams	a6c58190366b284e
+v2	WidgetField	WidgetField	031f7fd7faa535e1
+v2	WidgetOrderBy	WidgetOrderBy	84e9b98d55c55510
+v2	Widgets	Widgets	12b5d5e3b2a9ce1b
+v2	WidgetShapeParams	WidgetShapeParams	bde434605ccec0a2
 v2	Wiki	Wiki	ba7c9ac08246b4e6
 v2	WikiPageExpand	WikiPageExpand	b41bd04e55582fc9
 v2	WikiPageField	WikiPageField	bd8a2930ea927502
@@ -1448,9 +1497,9 @@ v2	WorkspaceInviteField	WorkspaceInviteField	3a2b66d4197c572d
 v2	WorkspaceInviteFieldsParams	WorkspaceInviteFieldsParams	0ef3341d4a9644d9
 v2	WorkspaceInviteOrderBy	WorkspaceInviteOrderBy	d1901ca37563d14d
 v2	WorkspaceMembers	WorkspaceMembers	8629d93386c08f34
-v2	WorkspaceNavigation	WorkspaceNavigation	1a4d13616ba9f074
+v2	WorkspaceNavigation	WorkspaceNavigation	2cf6f713a92b6f34
 v2	WorkspacePermissions	WorkspacePermissions	8d6c4bdddf0d9504
-v2	Workspaces	Workspaces	f86a76b74b94dc1b
+v2	Workspaces	Workspaces	62bc24dcd561968d
 v2	WorkspaceViewOrderBy	WorkspaceViewOrderBy	ea48a52e1e6e629d
 v2	WorkspaceViews	WorkspaceViews	7550deaba489d4d7
 v2	WorkspaceWorkItemProperties	WorkspaceWorkItemProperties	2794124f1bb68b06
@@ -1500,6 +1549,7 @@ v2models	CollectionMemberAccess	CollectionMemberAccess	65f60ad10486e9bc
 v2models	CollectionMemberAddItem	CollectionMemberAddItem	95e143cfa1f45db6
 v2models	CollectionMemberSource	CollectionMemberSource	277b9eb3f44a2f5b
 v2models	CollectionPageSearch	CollectionPageSearch	8b51dfba5d6fd2b3
+v2models	CopyDashboard	CopyDashboard	84504ff55ac98c03
 v2models	CreateArtifact	CreateArtifact	a1a0c90fb34f4ef3
 v2models	CreateAutomation	CreateAutomation	9a9a62c5ec5118bc
 v2models	CreateAutomationEdge	CreateAutomationEdge	736ef458b14f945d
@@ -1511,6 +1561,7 @@ v2models	CreateCustomerPropertyOption	CreateCustomerPropertyOption	e818442a4ce6c
 v2models	CreateCustomerPropertyValues	CreateCustomerPropertyValues	da41ca7f5977895d
 v2models	CreateCustomerRequest	CreateCustomerRequest	533215d178fc1df4
 v2models	CreateCycle	CreateCycle	23f0ebe512ec0384
+v2models	CreateDashboard	CreateDashboard	bfc4b6753b1a7c63
 v2models	CreateEstimate	CreateEstimate	0413e51a22cb269a
 v2models	CreateEstimatePoint	CreateEstimatePoint	1cb096c34f59af7d
 v2models	CreateGroupMapping	CreateGroupMapping	b2dd47de6138a93d
@@ -1533,6 +1584,7 @@ v2models	CreateSticky	CreateSticky	663e956c171ed192
 v2models	CreateTeamspace	CreateTeamspace	5c83a8d5ff4fb9b3
 v2models	CreateView	CreateView	c45c383521d10adb
 v2models	CreateWebhook	CreateWebhook	cf78dd312a0d05ba
+v2models	CreateWidget	CreateWidget	49fc63784e1294bb
 v2models	CreateWorkflow	CreateWorkflow	9f847ecc05a6e64f
 v2models	CreateWorkflowTransition	CreateWorkflowTransition	08c3078eb1e4ad81
 v2models	CreateWorkItem	CreateWorkItem	eb2dde4ebf77e21e
@@ -1557,6 +1609,9 @@ v2models	CustomerRequest	CustomerRequest	918f9ce3c12e4dab
 v2models	Cycle	Cycle	0fbe8469e892070f
 v2models	CycleTransferRequest	CycleTransferRequest	e7f43182d7f1d576
 v2models	CycleTransferResult	CycleTransferResult	d042aace96311191
+v2models	Dashboard	Dashboard	5137bc4765c2078a
+v2models	DashboardAccess	DashboardAccess	9a4882177567be3a
+v2models	DashboardPqlFilters	DashboardPqlFilters	1142ca51729a38b2
 v2models	EffectivePermissions	EffectivePermissions	5d3fedb6e24b57e8
 v2models	Estimate	Estimate	66f37d2b160c0e65
 v2models	EstimatePoint	EstimatePoint	a3601e3fbc67fd61
@@ -1603,6 +1658,7 @@ v2models	SetAutomationStatus	SetAutomationStatus	3381db7b291bf701
 v2models	State	State	8217bc51d82bec16
 v2models	StateGroup	StateGroup	727c5fd9e0bc44fc
 v2models	Sticky	Sticky	44d29dcba60165af
+v2models	StoredWidgetChartType	StoredWidgetChartType	1feec4b36ffde2b5
 v2models	Teamspace	Teamspace	bf5b6bfb03068eb1
 v2models	UpdateArtifactUpdate	UpdateArtifactUpdate	08a79442bfe70e67
 v2models	UpdateAutomation	UpdateAutomation	3952af2d12b710c8
@@ -1613,6 +1669,7 @@ v2models	UpdateCustomer	UpdateCustomer	6b5748efdd6f51f2
 v2models	UpdateCustomerProperty	UpdateCustomerProperty	58cdd9a89580f0e0
 v2models	UpdateCustomerRequest	UpdateCustomerRequest	56dc022c5393d39f
 v2models	UpdateCycle	UpdateCycle	d7a6321443f778fc
+v2models	UpdateDashboard	UpdateDashboard	7a6293791fc656a0
 v2models	UpdateEstimate	UpdateEstimate	0fae5e80e8f23562
 v2models	UpdateEstimatePoint	UpdateEstimatePoint	b364d256f416d2c4
 v2models	UpdateGroupMapping	UpdateGroupMapping	a8b0103ea9545567
@@ -1638,6 +1695,7 @@ v2models	UpdateSticky	UpdateSticky	11183a46f2ad7aaa
 v2models	UpdateTeamspace	UpdateTeamspace	5b94d58a57096af9
 v2models	UpdateView	UpdateView	6040aff91b83ecc6
 v2models	UpdateWebhook	UpdateWebhook	8045e2f55d040ebb
+v2models	UpdateWidget	UpdateWidget	0469f80037587922
 v2models	UpdateWorkflow	UpdateWorkflow	2514997086df26d2
 v2models	UpdateWorkflowState	UpdateWorkflowState	1481f93616e5580a
 v2models	UpdateWorkflowTransition	UpdateWorkflowTransition	fd3e0df1661fd28b
@@ -1664,6 +1722,17 @@ v2models	WebhookContentType	WebhookContentType	d3f26efdb3421ac9
 v2models	WebhookCreateResponse	WebhookCreateResponse	00f2ef9f126d731b
 v2models	WebhookLog	WebhookLog	86648f9796a85528
 v2models	WhoAmI	WhoAmI	9bda88ee24634842
+v2models	Widget	Widget	f20ace833052fa1d
+v2models	WidgetChart	WidgetChart	ff3b8751e0493763
+v2models	WidgetChartModel	WidgetChartModel	63023f85b7b5a221
+v2models	WidgetChartParams	WidgetChartParams	e08f42a3efc0e795
+v2models	WidgetChartResult	WidgetChartResult	cf4ada472fb0989b
+v2models	WidgetChartSchemaEntry	WidgetChartSchemaEntry	1d893d2793a353a5
+v2models	WidgetChartType	WidgetChartType	986ca7ab4e136daf
+v2models	WidgetDateGrouping	WidgetDateGrouping	b01881c8ca4e6793
+v2models	WidgetLastUsedFilter	WidgetLastUsedFilter	2a17869a66311d52
+v2models	WidgetType	WidgetType	be7711d06b85c633
+v2models	WidgetYAxisMetric	WidgetYAxisMetric	5838f1f9900b8726
 v2models	Workflow	Workflow	af044ee329fcfaea
 v2models	WorkflowState	WorkflowState	dcdeb244246c7a20
 v2models	WorkflowStateAttachRequest	WorkflowStateAttachRequest	05957276dd6fdf7c

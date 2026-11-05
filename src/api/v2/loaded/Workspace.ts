@@ -16,6 +16,7 @@ import type { WorkspaceMembers } from "../WorkspaceMembers";
 import type { WorkspaceViews } from "../WorkspaceViews";
 import type { WorkspaceAutomations } from "../Automations/WorkspaceAutomations";
 import type { Customers } from "../Customers";
+import type { Dashboards } from "../Dashboards";
 import type { Initiatives } from "../Initiatives";
 import type { Releases } from "../Releases";
 import type { ReleaseTags } from "../Releases/Tags";
@@ -262,6 +263,14 @@ export interface WorkspaceNavigation {
    * call answers the full row. Call the resource flat for the narrowed one.
    */
   readonly webhooks: Owned<Webhooks, WorkspaceIds>;
+  /**
+   * Dashboards with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
+  readonly dashboards: Owned<Dashboards, WorkspaceIds>;
 }
 
 /**

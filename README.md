@@ -287,6 +287,36 @@ await wiki.collections.default("acme"); // the default collection, resolved via 
 their own, so they are not navigation properties on a fetched workspace row. Reach them
 flat.
 
+### Dashboards
+
+`v2.workspaces.dashboards` is workspace dashboards; `dashboards.widgets` is the charts on
+one. A fetched dashboard reaches its widgets without the ids repeated. A widget row holds
+its settings only: `widgets.chart` answers one widget's data (paged with `page`, plus
+`column_page`/`row_ids` on a `TABLE_CHART`; `row_ids` is sent JSON-encoded for you), and
+`widgets.charts` answers every widget's first page in one call, each entry carrying its
+own `status` and either `chart` or `error`. A chart's shape depends on its `chart_type`, so
+`WidgetChart` names only the shared fields. `dashboards.widgetTypes` lists the chart types
+a dashboard can hold, the `chart_model` values each accepts and whether the plan includes
+it.
+
+```ts
+const dashboards = client.v2.workspaces.dashboards;
+
+const overview = await dashboards.create("acme", { name: "Engineering overview", project_ids: [projectId] });
+await overview.widgets.create({
+  name: "By priority",
+  chart_type: "BAR_CHART",
+  chart_model: "STACKED",
+  x_axis_property: "PRIORITY",
+  y_axis_metric: "WORK_ITEM_COUNT",
+  group_by: "STATE_GROUPS",
+});
+const charts = await overview.widgets.charts(); // every widget's data, in layout order
+void charts.length;
+await dashboards.copy("acme", overview.id, { name: "Engineering overview (Q4)" });
+await dashboards.widgetTypes("acme");
+```
+
 ### Errors
 
 `PlaneApiError` — an RFC 9457 problem detail with `.status`, `.type`, `.code`, `.detail`,
@@ -334,7 +364,7 @@ are exported so a caller can enumerate valid values rather than guessing.
 
 ### How this surface is kept honest
 
-The v2 surface is 90 resource classes, and none of it is spot-checked. Rule sweeps run
+The v2 surface is 92 resource classes, and none of it is spot-checked. Rule sweeps run
 over **every** class — enumerated from the TypeScript source, not selected by some
 property a class might not have yet — and each is proved by introducing the violation and
 watching the sweep name it:
@@ -398,6 +428,7 @@ URL against a mock server — the one class of error no source-level sweep can c
 - **WorkItemRelationDefinitions**: Custom work item relation type definitions
 - **Releases**: Release management with tags, labels, item labels, changelog, comments, links, and work items
 - **Collections**: Folders that group workspace pages, with member and page management
+- **Dashboards** (v2): Workspace dashboards with copy, widget types, and widgets with their chart data
 - **AgentRuns**: AI agent run orchestration and activity tracking
 - **Workflows**: Project workflow management with state attachments, transitions, transition hooks, activities, and work item approvals
 - **ProjectTemplates**: Work item and page template management per project

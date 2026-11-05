@@ -24,6 +24,7 @@ import { WorkspaceMembers } from "./WorkspaceMembers";
 import { WorkspaceViews } from "./WorkspaceViews";
 import { WorkspaceAutomations } from "./Automations/WorkspaceAutomations";
 import { Customers } from "./Customers";
+import { Dashboards } from "./Dashboards";
 import { Initiatives } from "./Initiatives";
 import { Releases } from "./Releases";
 import { ReleaseTags } from "./Releases/Tags";
@@ -95,6 +96,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
    */
   public releaseTags: ReleaseTags;
   public webhooks: Webhooks;
+  public dashboards: Dashboards;
   /**
    * IdP group sync. A grouping node, not a resource: it consumes no path id of its own, so
    * it is not a navigation property on a fetched row (its children each take `slug`
@@ -135,6 +137,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
     this.releases = new Releases(transport);
     this.releaseTags = new ReleaseTags(transport);
     this.webhooks = new Webhooks(transport);
+    this.dashboards = new Dashboards(transport);
     this.groupSync = new GroupSync(transport);
     this.wiki = new Wiki(transport);
   }
@@ -167,6 +170,7 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
       releases: () => owned(this.releases, ids, meta.idNames),
       releaseTags: () => owned(this.releaseTags, ids, meta.idNames),
       webhooks: () => owned(this.webhooks, ids, meta.idNames),
+      dashboards: () => owned(this.dashboards, ids, meta.idNames),
     };
   }
 
