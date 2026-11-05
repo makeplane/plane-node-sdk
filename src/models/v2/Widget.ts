@@ -124,9 +124,10 @@ export interface CreateWidget {
   /** The web app's filter-builder state. Stored and returned; charts never read it. */
   rich_filters?: Record<string, unknown>;
   /**
-   * Defaults to `rich_filters`. On create, sending a non-empty `pql_filters` with neither
-   * `filters` nor `last_used_filter` makes the API store `pql_filters` here instead, so a
-   * PQL-only widget charts with its PQL.
+   * Defaults to `rich_filters`. On create or update, sending a non-empty `pql_filters` with
+   * neither `filters` nor `last_used_filter` makes the API store `pql_filters` here, so a
+   * PQL-only widget charts with its PQL. On an update this switches a rich-filter widget to its
+   * PQL, so its `filters` stop applying; send `last_used_filter` to choose explicitly.
    */
   last_used_filter?: WidgetLastUsedFilter;
   /** Applies when `last_used_filter` is `rich_filters`. */
@@ -187,8 +188,13 @@ export interface WidgetChartParams {
   page?: number;
   /** `TABLE_CHART` only: which page of columns, from 1. */
   column_page?: number;
-  /** `TABLE_CHART` only: the `data[].group_by_id` values already on screen. Sent JSON-encoded. */
-  row_ids?: readonly string[];
+  /**
+   * `TABLE_CHART` only: the `data[].group_by_id` values already on screen, `null` included (the
+   * "no value" row, e.g. unassigned). Sent JSON-encoded. With `row_ids` the API doesn't rank rows,
+   * so the row paging fields of the answer (`total_count`, `next_page`, …) only echo the request:
+   * keep your own row paging and read just the `column_*` fields.
+   */
+  row_ids?: readonly (string | null)[];
 }
 
 /**
@@ -202,6 +208,6 @@ export interface WidgetChartResult {
   status: number;
   /** With `status: 200`: the same body as `Widgets.chart`. */
   chart?: WidgetChart;
-  /** Otherwise: the error body the single call would return. */
-  error?: Partial<ProblemDetail>;
+  /** Otherwise: the error body the single call would return (no `title` or `status`; use `status` above). */
+  error?: Pick<ProblemDetail, "type" | "code" | "detail" | "errors">;
 }

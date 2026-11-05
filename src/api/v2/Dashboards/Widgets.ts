@@ -185,8 +185,9 @@ export class Widgets extends V2Resource<Widget, CreateWidget, UpdateWidget> {
    * widget, each carrying its own `status` and either `chart` or `error`. A widget that
    * cannot be charted (400, 402, 500) fails only its own entry; the call itself still rejects
    * for anything about the dashboard (401/403, 404 for a dashboard the caller cannot see,
-   * 402 when the plan has no dashboards). An empty `widget_ids` resolves to `[]` without a
-   * request.
+   * 402 when the plan has no dashboards, 400 when more than 50 widgets are selected: pass
+   * `widget_ids` to chart a larger dashboard in batches). An empty `widget_ids` resolves to `[]`
+   * without a request.
    */
   async charts(slug: string, dashboard: string, params?: WidgetChartsParams): Promise<WidgetChartResult[]> {
     // `?widget_ids=` with nothing after it is an empty selection, so skip the round trip.

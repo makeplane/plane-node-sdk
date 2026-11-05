@@ -3,6 +3,7 @@ import { Configuration } from "../../../src/Configuration";
 import { V2Namespace } from "../../../src/api/v2";
 import { Dashboards } from "../../../src/api/v2/Dashboards";
 import { V2Transport } from "../../../src/api/v2/kernel/transport";
+import { PlaneApiError } from "../../../src/errors/PlaneApiError";
 
 const BASE = "https://api.example.com";
 const SLUG = "acme";
@@ -27,8 +28,8 @@ describe("Dashboards (v2)", () => {
       .reply(201, { id: DASHBOARD, name: "Engineering", access: 1, project_ids: ["p1"] });
     nock(BASE).get(`${collection}${DASHBOARD}/`).reply(200, { id: DASHBOARD, name: "Engineering" });
     nock(BASE)
-      .patch(`${collection}${DASHBOARD}/`, { pql_filters: { raw: 'priority = "high"', stripped: 'priority = "high"' } })
-      .reply(200, { id: DASHBOARD, pql_filters: { raw: 'priority = "high"', stripped: 'priority = "high"' } });
+      .patch(`${collection}${DASHBOARD}/`, { pql_filters: { json: {}, stripped: 'priority = "high"' } })
+      .reply(200, { id: DASHBOARD, pql_filters: { json: {}, stripped: 'priority = "high"' } });
     nock(BASE).delete(`${collection}${DASHBOARD}/`).reply(204);
 
     const dashboards = makeDashboards();
@@ -41,9 +42,9 @@ describe("Dashboards (v2)", () => {
     expect((await dashboards.retrieve(SLUG, DASHBOARD)).name).toBe("Engineering");
 
     const updated = await dashboards.update(SLUG, DASHBOARD, {
-      pql_filters: { raw: 'priority = "high"', stripped: 'priority = "high"' },
+      pql_filters: { json: {}, stripped: 'priority = "high"' },
     });
-    expect(updated.pql_filters?.raw).toBe('priority = "high"');
+    expect(updated.pql_filters?.stripped).toBe('priority = "high"');
 
     await expect(dashboards.delete(SLUG, DASHBOARD)).resolves.toBeUndefined();
   });
@@ -180,7 +181,7 @@ describe("Dashboard widgets (v2)", () => {
       chart_model: "BASIC" as const,
       x_axis_property: "STATE_GROUPS",
       y_axis_metric: "WORK_ITEM_COUNT" as const,
-      pql_filters: { raw: 'priority = "urgent"', stripped: 'priority = "urgent"' },
+      pql_filters: { json: {}, stripped: 'priority = "urgent"' },
       last_used_filter: "pql_filters" as const,
     };
     const scope = nock(BASE)
@@ -308,6 +309,65 @@ describe("Dashboard widgets (v2)", () => {
     expect(results[0].chart?.value).toBe(10);
     expect(results[1].status).toBe(400);
     expect(results[1].error?.code).toBe("invalid_request");
+  });
+
+  it("sends the null row of a table chart in row_ids, and an empty list as []", async () => {
+    const withNull = nock(BASE)
+      .get(`${widgetsUrl}${WIDGET}/chart/`)
+      .query({ column_page: "2", row_ids: '["u1",null]' })
+      .reply(200, { schema: {}, data: [], columns: [] });
+    const empty = nock(BASE)
+      .get(`${widgetsUrl}${WIDGET}/chart/`)
+      .query({ row_ids: "[]" })
+      .reply(200, { schema: {}, data: [], columns: [] });
+
+    const widgets = makeDashboards().widgets;
+    await widgets.chart(SLUG, DASHBOARD, WIDGET, { column_page: 2, row_ids: ["u1", null] });
+    await widgets.chart(SLUG, DASHBOARD, WIDGET, { row_ids: [] });
+
+    expect(withNull.isDone()).toBe(true);
+    expect(empty.isDone()).toBe(true);
+  });
+
+  it("rejects with PlaneApiError when a chart can't be served", async () => {
+    nock(BASE).get(`${widgetsUrl}${WIDGET}/chart/`).reply(
+      402,
+      { type: "payment_required", code: "payment_required", detail: "Upgrade." },
+      {
+        "Content-Type": "application/problem+json",
+      }
+    );
+
+    const error = await makeDashboards()
+      .widgets.chart(SLUG, DASHBOARD, WIDGET)
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(PlaneApiError);
+    expect((error as PlaneApiError).status).toBe(402);
+  });
+
+  it("fetches every widget's chart with no query string when no widget_ids are given", async () => {
+    const scope = nock(BASE)
+      .get(`${widgetsUrl}charts/`)
+      .query((query) => Object.keys(query).length === 0)
+      .reply(200, { data: [] });
+
+    await expect(makeDashboards().widgets.charts(SLUG, DASHBOARD)).resolves.toEqual([]);
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it("iterates every widget across pages", async () => {
+    nock(BASE)
+      .get(widgetsUrl)
+      .reply(200, { data: [{ id: "w1" }], pagination: { style: "offset" }, next: 1 });
+    nock(BASE)
+      .get(widgetsUrl)
+      .query({ offset: "1" })
+      .reply(200, { data: [{ id: "w2" }], pagination: { style: "offset" }, next: null });
+
+    const ids: string[] = [];
+    for await (const widget of makeDashboards().widgets.iterate(SLUG, DASHBOARD)) ids.push(widget.id);
+    expect(ids).toEqual(["w1", "w2"]);
   });
 
   it("answers an empty widget_ids selection with no request", async () => {
