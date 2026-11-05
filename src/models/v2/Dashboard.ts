@@ -15,7 +15,11 @@ export interface DashboardPqlFilters {
 export interface Dashboard {
   id: string;
   name?: string;
-  access?: DashboardAccess;
+  /**
+   * A {@link DashboardAccess} on every dashboard written today. Typed as `number` because older
+   * dashboards can still carry the retired `2` ("shared"); writes accept only `0` or `1`.
+   */
+  access?: number;
   project_ids?: string[];
   pql_filters?: DashboardPqlFilters;
   /** Filter object applied to every widget, e.g. `{ priority__in: "urgent" }`. */

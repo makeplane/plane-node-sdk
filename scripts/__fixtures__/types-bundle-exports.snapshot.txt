@@ -204,7 +204,7 @@ root	CycleShapeParams	CycleShapeParams	216745d121c9812c
 root	CycleTransferRequest	CycleTransferRequest	e7f43182d7f1d576
 root	CycleTransferResult	CycleTransferResult	d042aace96311191
 root	CycleWorkItem	CycleWorkItem	af003efccbfafd8b
-root	Dashboard	Dashboard	068a4483dd274156
+root	Dashboard	Dashboard	5137bc4765c2078a
 root	DashboardAccess	DashboardAccess	9a4882177567be3a
 root	DashboardField	DashboardField	a190e0e22a026356
 root	DashboardIds	DashboardIds	dfd479449a7cd57a
@@ -1609,7 +1609,7 @@ v2models	CustomerRequest	CustomerRequest	918f9ce3c12e4dab
 v2models	Cycle	Cycle	0fbe8469e892070f
 v2models	CycleTransferRequest	CycleTransferRequest	e7f43182d7f1d576
 v2models	CycleTransferResult	CycleTransferResult	d042aace96311191
-v2models	Dashboard	Dashboard	068a4483dd274156
+v2models	Dashboard	Dashboard	5137bc4765c2078a
 v2models	DashboardAccess	DashboardAccess	9a4882177567be3a
 v2models	DashboardPqlFilters	DashboardPqlFilters	c1ee4714cfbbd112
 v2models	EffectivePermissions	EffectivePermissions	5d3fedb6e24b57e8

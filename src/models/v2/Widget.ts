@@ -28,6 +28,11 @@ export type WidgetChartType =
  * The chart types a stored widget can carry: every {@link WidgetChartType}, plus three the
  * web app created before the API existed. The API reads and filters on them but refuses
  * them on a write.
+ *
+ * The list matches the server today, but the server adds chart types over time and the SDK
+ * doesn't validate responses, so a widget read by an older SDK can carry a value that isn't
+ * listed here. Handle an unknown `chart_type` (skip or placeholder) rather than assuming the
+ * union is complete.
  */
 export type StoredWidgetChartType =
   | WidgetChartType
@@ -193,7 +198,7 @@ export interface WidgetChartParams {
 export interface WidgetChartResult {
   widget_id: string;
   chart_type: StoredWidgetChartType;
-  /** What the single `chart` call would answer: `200`, `400` or `402`. */
+  /** What the single `chart` call would answer: `200`, or the error status (`400`, `402`, `500`, …). */
   status: number;
   /** With `status: 200`: the same body as `Widgets.chart`. */
   chart?: WidgetChart;

@@ -19,6 +19,16 @@ maybe("v2 dashboards (live)", () => {
   const slug = () => suite.workspaceSlug;
   const capability = useCapability("FeatureFlag.DASHBOARDS is not enabled for this workspace");
 
+  // Best-effort, like the project cleanup: an already-gone dashboard is fine, but a failed delete
+  // leaves it in the test workspace, so say so.
+  async function deleteDashboard(id: string): Promise<void> {
+    try {
+      await dashboards().delete(slug(), id);
+    } catch (error) {
+      console.warn(`v2 e2e: failed to delete test dashboard ${id}:`, error);
+    }
+  }
+
   async function withDashboard(body: (dashboard: LoadedDashboard) => Promise<void>): Promise<void> {
     const dashboard = await dashboards().create(slug(), {
       name: uniqueName("dashboard"),
@@ -27,9 +37,7 @@ maybe("v2 dashboards (live)", () => {
     try {
       await body(dashboard);
     } finally {
-      await dashboards()
-        .delete(slug(), dashboard.id)
-        .catch(() => undefined);
+      await deleteDashboard(dashboard.id);
     }
   }
 
@@ -119,9 +127,7 @@ maybe("v2 dashboards (live)", () => {
         const widgets = await copied.widgets.list();
         expect(widgets.data.map((row) => row.name)).toEqual(["Total"]);
       } finally {
-        await dashboards()
-          .delete(slug(), copied.id)
-          .catch(() => undefined);
+        await deleteDashboard(copied.id);
       }
     });
   });
