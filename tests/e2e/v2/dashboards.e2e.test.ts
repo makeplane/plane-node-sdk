@@ -25,6 +25,8 @@ maybe("v2 dashboards (live)", () => {
     try {
       await dashboards().delete(slug(), id);
     } catch (error) {
+      // A test that deletes its own dashboard leaves nothing to clean up.
+      if (error instanceof PlaneApiError && error.status === 404) return;
       console.warn(`v2 e2e: failed to delete test dashboard ${id}:`, error);
     }
   }

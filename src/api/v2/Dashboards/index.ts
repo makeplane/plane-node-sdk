@@ -45,7 +45,9 @@ export interface DashboardShapeParams {
  * Reached flat — `v2.workspaces.dashboards.list(slug)` — or from a fetched workspace:
  * `workspace.dashboards.list()`. Every row-returning method answers a
  * {@link LoadedDashboard}, so `(await dashboards.retrieve(slug, id)).widgets.list()` needs
- * no id repeated. A dashboard the caller cannot see answers 404, never 403.
+ * no id repeated. A dashboard hidden from the caller (another member's private one, or any
+ * dashboard when the caller isn't in the workspace) answers 404; a visible one the caller's role
+ * or access level doesn't allow answers 403.
  */
 export class Dashboards extends LoadsNavigableRows<Dashboard, CreateDashboard, UpdateDashboard, DashboardNavigation> {
   protected path = "/workspaces/{slug}/dashboards/";
@@ -159,7 +161,8 @@ export class Dashboards extends LoadsNavigableRows<Dashboard, CreateDashboard, U
   /**
    * Copy a dashboard — settings, projects, filters and every widget — into a new one owned
    * by the caller. Shared members and the public link are not copied. Each field in `data`
-   * overrides the copied value; `name` defaults to `"<source name> (Copy)"`.
+   * overrides the copied value; `name` defaults to `"<source name> (Copy)"`. The source's own
+   * values are copied as stored, so an older dashboard always copies.
    */
   copy<F extends Exclude<DashboardField, "all"> & keyof Dashboard>(
     slug: string,
