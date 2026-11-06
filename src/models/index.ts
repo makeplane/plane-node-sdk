@@ -30,6 +30,7 @@ export * from "./WorkItemPage";
 export * from "./WorkItemRelation";
 export * from "./WorkItemType";
 export * from "./WorkLog";
+export * from "./WorkspaceAsset";
 export * from "./WorkspaceFeatures";
 export * from "./WorkspaceTemplate";
 export * from "./WorkspaceProjectLabel";
