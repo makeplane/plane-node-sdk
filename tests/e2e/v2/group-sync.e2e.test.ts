@@ -27,7 +27,9 @@ maybe("GroupSync (v2, live)", () => {
     try {
       const created = await groupSync().projectMappings.create(slug(), {
         idp_group_name: `sdk-e2e-${Date.now()}`,
-        role_slug: "member",
+        // Project roles are admin/contributor/commenter/guest — there is no project `member`
+        // (that slug is a workspace role), so "member" here is a 400 "Unknown project role slug".
+        role_slug: "contributor",
         project_id: suite.projectId,
       });
       createdId = created.id;
