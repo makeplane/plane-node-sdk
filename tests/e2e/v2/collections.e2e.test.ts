@@ -42,7 +42,9 @@ maybe("v2 collections (live)", () => {
       const collection = await wiki().collections.create(slug(), {
         name: uniqueName("collection-pages"),
       });
-      const page = await suite.projectRow.pages.create({
+      // A collection only holds workspace wiki pages — a project-scoped page is a 400
+      // ("Page ... is not a workspace wiki page"), so create this one at the workspace path.
+      const page = await wiki().pages.create(slug(), {
         name: uniqueName("page-for-collection"),
       });
       try {
@@ -52,7 +54,13 @@ maybe("v2 collections (live)", () => {
         const removed = await wiki().collections.pages.remove(slug(), collection.id, [page.id]);
         expect(removed).toContain(page.id);
       } finally {
-        await suite.projectRow.pages.delete(page.id).catch(() => undefined);
+        // A workspace page must be archived (and unlocked) before it can be deleted.
+        await wiki()
+          .pages.update(slug(), page.id, { archived_at: new Date().toISOString(), is_locked: false })
+          .catch(() => undefined);
+        await wiki()
+          .pages.delete(slug(), page.id)
+          .catch(() => undefined);
         await wiki()
           .collections.delete(slug(), collection.id)
           .catch(() => undefined);
