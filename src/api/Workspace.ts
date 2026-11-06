@@ -2,6 +2,7 @@ import { BaseResource } from "./BaseResource";
 import { Configuration } from "../Configuration";
 import { WorkspaceMember, ListMembersLiteParams, ProjectRoleDistribution } from "../models/Member";
 import { PaginatedResponse } from "../models/common";
+import { WorkspaceAssetDownload } from "../models/WorkspaceAsset";
 import { UpdateWorkspaceFeatures, WorkspaceFeatures } from "../models/WorkspaceFeatures";
 
 /**
@@ -39,6 +40,19 @@ export class Workspace extends BaseResource {
    */
   async getProjectRoleDistribution(workspaceSlug: string): Promise<ProjectRoleDistribution> {
     return this.get<ProjectRoleDistribution>(`/workspaces/${workspaceSlug}/project-role-distribution/`);
+  }
+
+  /**
+   * Get a presigned download URL for a workspace asset.
+   * Covers any uploaded asset in the workspace, including images embedded in work
+   * item descriptions, which are not listed as work item attachments. The URL is
+   * time-limited and needs no Plane auth to fetch.
+   *
+   * @param workspaceSlug - The workspace slug
+   * @param assetId - UUID of the asset (the `src` of an `image-component` tag)
+   */
+  async getAsset(workspaceSlug: string, assetId: string): Promise<WorkspaceAssetDownload> {
+    return this.get<WorkspaceAssetDownload>(`/workspaces/${workspaceSlug}/assets/${assetId}/`);
   }
 
   /**
