@@ -51,6 +51,51 @@ describe("WorkItems.comments (v2)", () => {
     expect(scope.isDone()).toBe(true);
   });
 
+  it("filters by agent_run_id and expands agent_run beside agent_run_id", async () => {
+    const scope = nock(BASE)
+      .get(collection)
+      .query({ agent_run_id: "run-1", expand: "actor,agent_run" })
+      .reply(200, {
+        data: [
+          {
+            id: "c1",
+            agent_run_id: "run-1",
+            agent_run: { id: "run-1", status: "in_progress", agent_user_id: "bot-1", native_agent_id: null },
+          },
+        ],
+        pagination: { style: "offset" },
+      });
+
+    const page = await makeComments().list(SLUG, PROJECT, WORK_ITEM, {
+      agent_run_id: "run-1",
+      expand: ["actor", "agent_run"],
+    });
+
+    expect(scope.isDone()).toBe(true);
+    expect(page.data[0].agent_run_id).toBe("run-1");
+  });
+
+  it("projects agent_run_id through fields on a single-row read", async () => {
+    const scope = nock(BASE)
+      .get(`${collection}c1/`)
+      .query({ fields: "agent_run_id", expand: "agent_run" })
+      .reply(200, { id: "c1", agent_run_id: null });
+
+    const row = await makeComments().retrieve(SLUG, PROJECT, WORK_ITEM, "c1", {
+      fields: ["agent_run_id"] as const,
+      expand: ["agent_run"],
+    });
+
+    expect(scope.isDone()).toBe(true);
+    expect(row.agent_run_id).toBeNull();
+  });
+
+  it("rejects an expand the golden does not offer on comments", async () => {
+    await expect(makeComments().list(SLUG, PROJECT, WORK_ITEM, { expand: ["agent_runs" as never] })).rejects.toThrow(
+      /Unknown expand value\(s\) for comments_list: agent_runs/
+    );
+  });
+
   it("creates, retrieves, updates, and deletes a comment", async () => {
     const write = { comment_html: "<p>hello</p>" };
     nock(BASE)

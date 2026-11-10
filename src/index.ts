@@ -232,6 +232,15 @@ export type { Milestone as V2Milestone } from "./models/v2/Milestone";
 // below is also exported bare from v1 (`src/models/*.ts`, spread through
 // `export * from "./models"` below), so each v2 counterpart needs its own explicit
 // alias here, same as `Label`/`State`/`Cycle`/`Module`/`Milestone` above.
+export type { AgentRun as V2AgentRun } from "./models/v2/AgentRun";
+export type { AgentRunStatus as V2AgentRunStatus } from "./models/v2/AgentRun";
+export type { AgentRunType as V2AgentRunType } from "./models/v2/AgentRun";
+export type { AgentRunActivity as V2AgentRunActivity } from "./models/v2/AgentRunActivity";
+export type { AgentRunActivityActionContent as V2AgentRunActivityActionContent } from "./models/v2/AgentRunActivity";
+export type { AgentRunActivityContent as V2AgentRunActivityContent } from "./models/v2/AgentRunActivity";
+export type { AgentRunActivitySignal as V2AgentRunActivitySignal } from "./models/v2/AgentRunActivity";
+export type { AgentRunActivityTextContent as V2AgentRunActivityTextContent } from "./models/v2/AgentRunActivity";
+export type { AgentRunActivityType as V2AgentRunActivityType } from "./models/v2/AgentRunActivity";
 export type { Collection as V2Collection } from "./models/v2/Collection";
 export type { CollectionMember as V2CollectionMember } from "./models/v2/Collection";
 export type { CollectionMemberAccess as V2CollectionMemberAccess } from "./models/v2/Collection";

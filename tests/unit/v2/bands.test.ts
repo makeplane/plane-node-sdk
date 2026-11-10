@@ -28,7 +28,7 @@
  *   owns that rule.
  *
  * That derivation is independent of the constructors: the templates would still name all
- * 51 band members — 32 workspace-level, 19 project-level — if `Workspaces` and `Projects`
+ * 53 band members — 34 workspace-level, 19 project-level — if `Workspaces` and `Projects`
  * attached nothing at all.
  *
  * The rule then has three halves, and all three matter:

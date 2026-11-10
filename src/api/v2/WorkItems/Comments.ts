@@ -10,12 +10,14 @@ import { AnyOperationId, V2Resource } from "../kernel/resource";
 
 export type WorkItemCommentField = (typeof FIELDS)["comments_list"][number];
 export type WorkItemCommentOrderBy = (typeof ORDER_BY)["comments_list"][number];
-/** Only `"actor"` — see `WorkItemExpand` for the much larger set on the work item itself. */
+/** `"actor"` and `"agent_run"` — see `WorkItemExpand` for the much larger set on the work item itself. */
 export type WorkItemCommentExpand = (typeof EXPAND)["comments_list"][number];
 
 export interface ListWorkItemCommentsParams {
   fields?: readonly WorkItemCommentField[];
   access?: WorkItemCommentAccess;
+  /** Only the comment(s) that are this agent run's thread root. */
+  agent_run_id?: string;
   external_id?: string;
   external_source?: string;
   search?: string;

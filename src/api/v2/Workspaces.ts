@@ -1,4 +1,5 @@
 import { Workspace } from "../../models/v2/Workspace";
+import { AgentRuns, WorkspaceAgentRunActivities } from "./AgentRuns";
 import { Artifacts } from "./Artifacts";
 import { Assets } from "./Assets";
 import { AuditLogs } from "./AuditLogs";
@@ -95,6 +96,14 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
    */
   public releaseTags: ReleaseTags;
   public webhooks: Webhooks;
+  /** Agent runs; a fetched run reaches its own activity log as `.activities`. */
+  public agentRuns: AgentRuns;
+  /**
+   * The cross-run activity feed (`/runs/activities/`). Not a child of `agentRuns`: every route
+   * here takes the slug alone, while a run's own log is bound by the run —
+   * `v2.workspaces.agentRuns.activities`.
+   */
+  public agentRunActivities: WorkspaceAgentRunActivities;
   /**
    * IdP group sync. A grouping node, not a resource: it consumes no path id of its own, so
    * it is not a navigation property on a fetched row (its children each take `slug`
@@ -135,6 +144,8 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
     this.releases = new Releases(transport);
     this.releaseTags = new ReleaseTags(transport);
     this.webhooks = new Webhooks(transport);
+    this.agentRuns = new AgentRuns(transport);
+    this.agentRunActivities = new WorkspaceAgentRunActivities(transport);
     this.groupSync = new GroupSync(transport);
     this.wiki = new Wiki(transport);
   }
@@ -167,6 +178,8 @@ export class Workspaces extends LoadsNavigableRows<Workspace, never, never, Work
       releases: () => owned(this.releases, ids, meta.idNames),
       releaseTags: () => owned(this.releaseTags, ids, meta.idNames),
       webhooks: () => owned(this.webhooks, ids, meta.idNames),
+      agentRuns: () => owned(this.agentRuns, ids, meta.idNames),
+      agentRunActivities: () => owned(this.agentRunActivities, ids, meta.idNames),
     };
   }
 
