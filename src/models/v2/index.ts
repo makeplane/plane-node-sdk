@@ -1,5 +1,7 @@
 export * from "./common";
 
+export * from "./AgentRun";
+export * from "./AgentRunActivity";
 export * from "./Artifact";
 export * from "./AuditLog";
 export * from "./Automation";
