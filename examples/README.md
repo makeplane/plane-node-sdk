@@ -36,10 +36,11 @@ const client = new PlaneClient({
 When enabled, you'll see detailed logs for:
 
 - 🚀 Request details (method, URL, headers, data)
-- ✅ Response details (status, data, headers)
 - ❌ Error details (status, error message, response data)
 
-Sensitive information like API keys and authorization tokens are automatically redacted from logs.
+Sensitive information like API keys and authorization tokens are automatically redacted from logs, and bodies
+longer than 1000 characters are truncated. Only the SDK's own v1 API requests are logged, once each: `OAuthClient`
+token requests and your application's other axios traffic are not. `client.v2` does not log.
 
 ## Examples
 
