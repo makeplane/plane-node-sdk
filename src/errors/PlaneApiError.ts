@@ -26,7 +26,13 @@ export class PlaneApiError extends PlaneError {
   public errors?: FieldError[];
 
   constructor(problem: ProblemDetail) {
-    super(`HTTP ${problem.status} ${problem.code}: ${problem.detail}`, problem.status, problem);
+    // The field messages say why; `detail` is often a generic "fields failed validation".
+    const reasons = (problem.errors ?? []).map((error) => `${error.field}: ${error.message}`).join("; ");
+    super(
+      `HTTP ${problem.status} ${problem.code}: ${problem.detail}${reasons ? ` (${reasons})` : ""}`,
+      problem.status,
+      problem
+    );
     this.name = "PlaneApiError";
     this.status = problem.status;
     this.type = problem.type;
