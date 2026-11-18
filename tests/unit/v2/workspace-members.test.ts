@@ -37,6 +37,17 @@ describe("WorkspaceMembers (v2, workspace-scoped)", () => {
     expect(ids).toEqual(["m1", "m2"]);
   });
 
+  it("changes a member's workspace role with a PATCH on the member row", async () => {
+    const scope = nock(BASE)
+      .patch(`${workspaceCollection}m1/`, { role: "guest" })
+      .reply(200, { id: "m1", member_id: "u1", role: "guest" });
+
+    const member = await makeMembers().update(SLUG, "m1", { role: "guest" });
+
+    expect(member.role).toBe("guest");
+    expect(scope.isDone()).toBe(true);
+  });
+
   it("removes a member from the workspace by email, hitting the collection-level remove/ endpoint", async () => {
     const scope = nock(BASE).post(`${workspaceCollection}remove/`, { email: "gone@acme.test" }).reply(204);
 
