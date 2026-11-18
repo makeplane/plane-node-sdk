@@ -19,6 +19,11 @@ export interface UpdateProjectMember {
   role?: string;
 }
 
+/** PATCH body for `workspace_members_partial_update`: a workspace role's slug, such as `admin`, `member` or `guest`. */
+export interface UpdateWorkspaceMember {
+  role: string;
+}
+
 /** Body for `POST workspaces/{slug}/members/remove/` (v1 parity). */
 export interface WorkspaceMemberRemoveRequest {
   email: string;

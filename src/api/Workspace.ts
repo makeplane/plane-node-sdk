@@ -34,6 +34,14 @@ export class Workspace extends BaseResource {
   }
 
   /**
+   * Change a workspace member's role. `memberId` is the member's user id; `roleSlug` is a workspace role's slug,
+   * such as "admin", "member" or "guest".
+   */
+  async updateMemberRole(workspaceSlug: string, memberId: string, roleSlug: string): Promise<WorkspaceMember> {
+    return this.patch<WorkspaceMember>(`/workspaces/${workspaceSlug}/members/${memberId}/`, { role_slug: roleSlug });
+  }
+
+  /**
    * Aggregate count of project members by role across the workspace.
    * Counts span all active (non-archived) projects and include both built-in
    * and custom roles.
