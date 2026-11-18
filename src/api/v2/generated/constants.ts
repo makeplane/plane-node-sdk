@@ -393,6 +393,7 @@ export const OPERATION_IDS = [
   "workspace_features_retrieve",
   "workspace_features_update",
   "workspace_members_list",
+  "workspace_members_partial_update",
   "workspace_members_remove",
   "workspace_pages_create",
   "workspace_pages_destroy",
@@ -4984,6 +4985,7 @@ export const FIELDS = {
     "updated_at",
   ] as const,
   workspace_members_list: ["all", "id", "member_id", "role"] as const,
+  workspace_members_partial_update: ["all", "id", "member_id", "role"] as const,
   workspace_pages_create: [
     "access",
     "all",
@@ -5812,6 +5814,7 @@ export const EXPAND = {
   worklogs_partial_update: ["logged_by"] as const,
   worklogs_retrieve: ["logged_by"] as const,
   workspace_members_list: ["member"] as const,
+  workspace_members_partial_update: ["member"] as const,
   workspace_pages_create: ["owned_by", "parent"] as const,
   workspace_pages_destroy: ["owned_by", "parent"] as const,
   workspace_pages_list: ["owned_by", "parent"] as const,
