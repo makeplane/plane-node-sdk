@@ -14,6 +14,25 @@ afterEach(() => nock.cleanAll());
 describe("WorkspacePermissions (v2)", () => {
   const make = () => new WorkspacePermissions(makeTransport());
 
+  it("lists the permission keys a project scheme may grant", async () => {
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/permissions/resources/")
+      .query({ namespace: "project" })
+      .reply(200, {
+        resources: [
+          {
+            resource_type: "workitem",
+            permissions: [{ permission: "workitem:edit", requires: ["workitem:view"], includes: [] }],
+          },
+        ],
+      });
+
+    const catalogue = await make().resources("acme", { namespace: "project" });
+
+    expect(scope.isDone()).toBe(true);
+    expect(catalogue.resources[0].permissions[0].requires).toEqual(["workitem:view"]);
+  });
+
   it("gets the caller's effective permissions at the workspace level", async () => {
     const scope = nock(BASE)
       .get("/api/v2/workspaces/acme/permissions/me/")
