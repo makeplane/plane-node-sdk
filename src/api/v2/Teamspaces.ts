@@ -1,7 +1,8 @@
 import { Page } from "../../models/v2/common";
+import { EffectivePermissions } from "../../models/v2/Permission";
 import { Teamspace, UpdateTeamspace, CreateTeamspace } from "../../models/v2/Teamspace";
 import { EXPAND, FIELDS, ORDER_BY } from "./generated/constants";
-import { OperationId, V2Resource } from "./kernel/resource";
+import { AnyOperationId, V2Resource } from "./kernel/resource";
 
 export type TeamspaceField = (typeof FIELDS)["teamspaces_list"][number];
 export type TeamspaceOrderBy = (typeof ORDER_BY)["teamspaces_list"][number];
@@ -33,12 +34,16 @@ export interface TeamspaceShapeParams {
 /** Teamspaces — named groups of members and projects. */
 export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTeamspace> {
   protected path = "/workspaces/{slug}/teamspaces/";
-  protected operations: Record<string, OperationId> = {
+  protected operations: Record<string, AnyOperationId> = {
     list: "teamspaces_list",
     retrieve: "teamspaces_retrieve",
     create: "teamspaces_create",
     update: "teamspaces_partial_update",
     delete: "teamspaces_destroy",
+    myPermissions: "workspaces_teamspaces_permissions_me_retrieve",
+  };
+  protected extraPaths: Record<string, string> = {
+    myPermissions: "/workspaces/{slug}/teamspaces/{team_space_id}/permissions/me/",
   };
 
   /**
@@ -105,5 +110,10 @@ export class Teamspaces extends V2Resource<Teamspace, CreateTeamspace, UpdateTea
 
   delete(slug: string, teamspace: string): Promise<void> {
     return this.doDelete({ slug, pk: teamspace });
+  }
+
+  /** The caller's own permissions in this teamspace. */
+  myPermissions(slug: string, teamSpace: string): Promise<EffectivePermissions> {
+    return this.doRetrieveSingleton<EffectivePermissions>({ slug, team_space_id: teamSpace }, "myPermissions");
   }
 }
