@@ -1,4 +1,5 @@
 import type { Workspace } from "../../../models/v2/Workspace";
+import type { AgentRuns, WorkspaceAgentRunActivities } from "../AgentRuns";
 import type { Artifacts } from "../Artifacts";
 import type { Assets } from "../Assets";
 import type { AuditLogs } from "../AuditLogs";
@@ -262,6 +263,22 @@ export interface WorkspaceNavigation {
    * call answers the full row. Call the resource flat for the narrowed one.
    */
   readonly webhooks: Owned<Webhooks, WorkspaceIds>;
+  /**
+   * AgentRuns with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
+  readonly agentRuns: Owned<AgentRuns, WorkspaceIds>;
+  /**
+   * WorkspaceAgentRunActivities with this row's ids already supplied — the cross-run feed.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
+  readonly agentRunActivities: Owned<WorkspaceAgentRunActivities, WorkspaceIds>;
 }
 
 /**

@@ -287,6 +287,40 @@ await wiki.collections.default("acme"); // the default collection, resolved via 
 their own, so they are not navigation properties on a fetched workspace row. Reach them
 flat.
 
+### Agent runs
+
+`v2.workspaces.agentRuns` is an agent's runs, and a fetched run reaches its own activity log as
+`.activities`. `v2.workspaces.agentRunActivities` is one feed of the activities on every run
+the caller can see, so an agent can keep a single cursor instead of polling run by run.
+What you can do depends on who you are. A person starts, prompts and stops runs. An
+agent's bot token posts the run's output and settles it with `update`, and it sees only
+its own runs. A run is never deleted.
+
+```ts
+const runs = client.v2.workspaces.agentRuns;
+
+// A person starts a run of an installed agent (by its slug) on a top-level comment.
+const run = await runs.create("acme", { agent_slug: "poem-agent", comment_id: "3f1c9a52-…" });
+await run.activities.create({ type: "prompt", content: { type: "prompt", body: "<p>Make it rhyme</p>" } });
+await runs.stop("acme", run.id); // `stopping` until the agent's next response settles it
+
+// The agent polls one feed for every activity on its runs. A sync read holds back rows
+// from the last 3 seconds until a later poll, so dedupe by `id`.
+const seen = new Set<string>();
+for await (const activity of client.v2.workspaces.agentRunActivities.iterate("acme", {
+  paginate: "cursor",
+  created_at__gte: "2026-11-10T09:00:00Z",
+})) {
+  if (seen.has(activity.id)) continue;
+  seen.add(activity.id);
+}
+await runs.update("acme", run.id, { status: "completed", summary: "Wrote a poem" });
+```
+
+A comment that started a run carries its `agent_run_id`. Filter a work item's comments
+with `{ agent_run_id }`, or pass `expand: ["agent_run"]` to embed the run's `id`, `status`,
+`agent_user_id` and `native_agent_id` next to it.
+
 ### Errors
 
 `PlaneApiError` — an RFC 9457 problem detail with `.status`, `.type`, `.code`, `.detail`,
@@ -334,7 +368,7 @@ are exported so a caller can enumerate valid values rather than guessing.
 
 ### How this surface is kept honest
 
-The v2 surface is 90 resource classes, and none of it is spot-checked. Rule sweeps run
+The v2 surface is 93 resource classes, and none of it is spot-checked. Rule sweeps run
 over **every** class — enumerated from the TypeScript source, not selected by some
 property a class might not have yet — and each is proved by introducing the violation and
 watching the sweep name it:

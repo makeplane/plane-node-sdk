@@ -110,7 +110,7 @@ in scope.
 **The sweeps.** The v2 rules are enforced by enumeration, not by review.
 `tests/unit/v2/tree-walk.ts` derives every resource class from the TypeScript AST under
 `src/api/v2/` (triangulated against the modules and the public barrel), and the rule
-sweeps run over all 90 of them:
+sweeps run over all 93 of them:
 
 | File                                                  | Refuses                                                                                                                                                                                           |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

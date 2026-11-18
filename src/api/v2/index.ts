@@ -124,6 +124,8 @@ export { MODULE_ID_NAMES } from "./loaded/Module";
 export type { LoadedModule, LoadedModuleRow, ModuleIds, ModuleNavigation } from "./loaded/Module";
 export { RELEASE_ID_NAMES } from "./loaded/Release";
 export type { LoadedRelease, LoadedReleaseRow, ReleaseIds, ReleaseNavigation } from "./loaded/Release";
+export { AGENT_RUN_ID_NAMES } from "./loaded/AgentRun";
+export type { AgentRunIds, AgentRunNavigation, LoadedAgentRun, LoadedAgentRunRow } from "./loaded/AgentRun";
 export { WEBHOOK_ID_NAMES } from "./loaded/Webhook";
 export type { LoadedWebhook, LoadedWebhookRow, WebhookIds, WebhookNavigation } from "./loaded/Webhook";
 export { WORKFLOW_ID_NAMES } from "./loaded/Workflow";
@@ -178,6 +180,7 @@ export { BRIDGE_MAX_IDS } from "./kernel/resource";
 
 // Every other v2 resource, reachable through the `workspaces` root and wired onto the
 // `Workspaces`/`Projects`/`Wiki` nodes above.
+export * from "./AgentRuns";
 export * from "./Artifacts";
 // `Assets` is the *workspace* asset resource (`/workspaces/{slug}/assets/`); the
 // user-scoped twin is `UserAssets`. Exported qualified, matching Python, so the bare name

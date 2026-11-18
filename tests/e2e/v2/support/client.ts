@@ -23,9 +23,16 @@ function installRateLimitRetry(client: PlaneClient): void {
   transport.request = wrapped as unknown as RequestFn;
 }
 
-/** One client per test file, with the rate-limit retry wrapper installed. */
-export function createV2Client(env: V2Env): PlaneClient {
-  const client = new PlaneClient({ baseUrl: env.baseUrl, apiKey: env.apiKey });
+/**
+ * One client per test file, with the rate-limit retry wrapper installed.
+ *
+ * Authenticates with the env's API key (a person) unless `accessToken` is given, in which
+ * case it sends that bearer token instead — how a suite acts as an agent's bot user.
+ */
+export function createV2Client(env: V2Env, accessToken?: string): PlaneClient {
+  const client = new PlaneClient(
+    accessToken ? { baseUrl: env.baseUrl, accessToken } : { baseUrl: env.baseUrl, apiKey: env.apiKey }
+  );
   installRateLimitRetry(client);
   return client;
 }

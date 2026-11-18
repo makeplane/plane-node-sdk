@@ -6,6 +6,12 @@ export interface WorkItemComment {
   id: string;
   access?: WorkItemCommentAccess;
   actor_id?: string | null;
+  /**
+   * The agent run this comment is the thread root of, or null — set on the comment that
+   * started a run. Read-only. `?expand=agent_run` adds an `agent_run` object beside it:
+   * `{ id, status, agent_user_id, native_agent_id }`.
+   */
+  agent_run_id?: string | null;
   comment_html?: string;
   comment_stripped?: string;
   created_at?: string;
