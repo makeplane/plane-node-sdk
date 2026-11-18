@@ -87,4 +87,35 @@ describe("PermissionSchemes (v2)", () => {
 
     expect(ids).toEqual(["1", "2"]);
   });
+
+  it("creates, updates and deletes a scheme, and reads its impact", async () => {
+    const created = nock(BASE)
+      .post("/api/v2/workspaces/acme/permission-schemes/", {
+        name: "Editors",
+        namespace: "project",
+        permissions: ["workitem:edit"],
+      })
+      .reply(201, { id: "s1", permissions: ["workitem:edit", "workitem:view"] });
+    const updated = nock(BASE)
+      .patch("/api/v2/workspaces/acme/permission-schemes/s1/", { permissions: ["cycle:edit"] })
+      .reply(200, { id: "s1" });
+    const impact = nock(BASE)
+      .get("/api/v2/workspaces/acme/permission-schemes/s1/impact/")
+      .reply(200, { roles: 2, users: 5, projects: 3 });
+    const deleted = nock(BASE).delete("/api/v2/workspaces/acme/permission-schemes/s1/").reply(204);
+
+    const schemes = makeSchemes();
+    const scheme = await schemes.create("acme", {
+      name: "Editors",
+      namespace: "project",
+      permissions: ["workitem:edit"],
+    });
+    await schemes.update("acme", "s1", { permissions: ["cycle:edit"] });
+    const reach = await schemes.impact("acme", "s1");
+    await schemes.delete("acme", "s1");
+
+    expect(scheme.permissions).toContain("workitem:view");
+    expect(reach).toEqual({ roles: 2, users: 5, projects: 3 });
+    expect(created.isDone() && updated.isDone() && impact.isDone() && deleted.isDone()).toBe(true);
+  });
 });

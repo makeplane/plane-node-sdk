@@ -48,12 +48,27 @@ describe("Roles (v2)", () => {
     expect(page.data[0].id).toBe("1");
   });
 
-  it("has no create/update/delete/upsert — this resource is read-only", () => {
-    const roles = makeResource() as unknown as Record<string, unknown>;
-    expect(roles.create).toBeUndefined();
-    expect(roles.update).toBeUndefined();
-    expect(roles.delete).toBeUndefined();
-    expect(roles.upsert).toBeUndefined();
+  it("creates, updates and deletes a custom role", async () => {
+    const created = nock(BASE)
+      .post("/api/v2/workspaces/acme/roles/", { name: "QA", namespace: "project", permission_scheme_ids: ["s1"] })
+      .reply(201, { id: "r1", name: "QA" });
+    const updated = nock(BASE)
+      .patch("/api/v2/workspaces/acme/roles/r1/", { status: "inactive", reassign_to: "r2" })
+      .reply(200, { id: "r1", status: "inactive" });
+    const deleted = nock(BASE).delete("/api/v2/workspaces/acme/roles/r1/").query({ reassign_to: "r2" }).reply(204);
+
+    const roles = makeResource();
+    await roles.create("acme", { name: "QA", namespace: "project", permission_scheme_ids: ["s1"] });
+    await roles.update("acme", "r1", { status: "inactive", reassign_to: "r2" });
+    await roles.delete("acme", "r1", "r2");
+
+    expect(created.isDone() && updated.isDone() && deleted.isDone()).toBe(true);
+  });
+
+  it("deletes without a query string when no role takes over", async () => {
+    const scope = nock(BASE).delete("/api/v2/workspaces/acme/roles/r1/").query({}).reply(204);
+    await makeResource().delete("acme", "r1");
+    expect(scope.isDone()).toBe(true);
   });
 
   it("rejects an unknown order_by before making the request", async () => {

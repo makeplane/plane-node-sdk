@@ -239,8 +239,10 @@ export abstract class V2Resource<TRead, TWrite, TPatch> {
     });
   }
 
-  protected async doDelete(pathParams: Record<string, string>): Promise<void> {
-    await this.transport.request<void>("DELETE", this.detailUrl(pathParams, "delete"));
+  protected async doDelete(pathParams: Record<string, string>, params?: Record<string, unknown>): Promise<void> {
+    await this.transport.request<void>("DELETE", this.detailUrl(pathParams, "delete"), {
+      params: this.query(params, "delete"),
+    });
   }
 
   /** POST a custom verb action on a detail row — `{pk}/{action}/`, e.g. `.../archive/`. */

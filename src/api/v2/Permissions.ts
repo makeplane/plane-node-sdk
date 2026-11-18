@@ -1,4 +1,4 @@
-import { EffectivePermissions } from "../../models/v2/Permission";
+import { EffectivePermissions, PermissionCatalogue } from "../../models/v2/Permission";
 import { AnyOperationId, V2Resource } from "./kernel/resource";
 
 /**
@@ -13,11 +13,18 @@ export class WorkspacePermissions extends V2Resource<EffectivePermissions, never
   protected path = "/workspaces/{slug}/permissions/me/";
   protected operations: Record<string, AnyOperationId> = {
     me: "workspaces_permissions_me_retrieve",
+    resources: "workspaces_permissions_resources_retrieve",
   };
+  protected extraPaths: Record<string, string> = { resources: "/workspaces/{slug}/permissions/resources/" };
 
   /** The caller's effective permission grants across the whole workspace. */
   me(slug: string): Promise<EffectivePermissions> {
     return this.doRetrieveSingleton<EffectivePermissions>({ slug }, "me");
+  }
+
+  /** The keys a custom scheme of `namespace` (default `workspace`) may grant, with what each requires. */
+  resources(slug: string, params?: { namespace?: "workspace" | "project" }): Promise<PermissionCatalogue> {
+    return this.doRetrieveSingleton<PermissionCatalogue>({ slug }, "resources", params);
   }
 }
 
