@@ -67,6 +67,7 @@ export * from "./WorkItemPropertyContext";
 export * from "./WorkItemPropertyOption";
 export * from "./WorkItemRelation";
 export * from "./WorkItemRelationDefinition";
+export * from "./WorkItemSubscriber";
 export * from "./WorkItemTemplate";
 export * from "./WorkItemType";
 export * from "./WorkItemWorklog";
