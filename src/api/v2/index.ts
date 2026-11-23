@@ -44,7 +44,7 @@ export { States } from "./States";
 export { Workspaces } from "./Workspaces";
 export type { WorkspaceField, WorkspaceFieldsParams } from "./Workspaces";
 export { Wiki } from "./Wiki";
-// The seven work-item children are exported under their qualified names, matching the
+// The eight work-item children are exported under their qualified names, matching the
 // Python SDK and the `Comments as ReleaseComments` precedent further down. Bare
 // `Comments`/`Links`/`Activities` say nothing about which resource they belong to, and
 // two of those names are already claimed by `Releases`.
@@ -55,6 +55,7 @@ export {
   Dependencies as WorkItemDependencies,
   Links as WorkItemLinks,
   Relations as WorkItemRelations,
+  Subscribers as WorkItemSubscribersResource,
   WorkItems,
   // `Worklogs`, not `WorkLogs`: the API spells it one word, and `ProjectWorklogs` in this
   // same barrel already does.
