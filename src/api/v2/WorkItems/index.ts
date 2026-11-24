@@ -11,6 +11,7 @@ import { Comments } from "./Comments";
 import { Dependencies } from "./Dependencies";
 import { Links } from "./Links";
 import { Relations } from "./Relations";
+import { Subscribers } from "./Subscribers";
 import { WorkLogs } from "./WorkLogs";
 
 export interface ListWorkItemsParams {
@@ -105,6 +106,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
   public activities: Activities;
   public relations: Relations;
   public dependencies: Dependencies;
+  public subscribers: Subscribers;
 
   constructor(transport: V2Transport) {
     super(transport);
@@ -115,6 +117,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
     this.activities = new Activities(transport);
     this.relations = new Relations(transport);
     this.dependencies = new Dependencies(transport);
+    this.subscribers = new Subscribers(transport);
   }
 
   protected navigationOf(meta: LoadedMeta): NavigationFactories<WorkItemNavigation> {
@@ -127,6 +130,7 @@ export class WorkItems extends LoadsNavigableRows<WorkItem, CreateWorkItem, Upda
       activities: () => owned(this.activities, ids, meta.idNames),
       relations: () => owned(this.relations, ids, meta.idNames),
       dependencies: () => owned(this.dependencies, ids, meta.idNames),
+      subscribers: () => owned(this.subscribers, ids, meta.idNames),
     };
   }
 
@@ -328,6 +332,7 @@ export { Comments } from "./Comments";
 export { Dependencies } from "./Dependencies";
 export { Links } from "./Links";
 export { Relations } from "./Relations";
+export { Subscribers } from "./Subscribers";
 export { WorkLogs } from "./WorkLogs";
 export type {
   ListWorkItemActivitiesParams,

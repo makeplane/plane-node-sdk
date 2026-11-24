@@ -6,6 +6,7 @@ import type { Comments } from "../WorkItems/Comments";
 import type { Dependencies } from "../WorkItems/Dependencies";
 import type { Links } from "../WorkItems/Links";
 import type { Relations } from "../WorkItems/Relations";
+import type { Subscribers } from "../WorkItems/Subscribers";
 import type { WorkLogs } from "../WorkItems/WorkLogs";
 
 /**
@@ -81,6 +82,14 @@ export interface WorkItemNavigation {
    * call answers the full row. Call the resource flat for the narrowed one.
    */
   readonly dependencies: Owned<Dependencies, WorkItemIds>;
+  /**
+   * Subscribers with this row's ids already supplied.
+   *
+   * `fields` is accepted here and does **not** narrow the return type: TypeScript erases a
+   * method's type parameter when it infers through `Owned`'s conditional, so a navigated
+   * call answers the full row. Call the resource flat for the narrowed one.
+   */
+  readonly subscribers: Owned<Subscribers, WorkItemIds>;
 }
 
 /**

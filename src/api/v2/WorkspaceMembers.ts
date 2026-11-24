@@ -1,16 +1,17 @@
 import { Page } from "../../models/v2/common";
-import { WorkspaceMember, WorkspaceMemberRemoveRequest } from "../../models/v2/Member";
+import { UpdateWorkspaceMember, WorkspaceMember, WorkspaceMemberRemoveRequest } from "../../models/v2/Member";
 import { AnyOperationId, V2Resource } from "./kernel/resource";
-import { ListMembersParams, ProjectMemberField } from "./Members";
+import { ListMembersParams, ProjectMemberField, ProjectMemberShapeParams } from "./Members";
 
-/** Every member of the workspace itself, not a project. `list`/`iterate` only, plus `remove` (bulk-remove-by-email). */
-export class WorkspaceMembers extends V2Resource<WorkspaceMember, never, never> {
+/** Every member of the workspace itself, not a project. `list`/`iterate`, `update` (role only), plus `remove` (by email). */
+export class WorkspaceMembers extends V2Resource<WorkspaceMember, never, UpdateWorkspaceMember> {
   protected path = "/workspaces/{slug}/members/";
   // `remove` POSTs to `.../members/remove/`, its own template rather than a verb on a
   // row — it is keyed on an email, not a member id.
   protected extraPaths = { remove: "/workspaces/{slug}/members/remove/" };
   protected operations: Record<string, AnyOperationId> = {
     list: "workspace_members_list",
+    update: "workspace_members_partial_update",
     remove: "workspace_members_remove",
   };
 
@@ -38,6 +39,33 @@ export class WorkspaceMembers extends V2Resource<WorkspaceMember, never, never> 
   iterate(slug: string, params?: Omit<ListMembersParams, "offset" | "count">): AsyncGenerator<WorkspaceMember>;
   iterate(slug: string, params?: Omit<ListMembersParams, "offset" | "count">): AsyncGenerator<WorkspaceMember> {
     return this.doIterate({ slug }, params as Record<string, unknown>);
+  }
+
+  /**
+   * Change a member's workspace role. `member` is the membership id from `list`, not the user id.
+   * The server applies the app's role rules: role tiers, no changing your own role, plan and seat checks,
+   * and demotion to guest in every project and teamspace.
+   */
+  update<F extends Exclude<ProjectMemberField, "all"> & keyof WorkspaceMember>(
+    slug: string,
+    member: string,
+    data: UpdateWorkspaceMember,
+    params: ProjectMemberShapeParams & { fields: readonly F[] }
+  ): Promise<Pick<WorkspaceMember, F | "id">>;
+  /** Change a member's workspace role. `member` is the membership id from `list`, not the user id. */
+  update(
+    slug: string,
+    member: string,
+    data: UpdateWorkspaceMember,
+    params?: ProjectMemberShapeParams
+  ): Promise<WorkspaceMember>;
+  update(
+    slug: string,
+    member: string,
+    data: UpdateWorkspaceMember,
+    params?: ProjectMemberShapeParams
+  ): Promise<WorkspaceMember> {
+    return this.doUpdate(data, { slug, pk: member }, params as Record<string, unknown>);
   }
 
   /**

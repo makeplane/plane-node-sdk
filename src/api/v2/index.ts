@@ -44,7 +44,7 @@ export { States } from "./States";
 export { Workspaces } from "./Workspaces";
 export type { WorkspaceField, WorkspaceFieldsParams } from "./Workspaces";
 export { Wiki } from "./Wiki";
-// The seven work-item children are exported under their qualified names, matching the
+// The eight work-item children are exported under their qualified names, matching the
 // Python SDK and the `Comments as ReleaseComments` precedent further down. Bare
 // `Comments`/`Links`/`Activities` say nothing about which resource they belong to, and
 // two of those names are already claimed by `Releases`.
@@ -55,6 +55,7 @@ export {
   Dependencies as WorkItemDependencies,
   Links as WorkItemLinks,
   Relations as WorkItemRelations,
+  Subscribers as WorkItemSubscribersResource,
   WorkItems,
   // `Worklogs`, not `WorkLogs`: the API spells it one word, and `ProjectWorklogs` in this
   // same barrel already does.
@@ -112,6 +113,8 @@ export { COLLECTION_ID_NAMES } from "./loaded/Collection";
 export type { CollectionIds, CollectionNavigation, LoadedCollection, LoadedCollectionRow } from "./loaded/Collection";
 export { CUSTOMER_ID_NAMES } from "./loaded/Customer";
 export type { CustomerIds, CustomerNavigation, LoadedCustomer, LoadedCustomerRow } from "./loaded/Customer";
+export { DASHBOARD_ID_NAMES } from "./loaded/Dashboard";
+export type { DashboardIds, DashboardNavigation, LoadedDashboard, LoadedDashboardRow } from "./loaded/Dashboard";
 export { CYCLE_ID_NAMES } from "./loaded/Cycle";
 export type { CycleIds, CycleNavigation, LoadedCycle, LoadedCycleRow } from "./loaded/Cycle";
 export { ESTIMATE_ID_NAMES } from "./loaded/Estimate";
@@ -197,6 +200,7 @@ export * from "./Automations";
 export * from "./Collections";
 export * from "./CustomerProperties";
 export * from "./Customers";
+export * from "./Dashboards";
 export * from "./Estimates";
 export * from "./Features";
 export * from "./GroupSync";
