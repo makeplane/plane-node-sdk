@@ -9,12 +9,13 @@ import {
   PropertyRelationType,
   PropertyType,
 } from "../../src/models/common";
-import { WorkItemProperty } from "../../src/models/WorkItemProperty";
+import { CreateWorkItemProperty, WorkItemProperty } from "../../src/models/WorkItemProperty";
+import { WorkItemPropertyType as V2WorkItemPropertyType } from "../../src/models/v2/WorkItemProperty";
 
 /**
  * Property and relation type unions. Customer properties take Plane's customer set, not
- * the work item one: Plane answers FORMULA/CASCADING on a customer property, or a
- * RELEASE/RICH_TEXT customer relation, with a 400.
+ * the work item one: Plane answers FORMULA/CASCADING/RATING/SLIDER on a customer property,
+ * or a RELEASE/RICH_TEXT customer relation, with a 400.
  *
  * These are compile-time checks -- ts-jest type-checks this file, so each
  * `@ts-expect-error` fails the suite if the line it guards stops being an error.
@@ -48,6 +49,26 @@ describe("Customer property types", () => {
     };
 
     expect([create.property_type, update.property_type]).toEqual(["CASCADING", "CASCADING"]);
+  });
+
+  it("refuses RATING", () => {
+    const create: CreateCustomerPropertyRequest = {
+      display_name: "Score",
+      // @ts-expect-error RATING is a work item property type only
+      property_type: "RATING",
+    };
+
+    expect(create.property_type).toBe("RATING");
+  });
+
+  it("refuses SLIDER", () => {
+    const create: CreateCustomerPropertyRequest = {
+      display_name: "Effort",
+      // @ts-expect-error SLIDER is a work item property type only
+      property_type: "SLIDER",
+    };
+
+    expect(create.property_type).toBe("SLIDER");
   });
 
   it("refuses a RELEASE relation", () => {
@@ -146,5 +167,89 @@ describe("Work item property types", () => {
     const relation: PropertyRelationType = "RELEASE";
 
     expect(relation).toBe("RELEASE");
+  });
+
+  it("types RATING and SLIDER properties in v1 and v2, with a Slider's bounds", () => {
+    const types: PropertyType[] = ["RATING", "SLIDER"];
+    const v2Types: V2WorkItemPropertyType[] = ["RATING", "SLIDER"];
+    const slider: Pick<WorkItemProperty, "property_type" | "settings"> = {
+      property_type: "SLIDER",
+      settings: { min: 0, max: 10 },
+    };
+
+    expect([...types, ...v2Types]).toEqual(["RATING", "SLIDER", "RATING", "SLIDER"]);
+    expect(slider.settings).toEqual({ min: 0, max: 10 });
+  });
+
+  it("creates RATING and SLIDER properties", () => {
+    const rating: CreateWorkItemProperty = {
+      name: "score",
+      display_name: "Score",
+      property_type: "RATING",
+      is_required: true,
+    };
+    const slider: CreateWorkItemProperty = {
+      name: "effort",
+      display_name: "Effort",
+      property_type: "SLIDER",
+      is_required: false,
+      is_multi: false,
+    };
+
+    expect([rating.property_type, slider.property_type]).toEqual(["RATING", "SLIDER"]);
+  });
+
+  // A union reports the error on the declaration, not the field, so each object below is the
+  // valid one above plus the single field the directive is about.
+  it("refuses settings on a new SLIDER, whose bounds Plane sets", () => {
+    // @ts-expect-error Plane refuses settings when a Slider is created
+    const create: CreateWorkItemProperty = {
+      name: "effort",
+      display_name: "Effort",
+      property_type: "SLIDER",
+      is_required: false,
+      settings: { min: 0, max: 10 },
+    };
+
+    expect(create.settings).toEqual({ min: 0, max: 10 });
+  });
+
+  it("refuses settings on a new RATING", () => {
+    // @ts-expect-error a Rating has no settings
+    const create: CreateWorkItemProperty = {
+      name: "score",
+      display_name: "Score",
+      property_type: "RATING",
+      is_required: false,
+      settings: { min: 1, max: 5 },
+    };
+
+    expect(create.settings).toEqual({ min: 1, max: 5 });
+  });
+
+  it("refuses a default value on a new SLIDER", () => {
+    // @ts-expect-error Plane refuses a default value for a Slider
+    const create: CreateWorkItemProperty = {
+      name: "effort",
+      display_name: "Effort",
+      property_type: "SLIDER",
+      is_required: false,
+      default_value: ["5"],
+    };
+
+    expect(create.default_value).toEqual(["5"]);
+  });
+
+  it("refuses is_multi on a new RATING", () => {
+    // @ts-expect-error a Rating holds one value
+    const create: CreateWorkItemProperty = {
+      name: "score",
+      display_name: "Score",
+      property_type: "RATING",
+      is_required: false,
+      is_multi: true,
+    };
+
+    expect(create.is_multi).toBe(true);
   });
 });

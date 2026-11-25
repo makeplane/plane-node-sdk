@@ -87,7 +87,9 @@ export type PropertyType =
   | "EMAIL"
   | "FILE"
   | "FORMULA"
-  | "CASCADING";
+  | "CASCADING"
+  | "RATING"
+  | "SLIDER";
 
 /**
  * Work item relation types. A rich text property is `property_type: "RELATION"` with
@@ -95,7 +97,7 @@ export type PropertyType =
  */
 export type PropertyRelationType = "ISSUE" | "USER" | "RELEASE" | "RICH_TEXT";
 
-/** Customer property types -- the work item set without FORMULA and CASCADING. */
+/** Customer property types -- the work item set without FORMULA, CASCADING, RATING and SLIDER. */
 export type CustomerPropertyType =
   | "TEXT"
   | "DATETIME"

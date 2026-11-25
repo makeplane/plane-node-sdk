@@ -10,7 +10,9 @@ export type WorkItemPropertyType =
   | "URL"
   | "EMAIL"
   | "FILE"
-  | "FORMULA";
+  | "FORMULA"
+  | "RATING"
+  | "SLIDER";
 
 export type WorkItemPropertyRelationType = "ISSUE" | "USER" | "RELEASE" | "RICH_TEXT";
 
