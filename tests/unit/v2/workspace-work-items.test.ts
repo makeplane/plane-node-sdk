@@ -70,4 +70,21 @@ describe("WorkspaceWorkItems (v2)", () => {
     expect(identifierScope.isDone()).toBe(true);
     expect(listScope.isDone()).toBe(true);
   });
+
+  it("reads and changes a work item's subscribers by identifier, without its project", async () => {
+    const path = "/api/v2/workspaces/acme/work-items/ENG-12/subscribers/";
+    nock(BASE)
+      .get(path)
+      .reply(200, { subscriber_ids: ["u1"] });
+    const scope = nock(BASE)
+      .patch(path, { add: ["u2"] })
+      .reply(200, { subscriber_ids: ["u1", "u2"] });
+
+    const workItems = makeWorkspaceWorkItems();
+    expect(await workItems.retrieveSubscribersByIdentifier("acme", "ENG-12")).toEqual({ subscriber_ids: ["u1"] });
+    expect(await workItems.updateSubscribersByIdentifier("acme", "ENG-12", { add: ["u2"] })).toEqual({
+      subscriber_ids: ["u1", "u2"],
+    });
+    expect(scope.isDone()).toBe(true);
+  });
 });
