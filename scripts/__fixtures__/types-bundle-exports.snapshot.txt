@@ -139,6 +139,7 @@ root	CreateModuleRequest	CreateModuleRequest	a417ce10672849a7
 root	CreateOptionWorkItemProperty	CreateOptionWorkItemProperty	24169d671e4ad02a
 root	CreatePage	CreatePage$1	191f7119ba205a48
 root	CreatePageTemplate	CreatePageTemplate	8a3b9ef75dc39339
+root	CreatePermissionScheme	CreatePermissionScheme	e7829dcdeb085d1e
 root	CreateProject	CreateProject$1	93b2fad9fb23eb73
 root	CreateProjectMember	CreateProjectMember	cc74eb3e229f28dc
 root	CreateRelationWorkItemProperty	CreateRelationWorkItemProperty	aba4a779f11fc482
@@ -147,6 +148,7 @@ root	CreateReleaseComment	CreateReleaseComment$1	1a28cf47e698197d
 root	CreateReleaseLabel	CreateReleaseLabel$1	41aa2c913b31e013
 root	CreateReleaseLink	CreateReleaseLink$1	3e6f3da64264808d
 root	CreateReleaseTag	CreateReleaseTag$1	249006f86937c535
+root	CreateRole	CreateRole	f51cd19de450e0ee
 root	CreateState	CreateState$1	d061d0050345aa4e
 root	CreateSticky	CreateSticky$1	da5c357696e5e97d
 root	CreateTeamspace	CreateTeamspace$1	4006be56b72002d5
@@ -463,9 +465,12 @@ root	PageTemplate	PageTemplate	14210776c729ed6c
 root	PageTypeFilter	PageTypeFilter	5052d179f8b2b6e3
 root	PaginatedResponse	PaginatedResponse	bb56e5d1db659d1c
 root	PaginatedWorkspaceWorkflowResponse	PaginatedWorkspaceWorkflowResponse	ff6b64123b21de04
-root	PermissionScheme	PermissionScheme	9c0370380767af8f
+root	PermissionCatalogue	PermissionCatalogue	d88965c1d665ba46
+root	PermissionKey	PermissionKey	63fb34c97f3d8b2b
+root	PermissionScheme	PermissionScheme	6d48c6a5af593c63
 root	PermissionSchemeField	PermissionSchemeField	faeff22d67396fa5
 root	PermissionSchemeFieldsParams	PermissionSchemeFieldsParams	e0853b2c82507c82
+root	PermissionSchemeImpact	PermissionSchemeImpact	af981ddbda4c8601
 root	PermissionSchemeNamespace	PermissionSchemeNamespace	8c46326a7bc467f7
 root	PermissionSchemeOrderBy	PermissionSchemeOrderBy	3e26629a8e0ccce0
 root	PlaneApiError	PlaneApiError	7e2374a3de80221b
@@ -568,8 +573,9 @@ root	ResponseEntity	ResponseEntity	f4502bde26dca136
 root	RichTextValue	RichTextValue	5aa030d4c4208d7f
 root	RichTextValueDetail	RichTextValueDetail	2ed03e51a72f7d0c
 root	Role	Role$1	5dc96afcd19d6bb0
+root	RoleExpand	RoleExpand	6b74576eb8450ddb
 root	RoleField	RoleField	685a79b673e0226d
-root	RoleFieldsParams	RoleFieldsParams	7b5e84b4cf0bece1
+root	RoleFieldsParams	RoleFieldsParams	241bebf16d8626d9
 root	RoleNamespace	RoleNamespace$1	201562db38902823
 root	RoleOrderBy	RoleOrderBy	8b385fd82025b4a7
 root	Roles	Roles$1	6e2ebb7857f091b0
@@ -643,6 +649,7 @@ root	UpdateModule	UpdateModule	46f5948435452482
 root	UpdateModuleRequest	UpdateModuleRequest	732071ee96c0d820
 root	UpdatePage	UpdatePage$1	d0d0dc396e2c19bd
 root	UpdatePageTemplate	UpdatePageTemplate	259408ee90aa4f03
+root	UpdatePermissionScheme	UpdatePermissionScheme	58d3a3e5d3d2bdce
 root	UpdateProject	UpdateProject$1	c54d10d584eeeb69
 root	UpdateProjectFeature	UpdateProjectFeature	9b0f329f380ff2bf
 root	UpdateProjectFeatures	UpdateProjectFeatures	b9524e9021285417
@@ -653,6 +660,7 @@ root	UpdateReleaseComment	UpdateReleaseComment$1	bf24526453e45986
 root	UpdateReleaseLabel	UpdateReleaseLabel$1	d3ce80cc6c6eae46
 root	UpdateReleaseLink	UpdateReleaseLink$1	847f78db8b86661e
 root	UpdateReleaseTag	UpdateReleaseTag$1	6336b55277b8084d
+root	UpdateRole	UpdateRole	343264f7df0a8c40
 root	UpdateState	UpdateState$1	37156716d4054994
 root	UpdateSticky	UpdateSticky$1	2bb4bad0e1d9bfc6
 root	UpdateTeamspace	UpdateTeamspace$1	8d4d0691624dc911
@@ -758,7 +766,7 @@ root	V2ListInitiativeLabelsParams	ListInitiativeLabelsParams	24ca4e9018467a7e
 root	V2ListInitiativesParams	ListInitiativesParams	13e11d8523cf40e3
 root	V2ListLabelsParams	ListLabelsParams	fb55a74e19465c9d
 root	V2ListProjectsParams	ListProjectsParams	fecd08df109a901c
-root	V2ListRolesParams	ListRolesParams	3e0200ec40366157
+root	V2ListRolesParams	ListRolesParams	f3605e901ecac150
 root	V2ListStatesParams	ListStatesParams	e8c4482bc706ff8d
 root	V2ListStickiesParams	ListStickiesParams	c0146a2b19322683
 root	V2ListTeamspacesParams	ListTeamspacesParams	0a2ec007446e4b96
@@ -783,7 +791,7 @@ root	V2ReleaseLabel	ReleaseLabel	75322f8f368c87ac
 root	V2ReleaseLink	ReleaseLink	6e2e4a9915346ab1
 root	V2ReleaseStatus	ReleaseStatus	8fb6f688ae374061
 root	V2ReleaseTag	ReleaseTag	efbdb2a4feba1308
-root	V2Role	Role	df26fef9334fb8b0
+root	V2Role	Role	c12a132c1acaabbd
 root	V2RoleNamespace	RoleNamespace	c5203a2ede46846a
 root	V2State	State	8217bc51d82bec16
 root	V2Sticky	Sticky	44d29dcba60165af
@@ -1170,8 +1178,8 @@ v2	EstimatePoints	EstimatePoints	3d0b7a291c16343e
 v2	EstimatePointShapeParams	EstimatePointShapeParams	96705610b691e978
 v2	Estimates	Estimates	63e06c142c0d270e
 v2	EstimateShapeParams	EstimateShapeParams	811689714b8de6c5
-v2	EXPAND	EXPAND	847e442276ceb3f6
-v2	FIELDS	FIELDS	ca548cc6f98715f4
+v2	EXPAND	EXPAND	fdc0e4d6ad5ab6d5
+v2	FIELDS	FIELDS	65eb3c1c061a854a
 v2	GroupSync	GroupSync	c0121fc6a056a668
 v2	GroupSyncConfigResource	GroupSyncConfigResource	18b8cb8f6179b66b
 v2	GroupSyncProjectMappingField	GroupSyncProjectMappingField	cf293d1a76286806
@@ -1238,7 +1246,7 @@ v2	ListReleaseLabelsParams	ListReleaseLabelsParams	5eeefb5bfadfa7f6
 v2	ListReleaseLinksParams	ListReleaseLinksParams	93cf1f5691ebcbaf
 v2	ListReleasesParams	ListReleasesParams	c5d9140e24aa216e
 v2	ListReleaseTagsParams	ListReleaseTagsParams	39a2241b03c932b7
-v2	ListRolesParams	ListRolesParams	3e0200ec40366157
+v2	ListRolesParams	ListRolesParams	f3605e901ecac150
 v2	ListStickiesParams	ListStickiesParams	c0146a2b19322683
 v2	ListTeamspacesParams	ListTeamspacesParams	0a2ec007446e4b96
 v2	ListUserAssetsParams	ListUserAssetsParams	7d4cbd36b728669a
@@ -1344,7 +1352,7 @@ v2	OwnedBinding	OwnedBinding	a61653d66e1ce2f8
 v2	PermissionSchemeField	PermissionSchemeField	faeff22d67396fa5
 v2	PermissionSchemeFieldsParams	PermissionSchemeFieldsParams	e0853b2c82507c82
 v2	PermissionSchemeOrderBy	PermissionSchemeOrderBy	3e26629a8e0ccce0
-v2	PermissionSchemes	PermissionSchemes	ae73a8520b868d7b
+v2	PermissionSchemes	PermissionSchemes	476a36428bacacb9
 v2	PROJECT_AUTOMATION_ID_NAMES	PROJECT_AUTOMATION_ID_NAMES	b8332236c4c0f19a
 v2	PROJECT_ID_NAMES	PROJECT_ID_NAMES	12a30d19cd61d024
 v2	ProjectAutomationActivities	ProjectAutomationActivities	e90bf5952fbe8c15
@@ -1404,10 +1412,11 @@ v2	ReleaseTagField	ReleaseTagField	04b2d3c20f2d15cc
 v2	ReleaseTagOrderBy	ReleaseTagOrderBy	235fab9b00a78cd7
 v2	ReleaseTags	ReleaseTags	9c7ac161b1e7d80d
 v2	ReleaseWorkItems	ReleaseWorkItems	e562c1aada85bf3c
+v2	RoleExpand	RoleExpand	6b74576eb8450ddb
 v2	RoleField	RoleField	685a79b673e0226d
-v2	RoleFieldsParams	RoleFieldsParams	7b5e84b4cf0bece1
+v2	RoleFieldsParams	RoleFieldsParams	241bebf16d8626d9
 v2	RoleOrderBy	RoleOrderBy	8b385fd82025b4a7
-v2	Roles	Roles	6ced63781962ca6f
+v2	Roles	Roles	98756a21a47734f5
 v2	StateField	StateField	2cfc8b18cdcd8b6c
 v2	StateOrderBy	StateOrderBy	e774918b4ce3928b
 v2	States	States	4395658a2a1c77c1
@@ -1418,7 +1427,7 @@ v2	StickyOrderBy	StickyOrderBy	bd49f4cf606fd7fa
 v2	TeamspaceExpand	TeamspaceExpand	e9abd665df475ac7
 v2	TeamspaceField	TeamspaceField	24a982f0a3a951d9
 v2	TeamspaceOrderBy	TeamspaceOrderBy	4f18b39476c75a5b
-v2	Teamspaces	Teamspaces	134c111c90f71690
+v2	Teamspaces	Teamspaces	2169ccc32b1e1b5a
 v2	TeamspaceShapeParams	TeamspaceShapeParams	ec343a52f17d0303
 v2	UserAssetField	UserAssetField	0e0bf67e1a131656
 v2	UserAssetFieldsParams	UserAssetFieldsParams	c81249f0c2a1f7b3
@@ -1558,7 +1567,7 @@ v2	WorkspaceInviteFieldsParams	WorkspaceInviteFieldsParams	0ef3341d4a9644d9
 v2	WorkspaceInviteOrderBy	WorkspaceInviteOrderBy	d1901ca37563d14d
 v2	WorkspaceMembers	WorkspaceMembers	3dab29a017ac1404
 v2	WorkspaceNavigation	WorkspaceNavigation	d6dccef2363d95d6
-v2	WorkspacePermissions	WorkspacePermissions	8d6c4bdddf0d9504
+v2	WorkspacePermissions	WorkspacePermissions	acfc8a1b2582e206
 v2	Workspaces	Workspaces	421adb5002709129
 v2	WorkspaceViewOrderBy	WorkspaceViewOrderBy	ea48a52e1e6e629d
 v2	WorkspaceViews	WorkspaceViews	7550deaba489d4d7
@@ -1644,6 +1653,7 @@ v2models	CreateLabel	CreateLabel	406ce08dd73c9cfa
 v2models	CreateMilestone	CreateMilestone	c343a49181fdedc7
 v2models	CreateModule	CreateModule	5a93c1c805962604
 v2models	CreatePage	CreatePage	6bee3e8079aa1aca
+v2models	CreatePermissionScheme	CreatePermissionScheme	e7829dcdeb085d1e
 v2models	CreateProject	CreateProject	8a133e5f6907c361
 v2models	CreateProjectMember	CreateProjectMember	cc74eb3e229f28dc
 v2models	CreateRelease	CreateRelease	e8f88902aef95ae2
@@ -1651,6 +1661,7 @@ v2models	CreateReleaseComment	CreateReleaseComment	b3bf0f1fdf14e191
 v2models	CreateReleaseLabel	CreateReleaseLabel	cb65eda9e6cb2d93
 v2models	CreateReleaseLink	CreateReleaseLink	eadfa787c5d284bf
 v2models	CreateReleaseTag	CreateReleaseTag	5b3e084f8c0a45b0
+v2models	CreateRole	CreateRole	f51cd19de450e0ee
 v2models	CreateState	CreateState	e0e6d597796ba45d
 v2models	CreateSticky	CreateSticky	663e956c171ed192
 v2models	CreateTeamspace	CreateTeamspace	5c83a8d5ff4fb9b3
@@ -1704,7 +1715,10 @@ v2models	OffsetPage	OffsetPage	3639ecb8335d995a
 v2models	Page	Page$1	20725d97c3eeef0b
 v2models	PageAccess	PageAccess	c29bd17f6f76b771
 v2models	PageTypeFilter	PageTypeFilter	5052d179f8b2b6e3
-v2models	PermissionScheme	PermissionScheme	9c0370380767af8f
+v2models	PermissionCatalogue	PermissionCatalogue	d88965c1d665ba46
+v2models	PermissionKey	PermissionKey	63fb34c97f3d8b2b
+v2models	PermissionScheme	PermissionScheme	6d48c6a5af593c63
+v2models	PermissionSchemeImpact	PermissionSchemeImpact	af981ddbda4c8601
 v2models	PermissionSchemeNamespace	PermissionSchemeNamespace	8c46326a7bc467f7
 v2models	PrincipalKind	PrincipalKind	64efd7e371867254
 v2models	Project	Project	0d09a3abeae12886
@@ -1723,7 +1737,7 @@ v2models	ReleaseLabel	ReleaseLabel	75322f8f368c87ac
 v2models	ReleaseLink	ReleaseLink	6e2e4a9915346ab1
 v2models	ReleaseStatus	ReleaseStatus	8fb6f688ae374061
 v2models	ReleaseTag	ReleaseTag	efbdb2a4feba1308
-v2models	Role	Role	df26fef9334fb8b0
+v2models	Role	Role	c12a132c1acaabbd
 v2models	RoleNamespace	RoleNamespace	c5203a2ede46846a
 v2models	RoleStatus	RoleStatus	c4c913d1c1e34f5c
 v2models	SetAutomationStatus	SetAutomationStatus	3381db7b291bf701
@@ -1754,6 +1768,7 @@ v2models	UpdateLabel	UpdateLabel	591b4c25ca9c0b30
 v2models	UpdateMilestone	UpdateMilestone	708a4ffb2af887e7
 v2models	UpdateModule	UpdateModule	46f5948435452482
 v2models	UpdatePage	UpdatePage	4a178c9c56e1811d
+v2models	UpdatePermissionScheme	UpdatePermissionScheme	58d3a3e5d3d2bdce
 v2models	UpdateProject	UpdateProject	f460a40c9e894342
 v2models	UpdateProjectFeature	UpdateProjectFeature	9b0f329f380ff2bf
 v2models	UpdateProjectMember	UpdateProjectMember	bde5f9197f382551
@@ -1763,6 +1778,7 @@ v2models	UpdateReleaseComment	UpdateReleaseComment	6ce61cb3a7a40f50
 v2models	UpdateReleaseLabel	UpdateReleaseLabel	ee822e7b91513027
 v2models	UpdateReleaseLink	UpdateReleaseLink	5ab44dd4e75cf5a3
 v2models	UpdateReleaseTag	UpdateReleaseTag	3ffffa4220c586c7
+v2models	UpdateRole	UpdateRole	343264f7df0a8c40
 v2models	UpdateState	UpdateState	2bb063c3ae85f516
 v2models	UpdateSticky	UpdateSticky	11183a46f2ad7aaa
 v2models	UpdateTeamspace	UpdateTeamspace	5b94d58a57096af9

@@ -1,14 +1,16 @@
 import { MultipleMatchesFoundError, NoMatchFoundError } from "../../errors/PlaneApiError";
 import { Page } from "../../models/v2/common";
-import { Role, RoleNamespace } from "../../models/v2/Role";
-import { FIELDS, ORDER_BY } from "./generated/constants";
+import { CreateRole, Role, RoleNamespace, UpdateRole } from "../../models/v2/Role";
+import { EXPAND, FIELDS, ORDER_BY } from "./generated/constants";
 import { OperationId, V2Resource } from "./kernel/resource";
 
 export type RoleField = (typeof FIELDS)["roles_list"][number];
 export type RoleOrderBy = (typeof ORDER_BY)["roles_list"][number];
+export type RoleExpand = (typeof EXPAND)["roles_list"][number];
 
 export interface ListRolesParams {
   fields?: readonly RoleField[];
+  expand?: readonly RoleExpand[];
   is_system?: boolean;
   namespace?: RoleNamespace;
   /**
@@ -34,6 +36,7 @@ export interface ListRolesParams {
 /** `?fields=` on a single-row read. */
 export interface RoleFieldsParams {
   fields?: readonly RoleField[];
+  expand?: readonly RoleExpand[];
 }
 
 /** `{ roleSlug: "admin" }` -> `{ slug: "admin" }`: the query key the golden declares. */
@@ -43,12 +46,18 @@ function withRoleSlug(params?: ListRolesParams): Record<string, unknown> | undef
   return roleSlug === undefined ? { ...rest } : { ...rest, slug: roleSlug };
 }
 
-/** Workspace roles — system and custom. Read-only: no create/update/delete/upsert (full role CRUD lives only in the app UI). */
-export class Roles extends V2Resource<Role, never, never> {
+/**
+ * Workspace roles — system and custom. Writes reach custom roles only (a system role takes
+ * `sort_order` alone), and nobody can grant permissions they don't hold.
+ */
+export class Roles extends V2Resource<Role, CreateRole, UpdateRole> {
   protected path = "/workspaces/{slug}/roles/";
   protected operations: Record<string, OperationId> = {
     list: "roles_list",
     retrieve: "roles_retrieve",
+    create: "roles_create",
+    update: "roles_partial_update",
+    delete: "roles_destroy",
   };
 
   /**
@@ -119,5 +128,33 @@ export class Roles extends V2Resource<Role, never, never> {
     return this.doFindOne(params?.namespace ? { slug: roleSlug, namespace: params.namespace } : { slug: roleSlug }, {
       slug,
     });
+  }
+
+  create<F extends Exclude<RoleField, "all"> & keyof Role>(
+    slug: string,
+    data: CreateRole,
+    params: RoleFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Role, F | "id">>;
+  /** Create a custom role from permission schemes, or clone one with `based_on_slug`. */
+  create(slug: string, data: CreateRole, params?: RoleFieldsParams): Promise<Role>;
+  create(slug: string, data: CreateRole, params?: RoleFieldsParams): Promise<Role> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
+  }
+
+  update<F extends Exclude<RoleField, "all"> & keyof Role>(
+    slug: string,
+    role: string,
+    data: UpdateRole,
+    params: RoleFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<Role, F | "id">>;
+  /** Disabling a role that people or invites hold needs `reassign_to`. */
+  update(slug: string, role: string, data: UpdateRole, params?: RoleFieldsParams): Promise<Role>;
+  update(slug: string, role: string, data: UpdateRole, params?: RoleFieldsParams): Promise<Role> {
+    return this.doUpdate(data, { slug, pk: role }, params as Record<string, unknown>);
+  }
+
+  /** Delete a custom role; `reassignTo` is the role its people and pending invites move to. */
+  delete(slug: string, role: string, reassignTo?: string): Promise<void> {
+    return this.doDelete({ slug, pk: role }, reassignTo ? { reassign_to: reassignTo } : undefined);
   }
 }

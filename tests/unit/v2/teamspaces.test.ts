@@ -69,4 +69,15 @@ describe("Teamspaces (v2)", () => {
     expect((await makeResource().findByName(SLUG, "Platform")).id).toBe("1");
     expect(scope.isDone()).toBe(true);
   });
+
+  it("gets the caller's permissions in a teamspace", async () => {
+    const scope = nock(BASE)
+      .get("/api/v2/workspaces/acme/teamspaces/t1/permissions/me/")
+      .reply(200, { permission_grants: ["teamspace:view"], relation: "member" });
+
+    const mine = await makeResource().myPermissions("acme", "t1");
+
+    expect(scope.isDone()).toBe(true);
+    expect(mine.relation).toBe("member");
+  });
 });

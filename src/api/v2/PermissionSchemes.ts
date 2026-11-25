@@ -1,7 +1,12 @@
 import { Page } from "../../models/v2/common";
-import { PermissionScheme } from "../../models/v2/PermissionScheme";
+import {
+  CreatePermissionScheme,
+  PermissionScheme,
+  PermissionSchemeImpact,
+  UpdatePermissionScheme,
+} from "../../models/v2/PermissionScheme";
 import { FIELDS, ORDER_BY } from "./generated/constants";
-import { OperationId, V2Resource } from "./kernel/resource";
+import { AnyOperationId, V2Resource } from "./kernel/resource";
 
 export type PermissionSchemeField = (typeof FIELDS)["permission_schemes_list"][number];
 export type PermissionSchemeOrderBy = (typeof ORDER_BY)["permission_schemes_list"][number];
@@ -25,11 +30,15 @@ export interface PermissionSchemeFieldsParams {
 }
 
 /** Workspace permission schemes. Read-only: no create/update/delete. */
-export class PermissionSchemes extends V2Resource<PermissionScheme, never, never> {
+export class PermissionSchemes extends V2Resource<PermissionScheme, CreatePermissionScheme, UpdatePermissionScheme> {
   protected path = "/workspaces/{slug}/permission-schemes/";
-  protected operations: Record<string, OperationId> = {
+  protected operations: Record<string, AnyOperationId> = {
     list: "permission_schemes_list",
     retrieve: "permission_schemes_retrieve",
+    create: "permission_schemes_create",
+    update: "permission_schemes_partial_update",
+    delete: "permission_schemes_destroy",
+    impact: "permission_schemes_impact",
   };
 
   /**
@@ -72,5 +81,47 @@ export class PermissionSchemes extends V2Resource<PermissionScheme, never, never
   retrieve(slug: string, scheme: string, params?: PermissionSchemeFieldsParams): Promise<PermissionScheme>;
   retrieve(slug: string, scheme: string, params?: PermissionSchemeFieldsParams): Promise<PermissionScheme> {
     return this.doRetrieve({ slug, pk: scheme }, params as Record<string, unknown>);
+  }
+
+  create<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
+    slug: string,
+    data: CreatePermissionScheme,
+    params: PermissionSchemeFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<PermissionScheme, F | "id">>;
+  /** Create a custom scheme; the stored `permissions` include what the given ones need. */
+  create(slug: string, data: CreatePermissionScheme, params?: PermissionSchemeFieldsParams): Promise<PermissionScheme>;
+  create(slug: string, data: CreatePermissionScheme, params?: PermissionSchemeFieldsParams): Promise<PermissionScheme> {
+    return this.doCreate(data, { slug }, params as Record<string, unknown>);
+  }
+
+  update<F extends Exclude<PermissionSchemeField, "all"> & keyof PermissionScheme>(
+    slug: string,
+    scheme: string,
+    data: UpdatePermissionScheme,
+    params: PermissionSchemeFieldsParams & { fields: readonly F[] }
+  ): Promise<Pick<PermissionScheme, F | "id">>;
+  update(
+    slug: string,
+    scheme: string,
+    data: UpdatePermissionScheme,
+    params?: PermissionSchemeFieldsParams
+  ): Promise<PermissionScheme>;
+  update(
+    slug: string,
+    scheme: string,
+    data: UpdatePermissionScheme,
+    params?: PermissionSchemeFieldsParams
+  ): Promise<PermissionScheme> {
+    return this.doUpdate(data, { slug, pk: scheme }, params as Record<string, unknown>);
+  }
+
+  /** Refused (409) while a role composes the scheme. */
+  delete(slug: string, scheme: string): Promise<void> {
+    return this.doDelete({ slug, pk: scheme });
+  }
+
+  /** The roles, people and projects a change to this scheme reaches. */
+  impact(slug: string, scheme: string): Promise<PermissionSchemeImpact> {
+    return this.doCustomAction<PermissionSchemeImpact>("impact", { method: "GET", pathParams: { slug }, pk: scheme });
   }
 }
