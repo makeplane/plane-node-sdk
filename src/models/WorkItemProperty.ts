@@ -1,6 +1,6 @@
 import { BaseModel, LogoProps, PropertyRelationType, PropertyType } from "./common";
 
-export type WorkItemPropertySettings = TextSettings | undefined;
+export type WorkItemPropertySettings = TextSettings | SliderSettings | undefined;
 
 /**
  * WorkItemProperty model interfaces
@@ -77,13 +77,31 @@ interface CreateRelationWorkItemProperty extends BaseCreateWorkItemProperty {
   relation_type?: PropertyRelationType;
 }
 
+// A whole number from 1 to 5. Plane refuses settings, a default value and is_multi for it.
+interface CreateRatingWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "RATING";
+  settings?: never;
+  default_value?: never;
+  is_multi?: false;
+}
+
+// A whole number from 0 to 10. Plane sets its bounds itself and refuses settings, a default value and is_multi.
+interface CreateSliderWorkItemProperty extends BaseCreateWorkItemProperty {
+  property_type: "SLIDER";
+  settings?: never;
+  default_value?: never;
+  is_multi?: false;
+}
+
 export type CreateWorkItemProperty =
   | CreateTextWorkItemProperty
   | CreateDecimalWorkItemProperty
   | CreateOptionWorkItemProperty
   | CreateBooleanWorkItemProperty
   | CreateDateTimeWorkItemProperty
-  | CreateRelationWorkItemProperty;
+  | CreateRelationWorkItemProperty
+  | CreateRatingWorkItemProperty
+  | CreateSliderWorkItemProperty;
 
 export type UpdateWorkItemProperty = Partial<WorkItemProperty>;
 
@@ -95,6 +113,12 @@ export interface ListWorkItemPropertiesParams {
 
 export type TextSettings = {
   display_format: "single-line" | "multi-line" | "readonly";
+};
+
+/** A Slider's bounds, as Plane returns them: always 0 and 10. */
+export type SliderSettings = {
+  min: number;
+  max: number;
 };
 
 /**
